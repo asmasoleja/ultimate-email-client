@@ -4,15 +4,13 @@
  */
 package com.gmail.higginson555.adam.gui;
 
+import java.io.FileInputStream;
 import java.util.Properties;
  
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
-import javax.mail.Transport;
+import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -25,14 +23,17 @@ public class HomeScreen extends javax.swing.JFrame
     private String username, password;
     //The properties to use for sending messages
     private Properties properties;
+    //The properties for the config
+    private Properties config;
 
     /**
      * Creates new form HomeScreen
      */
-    public HomeScreen(String username, String password) 
+    public HomeScreen(String username, String password, Properties config) 
     {
         this.username = username;
         this.password = password;
+        this.config = config;
         
         //Set properties
         //TODO At the moment this uses gmail stuff, perhaps enable customisation?
@@ -44,6 +45,7 @@ public class HomeScreen extends javax.swing.JFrame
         
         //Initialise GUI
         initComponents();
+        this.setLocationRelativeTo(null);
     }
 
     /**
@@ -56,25 +58,28 @@ public class HomeScreen extends javax.swing.JFrame
     private void initComponents() {
 
         jScrollPane1 = new javax.swing.JScrollPane();
-        jList1 = new javax.swing.JList();
+        emailList = new javax.swing.JList();
         composeButton = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
         jTextPane1 = new javax.swing.JTextPane();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
+        refreshButton = new javax.swing.JButton();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
+        settingsMenu = new javax.swing.JMenu();
+        optionsMenuItem = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Ultimate E-mail Client");
         setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
 
-        jList1.setModel(new javax.swing.AbstractListModel() {
-            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
+        emailList.setModel(new javax.swing.AbstractListModel() {
+            String[] strings = { };
             public int getSize() { return strings.length; }
             public Object getElementAt(int i) { return strings[i]; }
         });
-        jScrollPane1.setViewportView(jList1);
+        jScrollPane1.setViewportView(emailList);
 
         composeButton.setText("Compose");
         composeButton.addActionListener(new java.awt.event.ActionListener() {
@@ -89,8 +94,28 @@ public class HomeScreen extends javax.swing.JFrame
 
         jLabel2.setText("Message");
 
+        refreshButton.setText("Refresh");
+        refreshButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                refreshButtonActionPerformed(evt);
+            }
+        });
+
         jMenu1.setText("File");
         jMenuBar1.add(jMenu1);
+
+        settingsMenu.setText("Settings");
+
+        optionsMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.CTRL_MASK));
+        optionsMenuItem.setText("Options");
+        optionsMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                optionsMenuItemActionPerformed(evt);
+            }
+        });
+        settingsMenu.add(optionsMenuItem);
+
+        jMenuBar1.add(settingsMenu);
 
         setJMenuBar(jMenuBar1);
 
@@ -100,15 +125,17 @@ public class HomeScreen extends javax.swing.JFrame
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(composeButton)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(composeButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(refreshButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 122, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel1))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                    .addComponent(jLabel1)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 157, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel2)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 470, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 427, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel2))
                 .addContainerGap(18, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -120,7 +147,9 @@ public class HomeScreen extends javax.swing.JFrame
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(composeButton)
                             .addComponent(jLabel1)
-                            .addComponent(jLabel2)))
+                            .addComponent(jLabel2))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(refreshButton))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(31, 31, 31)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -142,6 +171,83 @@ public class HomeScreen extends javax.swing.JFrame
         
         mailScreen.setVisible((true));
     }//GEN-LAST:event_composeButtonActionPerformed
+
+    private void optionsMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_optionsMenuItemActionPerformed
+        OptionsScreen options = new OptionsScreen(config);
+        options.setVisible(true);
+    }//GEN-LAST:event_optionsMenuItemActionPerformed
+
+    private void refreshButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshButtonActionPerformed
+        Store store = null;
+        Folder folder = null;
+        try
+        {
+            Authenticator authenticator = new Authenticator() {
+                @Override
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication(username, password);
+                }
+            };
+            Session session = Session.getDefaultInstance(properties, authenticator);
+            
+            //config.load(new FileInputStream("config.properties"));
+            
+            //Read info from property file
+            String usernameProp = config.getProperty("username");
+            String serverType = config.getProperty("server_type");
+            String incoming = config.getProperty("incoming_server");
+            
+            //If these haven't been filled in, we can't connect to the server!
+            if (usernameProp == null || serverType == null || incoming == null)
+            {
+                JOptionPane.showMessageDialog(rootPane, "Make sure option fields are filled!", 
+                                              "Error!", JOptionPane.OK_OPTION);
+                
+                return;
+            }
+            
+            store = session.getStore(serverType.toLowerCase());
+                
+            
+            //store = session.getStore(serverType);
+            store.connect(incoming, usernameProp, this.password);
+            
+            //Get the default folder
+            folder = store.getDefaultFolder();
+            if (folder == null) 
+                throw new Exception("No default folder found!");
+            folder = folder.getFolder("INBOX");
+            if (folder == null)
+                throw new Exception("No inbox found!");
+            folder.open(Folder.READ_ONLY);
+            
+            //Get messages
+            Message[] messages = folder.getMessages();
+            String[] messageTitle = new String[messages.length];
+            
+            for (int i = 0; i < messages.length; i++)
+            {
+                messageTitle[i] = messages[i].getSubject();
+            }
+            
+            this.emailList.setListData(messageTitle);              
+                
+        }
+        catch(Exception ex)
+        {
+            ex.printStackTrace();
+        }
+        finally
+        {
+            try
+            {
+                if (folder != null) folder.close(false);
+                if (store != null) store.close();
+            }
+            catch (Exception exClose) {exClose.printStackTrace();}
+        }
+        
+    }//GEN-LAST:event_refreshButtonActionPerformed
 
     /**
      * @param args the command line arguments
@@ -186,13 +292,16 @@ public class HomeScreen extends javax.swing.JFrame
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton composeButton;
+    private javax.swing.JList emailList;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JList jList1;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTextPane jTextPane1;
+    private javax.swing.JMenuItem optionsMenuItem;
+    private javax.swing.JButton refreshButton;
+    private javax.swing.JMenu settingsMenu;
     // End of variables declaration//GEN-END:variables
 }
