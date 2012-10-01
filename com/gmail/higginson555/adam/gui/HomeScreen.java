@@ -18,12 +18,31 @@ import javax.mail.internet.MimeMessage;
  *
  * @author Adam
  */
-public class HomeScreen extends javax.swing.JFrame {
+public class HomeScreen extends javax.swing.JFrame 
+{
+    
+    //Username and password for the user in this client
+    private String username, password;
+    //The properties to use for sending messages
+    private Properties properties;
 
     /**
      * Creates new form HomeScreen
      */
-    public HomeScreen() {
+    public HomeScreen(String username, String password) 
+    {
+        this.username = username;
+        this.password = password;
+        
+        //Set properties
+        //TODO At the moment this uses gmail stuff, perhaps enable customisation?
+        this.properties = System.getProperties();
+        this.properties.put("mail.smtp.auth", "true");
+        this.properties.put("mail.smtp.starttls.enable", "true");
+        this.properties.put("mail.smtp.host", "smtp.gmail.com");
+        this.properties.put("mail.smtp.port", "587");
+        
+        //Initialise GUI
         initComponents();
     }
 
@@ -113,27 +132,15 @@ public class HomeScreen extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    /*
+     * Activated when compose button is pressed. Creates a new ComposeMailScreen,
+     * to allow the user to compose a new mail message
+     */
     private void composeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_composeButtonActionPerformed
-        // TODO add your handling code here:
-        Properties props = new Properties();
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.smtp.host", "smtp.gmail.com");
-        props.put("mail.smtp.port", "587");
+        ComposeMailScreen mailScreen = 
+           new ComposeMailScreen(this.username, this.password, this.properties);
         
-        Session session = Session.getInstance(props, new javax.mail.Authenticator() {
-            @Override
-			protected PasswordAuthentication getPasswordAuthentication() {
-				return new PasswordAuthentication("adam.higginson555", "oak19house");
-			}
-		  });
-        
-        try {
-            Message message = new MimeMessage(session);
-            message.setFrom(new InternetAddress("adam.higginson555@gmail.com"));
-            message.setRecipient(Message.RecipientType.TO, InternetAddress.parse("adam.higginson555@gmail.com"));
-        }
-        
+        mailScreen.setVisible((true));
     }//GEN-LAST:event_composeButtonActionPerformed
 
     /**
@@ -173,7 +180,7 @@ public class HomeScreen extends javax.swing.JFrame {
         java.awt.EventQueue.invokeLater(new Runnable() {
 
             public void run() {
-                new HomeScreen().setVisible(true);
+               // new HomeScreen().setVisible(true);
             }
         });
     }
