@@ -5,6 +5,11 @@
 package com.gmail.higginson555.adam.gui;
 
 import java.util.Properties;
+import javax.mail.*;
+import javax.mail.Message.RecipientType;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 import javax.swing.JOptionPane;
 
 /**
@@ -26,6 +31,7 @@ public class ComposeMailScreen extends javax.swing.JFrame {
         this.password = password;
         this.properties = properties;
         initComponents();
+        this.setLocationRelativeTo(null);
     }
 
     /**
@@ -39,7 +45,7 @@ public class ComposeMailScreen extends javax.swing.JFrame {
 
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
-        sendField = new javax.swing.JTextField();
+        toField = new javax.swing.JTextField();
         subjectField = new javax.swing.JTextField();
         jScrollPane1 = new javax.swing.JScrollPane();
         messageArea = new javax.swing.JTextArea();
@@ -61,6 +67,11 @@ public class ComposeMailScreen extends javax.swing.JFrame {
         jScrollPane1.setViewportView(messageArea);
 
         sendButton.setText("Send");
+        sendButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                sendButtonActionPerformed(evt);
+            }
+        });
 
         discardButton.setText("Discard");
         discardButton.addActionListener(new java.awt.event.ActionListener() {
@@ -86,7 +97,7 @@ public class ComposeMailScreen extends javax.swing.JFrame {
                         .addGap(13, 13, 13)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(subjectField)
-                            .addComponent(sendField)))
+                            .addComponent(toField)))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(sendButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -107,7 +118,7 @@ public class ComposeMailScreen extends javax.swing.JFrame {
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel1)
-                    .addComponent(sendField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(toField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
@@ -130,6 +141,45 @@ public class ComposeMailScreen extends javax.swing.JFrame {
         if (result == 0)
             this.dispose();
     }//GEN-LAST:event_discardButtonActionPerformed
+
+    private void sendButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sendButtonActionPerformed
+        try
+        {
+            //TODO What if not using gmail SMTP?
+            //For TLS, which gmail requires
+            Authenticator authenticator = new Authenticator() {
+                @Override
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication(username, password);
+                }
+            };
+            
+            Session session = Session.getDefaultInstance(this.properties, authenticator);       
+            Message message = new MimeMessage(session);
+            //Set FROM and TO fields
+            message.setFrom(new InternetAddress(this.username));
+            message.setRecipients(RecipientType.TO, InternetAddress.parse(this.toField.getText(), false));
+            message.setSubject(this.subjectField.getText());
+            message.setText(this.messageArea.getText());
+            
+            System.out.println("Trying to send from: " + this.username);
+            
+            Transport.send(message);
+            System.out.println("Sent message from: " + this.username + " to: "+ this.toField.getText());
+            
+            this.dispose();
+        }
+        catch (AddressException addressEx)
+        {
+            JOptionPane.showConfirmDialog(rootPane, "Error!", 
+                    "Could not parse TO field\n" + addressEx.getMessage(), 
+                    JOptionPane.OK_OPTION);
+        }
+        catch (Exception ex)
+        {
+            ex.printStackTrace();
+        }
+    }//GEN-LAST:event_sendButtonActionPerformed
 
     /**
      * @param args the command line arguments
@@ -180,7 +230,7 @@ public class ComposeMailScreen extends javax.swing.JFrame {
     private javax.swing.JTextArea messageArea;
     private javax.swing.JButton saveButton;
     private javax.swing.JButton sendButton;
-    private javax.swing.JTextField sendField;
     private javax.swing.JTextField subjectField;
+    private javax.swing.JTextField toField;
     // End of variables declaration//GEN-END:variables
 }
