@@ -72,6 +72,9 @@ public class HomeScreen extends javax.swing.JFrame
         //Initialise GUI
         initComponents();
         this.setLocationRelativeTo(null);
+        
+        //Try connecting
+        connectToServer();
     }
 
     /**
@@ -205,8 +208,11 @@ public class HomeScreen extends javax.swing.JFrame
         options.setVisible(true);
     }//GEN-LAST:event_optionsMenuItemActionPerformed
 
-    
-    private void refreshButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshButtonActionPerformed
+    /*
+     * Tries to connect to the server and opens a store
+     */
+    private void connectToServer()
+    {
         try
         {
             Authenticator authenticator = new Authenticator() {
@@ -276,7 +282,27 @@ public class HomeScreen extends javax.swing.JFrame
         catch(Exception ex)
         {
             ex.printStackTrace();
-        }        
+        }     
+    }
+    
+    private void closeConnections() throws Exception
+    {
+        if (inbox != null) inbox.close(false);
+        if (store != null) store.close();
+    }
+    
+    private void refreshButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshButtonActionPerformed
+        
+        //First try and close existing connections
+        try
+        {
+            closeConnections();
+        }
+        catch (Exception ex)
+        {
+            JOptionPane.showConfirmDialog(rootPane, "Error! Could not close connections!", "Error!", JOptionPane.OK_OPTION);
+        }
+        connectToServer();
     }//GEN-LAST:event_refreshButtonActionPerformed
 
     /*
@@ -308,8 +334,7 @@ public class HomeScreen extends javax.swing.JFrame
     {
         try
         {
-            if (inbox != null) inbox.close(false);
-            if (store != null) store.close();
+            closeConnections();
         }
         catch (Exception exClose) {exClose.printStackTrace();}
         

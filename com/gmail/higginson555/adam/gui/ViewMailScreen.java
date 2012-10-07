@@ -48,8 +48,12 @@ public class ViewMailScreen extends javax.swing.JFrame {
         }
     }
     
+    /*
+     * Writes message to the text area
+     */
     private void writeMessage(Part part) throws Exception 
     {
+        //Write the envelope if the message
         if (part instanceof Message)
             writeEnvelope((Message) part);
             
@@ -84,7 +88,7 @@ public class ViewMailScreen extends javax.swing.JFrame {
         }
         else
         {
-            //TODO Save attatchments here
+            //TODO Try and show the attatchment?
             if (level != 0 && part instanceof MimeBodyPart && !part.isMimeType("multipart/*"))
             {
                 String disposition = part.getDisposition();
@@ -336,8 +340,8 @@ public class ViewMailScreen extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(subjectLabel)
                     .addComponent(subjectLabelStatic))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 387, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 432, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
