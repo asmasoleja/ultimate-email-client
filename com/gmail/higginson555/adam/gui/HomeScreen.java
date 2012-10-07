@@ -5,11 +5,13 @@
 package com.gmail.higginson555.adam.gui;
 
 import java.io.FileInputStream;
+import java.util.ArrayList;
 import java.util.Properties;
  
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 
 /**
@@ -19,12 +21,21 @@ import javax.swing.JOptionPane;
 public class HomeScreen extends javax.swing.JFrame 
 {
     
+    //The amount of messages to show by default
+    private static final int MESSAGES_DEFAULT_SIZE = 100;
+    
     //Username and password for the user in this client
     private String username, password;
     //The properties to use for sending messages
     private Properties properties;
     //The properties for the config
     private Properties config;
+    //An array list of every message 
+    private ArrayList<Message> messages;
+    //The store
+    private Store store = null;
+    //The inbox folder
+    private Folder inbox = null;
 
     /**
      * Creates new form HomeScreen
@@ -34,6 +45,21 @@ public class HomeScreen extends javax.swing.JFrame
         this.username = username;
         this.password = password;
         this.config = config;
+        this.messages = new ArrayList<Message>(MESSAGES_DEFAULT_SIZE);
+        
+        String usernameProp = config.getProperty("username");
+        String serverType = config.getProperty("server_type");
+        String incoming = config.getProperty("incoming_server");
+        
+        System.out.println(incoming);
+        //If these haven't been filled in, we can't connect to the server!
+        if (usernameProp == null || serverType == null || incoming == null)
+        {
+            //Open up options pane
+            OptionsScreen options = new OptionsScreen(config);
+            options.setVisible(true);
+            options.setAlwaysOnTop(true);
+        }
         
         //Set properties
         //TODO At the moment this uses gmail stuff, perhaps enable customisation?
@@ -60,17 +86,16 @@ public class HomeScreen extends javax.swing.JFrame
         jScrollPane1 = new javax.swing.JScrollPane();
         emailList = new javax.swing.JList();
         composeButton = new javax.swing.JButton();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        jTextPane1 = new javax.swing.JTextPane();
         jLabel1 = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
         refreshButton = new javax.swing.JButton();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        jTree1 = new javax.swing.JTree();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         settingsMenu = new javax.swing.JMenu();
         optionsMenuItem = new javax.swing.JMenuItem();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Ultimate E-mail Client");
         setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
 
@@ -78,6 +103,11 @@ public class HomeScreen extends javax.swing.JFrame
             String[] strings = { };
             public int getSize() { return strings.length; }
             public Object getElementAt(int i) { return strings[i]; }
+        });
+        emailList.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                emailListMouseClicked(evt);
+            }
         });
         jScrollPane1.setViewportView(emailList);
 
@@ -88,11 +118,7 @@ public class HomeScreen extends javax.swing.JFrame
             }
         });
 
-        jScrollPane2.setViewportView(jTextPane1);
-
         jLabel1.setText("E-mails");
-
-        jLabel2.setText("Message");
 
         refreshButton.setText("Refresh");
         refreshButton.addActionListener(new java.awt.event.ActionListener() {
@@ -100,6 +126,8 @@ public class HomeScreen extends javax.swing.JFrame
                 refreshButtonActionPerformed(evt);
             }
         });
+
+        jScrollPane3.setViewportView(jTree1);
 
         jMenu1.setText("File");
         jMenuBar1.add(jMenu1);
@@ -130,13 +158,14 @@ public class HomeScreen extends javax.swing.JFrame
                     .addComponent(refreshButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel1)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 157, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 427, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel2))
-                .addContainerGap(18, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel1)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 157, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(28, 28, 28)
+                        .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 425, Short.MAX_VALUE)))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -146,15 +175,14 @@ public class HomeScreen extends javax.swing.JFrame
                         .addContainerGap()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(composeButton)
-                            .addComponent(jLabel1)
-                            .addComponent(jLabel2))
+                            .addComponent(jLabel1))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(refreshButton))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(31, 31, 31)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 373, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 373, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 373, Short.MAX_VALUE)
+                            .addComponent(jScrollPane3))))
                 .addGap(0, 15, Short.MAX_VALUE))
         );
 
@@ -177,9 +205,8 @@ public class HomeScreen extends javax.swing.JFrame
         options.setVisible(true);
     }//GEN-LAST:event_optionsMenuItemActionPerformed
 
+    
     private void refreshButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshButtonActionPerformed
-        Store store = null;
-        Folder folder = null;
         try
         {
             Authenticator authenticator = new Authenticator() {
@@ -188,7 +215,7 @@ public class HomeScreen extends javax.swing.JFrame
                     return new PasswordAuthentication(username, password);
                 }
             };
-            Session session = Session.getDefaultInstance(properties, authenticator);
+            Session session = Session.getInstance(properties, authenticator);
             
             //config.load(new FileInputStream("config.properties"));
             
@@ -213,42 +240,81 @@ public class HomeScreen extends javax.swing.JFrame
             store.connect(incoming, usernameProp, this.password);
             
             //Get the default folder
-            folder = store.getDefaultFolder();
-            if (folder == null) 
-                throw new Exception("No default folder found!");
-            folder = folder.getFolder("INBOX");
-            if (folder == null)
+            inbox = store.getDefaultFolder();
+            if (inbox == null) 
+                throw new Exception("No default inbox found!");
+            inbox = inbox.getFolder("INBOX");
+            if (inbox == null)
                 throw new Exception("No inbox found!");
-            folder.open(Folder.READ_ONLY);
+            inbox.open(Folder.READ_ONLY);
             
-            //Get messages
-            Message[] messages = folder.getMessages();
-            String[] messageTitle = new String[messages.length];
+            //Get messages and add to messages array list
+            int messageCount = inbox.getMessageCount();
+            System.out.println("Getting: " + messageCount + " messages...");
+            Message[] messagesArray = inbox.getMessages();
+            System.out.println("Done!");
             
-            for (int i = 0; i < messages.length; i++)
+            System.out.println("Adding messages...");
+            for (int i = 0; i < messagesArray.length; ++i)
             {
-                messageTitle[i] = messages[i].getSubject();
+                messages.add(messagesArray[i]);
+            }
+            System.out.println("Done!");
+            
+            String[] messageTitle = new String[messagesArray.length];
+            
+            for (int i = 0; i < messagesArray.length; i++)
+            {
+                messageTitle[i] = messagesArray[i].getSubject();
             }
             
-            this.emailList.setListData(messageTitle);              
+            System.out.println("Setting list data...");
+            this.emailList.setListData(messageTitle);  
+            System.out.println("Done!");
                 
         }
         catch(Exception ex)
         {
             ex.printStackTrace();
-        }
-        finally
-        {
-            try
-            {
-                if (folder != null) folder.close(false);
-                if (store != null) store.close();
-            }
-            catch (Exception exClose) {exClose.printStackTrace();}
-        }
-        
+        }        
     }//GEN-LAST:event_refreshButtonActionPerformed
 
+    /*
+     * If a double mouse click, we try to view the e-mail
+     */
+    private void emailListMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_emailListMouseClicked
+        
+        JList list = (JList)evt.getSource();
+        int index = -1;
+        if (evt.getClickCount() == 2)
+        {
+            index = list.locationToIndex(evt.getPoint());
+        }
+        else if (evt.getClickCount() == 3) //triple click
+        {
+            index = list.locationToIndex(evt.getPoint());
+        }
+        
+        if (index != -1)
+        {
+            Message selectedMessage = messages.get(index);
+            ViewMailScreen viewMail = new ViewMailScreen(selectedMessage);
+            viewMail.setVisible(true);
+        }
+    }//GEN-LAST:event_emailListMouseClicked
+
+    @Override
+    public void dispose()
+    {
+        try
+        {
+            if (inbox != null) inbox.close(false);
+            if (store != null) store.close();
+        }
+        catch (Exception exClose) {exClose.printStackTrace();}
+        
+        super.dispose();
+    }
     /**
      * @param args the command line arguments
      */
@@ -294,12 +360,11 @@ public class HomeScreen extends javax.swing.JFrame
     private javax.swing.JButton composeButton;
     private javax.swing.JList emailList;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JTextPane jTextPane1;
+    private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JTree jTree1;
     private javax.swing.JMenuItem optionsMenuItem;
     private javax.swing.JButton refreshButton;
     private javax.swing.JMenu settingsMenu;
