@@ -47,6 +47,7 @@ public class LoginScreen extends javax.swing.JFrame {
             System.out.println("Could not find default config file");
             try 
             {
+                config = new Properties();
                 FileOutputStream configOut = new FileOutputStream("config.properties");
                 config.store(configOut, null);
             } 
