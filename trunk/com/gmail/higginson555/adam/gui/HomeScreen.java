@@ -4,13 +4,10 @@
  */
 package com.gmail.higginson555.adam.gui;
 
-import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.Properties;
  
 import javax.mail.*;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 
@@ -63,11 +60,14 @@ public class HomeScreen extends javax.swing.JFrame
         
         //Set properties
         //TODO At the moment this uses gmail stuff, perhaps enable customisation?
-        this.properties = System.getProperties();
-        this.properties.put("mail.smtp.auth", "true");
-        this.properties.put("mail.smtp.starttls.enable", "true");
-        this.properties.put("mail.smtp.host", "smtp.gmail.com");
-        this.properties.put("mail.smtp.port", "587");
+
+        this.properties = new Properties();
+        properties.put("mail.smtp.host", "studentmail.cs.manchester.ac.uk");
+        properties.put("mail.smtp.socketFactory.port", "465");
+        properties.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+        properties.put("mail.smtp.auth", "true");
+        properties.put("mail.smtp.port", "465");
+
         
         //Initialise GUI
         initComponents();
@@ -238,7 +238,8 @@ public class HomeScreen extends javax.swing.JFrame
                 
                 return;
             }
-            
+
+            System.out.println("Username: " + usernameProp + " Server type: " + serverType + " incoming " + incoming);
             store = session.getStore(serverType.toLowerCase());
                 
             
