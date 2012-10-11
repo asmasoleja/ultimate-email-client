@@ -4,13 +4,10 @@
  */
 package com.gmail.higginson555.adam.gui;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.concurrent.CountDownLatch;
 
 /**
  *
@@ -20,22 +17,28 @@ public class OptionsScreen extends javax.swing.JFrame {
 
     //The config file
     private Properties props;
+    //The countdown latch, letting the home screen know when we're done
+    CountDownLatch countdown;
     /**
      * Creates new form OptionsScreen
      */
-    public OptionsScreen(Properties props) 
+    public OptionsScreen(Properties props, CountDownLatch countdown) 
     {
         initComponents();
         this.setLocationRelativeTo(null);
         this.props = props;
+        this.countdown = countdown;
+        System.out.println("Set countdown with: " + this.countdown.getCount());
         String incoming = props.getProperty("incoming_server");
         String outgoing = props.getProperty("outgoing_server");
         String username = props.getProperty("username");
         String serverType = props.getProperty("server_type");
+        String port = props.getProperty("smtp_port");
 
         this.incomingField.setText(incoming);
         this.outgoingField.setText(outgoing);
         this.usernameField.setText(username);
+        this.portField.setText(port);
         if (serverType != null && serverType.equals("POP3"))
         {
             this.serverCombo.setSelectedIndex(0);
@@ -44,6 +47,7 @@ public class OptionsScreen extends javax.swing.JFrame {
         {
             this.serverCombo.setSelectedIndex(1);
         }  
+        
     }
 
     /**
@@ -72,6 +76,8 @@ public class OptionsScreen extends javax.swing.JFrame {
         jLabel9 = new javax.swing.JLabel();
         applyButton = new javax.swing.JButton();
         cancelButton = new javax.swing.JButton();
+        jLabel10 = new javax.swing.JLabel();
+        portField = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setResizable(false);
@@ -118,6 +124,14 @@ public class OptionsScreen extends javax.swing.JFrame {
             }
         });
 
+        jLabel10.setText("Outgoing mail server port:");
+
+        portField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                portFieldActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -126,31 +140,6 @@ public class OptionsScreen extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel2)
-                                    .addComponent(jLabel3)
-                                    .addComponent(jLabel4)
-                                    .addComponent(jLabel6)
-                                    .addComponent(jLabel1)
-                                    .addComponent(jLabel5)
-                                    .addComponent(jLabel7))
-                                .addGap(27, 27, 27)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(incomingField)
-                                    .addComponent(serverCombo, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(outgoingField)
-                                    .addComponent(usernameField)
-                                    .addComponent(passwordField)))
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addGap(251, 251, 251)
-                                .addComponent(applyButton)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(cancelButton)
-                                .addGap(5, 5, 5))))
-                    .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
                                 .addContainerGap()
@@ -158,7 +147,36 @@ public class OptionsScreen extends javax.swing.JFrame {
                             .addGroup(layout.createSequentialGroup()
                                 .addGap(31, 31, 31)
                                 .addComponent(jLabel9)))
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addGap(0, 251, Short.MAX_VALUE)
+                                .addComponent(applyButton)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(cancelButton)
+                                .addGap(5, 5, 5))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel2)
+                                    .addComponent(jLabel3)
+                                    .addComponent(jLabel4)
+                                    .addComponent(jLabel6)
+                                    .addComponent(jLabel1)
+                                    .addComponent(jLabel7)
+                                    .addComponent(jLabel10))
+                                .addGap(27, 27, 27)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(incomingField)
+                                    .addComponent(serverCombo, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(outgoingField)
+                                    .addComponent(usernameField)
+                                    .addComponent(passwordField)
+                                    .addComponent(portField)))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel5)
+                                .addGap(0, 0, Short.MAX_VALUE)))))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -184,9 +202,13 @@ public class OptionsScreen extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4)
                     .addComponent(outgoingField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(4, 4, 4)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel10)
+                    .addComponent(portField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addComponent(jLabel5)
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel6)
                     .addComponent(usernameField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -212,6 +234,7 @@ public class OptionsScreen extends javax.swing.JFrame {
         props.setProperty("incoming_server", this.incomingField.getText());
         props.setProperty("outgoing_server", this.outgoingField.getText());
         props.setProperty("username", this.usernameField.getText());
+        props.setProperty("smtp_port", this.portField.getText());
         if (this.serverCombo.getSelectedIndex() == 0)
             props.setProperty("server_type", "POP3");
         else
@@ -233,6 +256,16 @@ public class OptionsScreen extends javax.swing.JFrame {
         this.dispose();
     }//GEN-LAST:event_cancelButtonActionPerformed
 
+    private void portFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_portFieldActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_portFieldActionPerformed
+
+    @Override
+    public void dispose()
+    {
+        countdown.countDown();
+        super.dispose();
+    }
     /**
      * @param args the command line arguments
      */
@@ -279,6 +312,7 @@ public class OptionsScreen extends javax.swing.JFrame {
     private javax.swing.JButton cancelButton;
     private javax.swing.JTextField incomingField;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -290,6 +324,7 @@ public class OptionsScreen extends javax.swing.JFrame {
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JTextField outgoingField;
     private javax.swing.JPasswordField passwordField;
+    private javax.swing.JTextField portField;
     private javax.swing.JComboBox serverCombo;
     private javax.swing.JTextField usernameField;
     // End of variables declaration//GEN-END:variables
