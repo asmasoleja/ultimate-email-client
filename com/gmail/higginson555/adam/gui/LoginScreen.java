@@ -15,7 +15,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
+ * DEPRECEATED!!! NO LONGER USED!
  * @author Adam
  */
 public class LoginScreen extends javax.swing.JFrame {
@@ -189,11 +189,11 @@ public class LoginScreen extends javax.swing.JFrame {
         }
         
         char[] inputPassword = passwordField.getPassword();
-        HomeScreen homeScreen = new HomeScreen(usernameField.getText(), 
-                                               new String(inputPassword), config);
+        //HomeScreen homeScreen = new HomeScreen(usernameField.getText(), 
+//                                               new String(inputPassword), config);
         Arrays.fill(inputPassword, '0');
         
-        homeScreen.setVisible((true));
+//        homeScreen.setVisible((true));
         this.dispose();
     }
     
