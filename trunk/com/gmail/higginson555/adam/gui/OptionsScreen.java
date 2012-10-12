@@ -4,10 +4,16 @@
  */
 package com.gmail.higginson555.adam.gui;
 
+import com.gmail.higginson555.adam.ProtectedPassword;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.util.Arrays;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -17,18 +23,17 @@ public class OptionsScreen extends javax.swing.JFrame {
 
     //The config file
     private Properties props;
-    //The countdown latch, letting the home screen know when we're done
-    CountDownLatch countdown;
+    //Whether this is a first time run, if it is, we create a HomeScreen
+    private boolean firstTime;
     /**
      * Creates new form OptionsScreen
      */
-    public OptionsScreen(Properties props, CountDownLatch countdown) 
+    public OptionsScreen(Properties props, boolean firstTime) 
     {
         initComponents();
         this.setLocationRelativeTo(null);
         this.props = props;
-        this.countdown = countdown;
-        System.out.println("Set countdown with: " + this.countdown.getCount());
+        this.firstTime = firstTime;
         String incoming = props.getProperty("incoming_server");
         String outgoing = props.getProperty("outgoing_server");
         String username = props.getProperty("username");
@@ -235,24 +240,54 @@ public class OptionsScreen extends javax.swing.JFrame {
         props.setProperty("outgoing_server", this.outgoingField.getText());
         props.setProperty("username", this.usernameField.getText());
         props.setProperty("smtp_port", this.portField.getText());
+        
+        char[] inputPassword = passwordField.getPassword();
+        String passwordString = new String(inputPassword);
+        String encryptedPassword = null;
+        try 
+        {
+            encryptedPassword = ProtectedPassword.encrypt(passwordString);
+        } 
+        catch (GeneralSecurityException ex) 
+        {
+            JOptionPane.showMessageDialog(rootPane, ex.toString(), "Security Exception!", JOptionPane.ERROR_MESSAGE);
+            System.exit(-1);
+        }
+        
+        Arrays.fill(inputPassword, '0');
+        
+        props.setProperty("password", encryptedPassword);
+        
         if (this.serverCombo.getSelectedIndex() == 0)
             props.setProperty("server_type", "POP3");
         else
             props.setProperty("server_type", "IMAP");
         try 
         {
-            props.store(new FileOutputStream("config.properties"), null);
+            props.store(new FileOutputStream("email.cfg"), null);
         } 
         catch (IOException ex) 
         {
             ex.printStackTrace();
         }
         
+        if (firstTime)
+        {
+            HomeScreen home = new HomeScreen(props);
+            home.setVisible(true);
+        }
+                
         this.dispose();
         
     }//GEN-LAST:event_applyButtonActionPerformed
 
     private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
+        if (firstTime)
+        {
+            System.out.println("Exiting, no info filled...");
+            System.exit(0);
+        }
+        
         this.dispose();
     }//GEN-LAST:event_cancelButtonActionPerformed
 
@@ -263,7 +298,6 @@ public class OptionsScreen extends javax.swing.JFrame {
     @Override
     public void dispose()
     {
-        countdown.countDown();
         super.dispose();
     }
     /**

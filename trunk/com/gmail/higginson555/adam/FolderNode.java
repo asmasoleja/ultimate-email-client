@@ -37,7 +37,10 @@ public class FolderNode extends DefaultMutableTreeNode
     {
         try
         {
-            return ((folder.getType() & Folder.HOLDS_FOLDERS) == 0);
+            if ((folder.getType() & Folder.HOLDS_FOLDERS) == 0)
+            {
+                return true;
+            }
         }
         catch (MessagingException mesEx)
         {
@@ -91,7 +94,7 @@ public class FolderNode extends DefaultMutableTreeNode
         {
             Folder[] subfolders = folder.list();
             //If no subfolders found in this folder
-            if (subfolders.length == 0)
+            /*if (subfolders.length == 0)
             {
                 //Try and get any messages held by this folder
                 if (!folder.isOpen())
@@ -104,14 +107,14 @@ public class FolderNode extends DefaultMutableTreeNode
                 }
             }
             else
+            {*/
+            //Add folder nodes for each subfolder
+            for (int i = 0; i < subfolders.length; ++i)
             {
-                //Add folder nodes for each subfolder
-                for (int i = 0; i < subfolders.length; ++i)
-                {
-                    FolderNode newNode = new FolderNode(subfolders[i]);
-                    insert(newNode, i);
-                }
+                FolderNode newNode = new FolderNode(subfolders[i]);
+                insert(newNode, i);
             }
+            //}
         }
         catch (MessagingException mesEx)
         {
