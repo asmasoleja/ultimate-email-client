@@ -59,16 +59,23 @@ public class ViewMailScreen extends javax.swing.JFrame {
             
         String filename = part.getFileName();
         
+        System.out.println("Content type: " + part.getContentType());
+        
         //We use isMimeType to determine the content type, avoiding
         //having to get the content data until we need it
-        if (part.isMimeType("text/plain"))
+        if (part.isMimeType("text/plain") || part.isMimeType("TEXT/PLAIN"))
         {
             bodyTextPane.setContentType("text/plain");
             bodyTextPane.setText((String)part.getContent());
         }
-        if (part.isMimeType("text/html"))
+        if (part.isMimeType("text/html") || part.isMimeType("TEXT/HTML"))
         {
             bodyTextPane.setContentType("text/html");
+            System.out.println("Found html!");
+            System.out.println("Message:");
+            System.out.println(part.getContent());
+            System.out.println();
+            System.out.println("Length: " + part.getContent().toString().length());
             bodyTextPane.setText((String)part.getContent());
         }
         else if (part.isMimeType("multipart/*"))
@@ -96,7 +103,10 @@ public class ViewMailScreen extends javax.swing.JFrame {
                 if (disposition == null || disposition.equalsIgnoreCase(Part.ATTACHMENT))
                 {
                     if (filename == null)
+                    {
                         filename = "Attachment" + attatchmentNo++;
+                        return; //TODO Make this so it doesn't return?
+                    }
                     System.out.println("Saving attatchment to file: " + filename);
                     
                     try
@@ -237,8 +247,8 @@ public class ViewMailScreen extends javax.swing.JFrame {
 
         toLabel.setText("To Label");
 
+        bodyTextPane.setEditable(false);
         bodyTextPane.setDisabledTextColor(new java.awt.Color(0, 0, 0));
-        bodyTextPane.setEnabled(false);
         jScrollPane1.setViewportView(bodyTextPane);
 
         subjectLabelStatic.setText("Subject:");
@@ -341,7 +351,7 @@ public class ViewMailScreen extends javax.swing.JFrame {
                     .addComponent(subjectLabel)
                     .addComponent(subjectLabelStatic))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 432, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 435, Short.MAX_VALUE)
                 .addContainerGap())
         );
 

@@ -111,7 +111,7 @@
                   <Component id="subjectLabelStatic" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="jScrollPane1" pref="432" max="32767" attributes="0"/>
+              <Component id="jScrollPane1" pref="435" max="32767" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
           </Group>
       </Group>
@@ -160,10 +160,10 @@
       <SubComponents>
         <Component class="javax.swing.JTextPane" name="bodyTextPane">
           <Properties>
+            <Property name="editable" type="boolean" value="false"/>
             <Property name="disabledTextColor" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
               <Color blue="0" green="0" red="0" type="rgb"/>
             </Property>
-            <Property name="enabled" type="boolean" value="false"/>
           </Properties>
         </Component>
       </SubComponents>
