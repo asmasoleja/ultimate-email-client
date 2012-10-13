@@ -5,14 +5,11 @@
 package com.gmail.higginson555.adam;
 
 import com.gmail.higginson555.adam.gui.HomeScreen;
-import com.gmail.higginson555.adam.gui.LoginScreen;
 import com.gmail.higginson555.adam.gui.OptionsScreen;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 
 /**

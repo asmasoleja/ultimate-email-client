@@ -4,13 +4,23 @@
  */
 package com.gmail.higginson555.adam.gui;
 
+import java.awt.BorderLayout;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.swing.JOptionPane;
+import org.lobobrowser.html.UserAgentContext;
+import org.lobobrowser.html.gui.HtmlPanel;
+import org.lobobrowser.html.parser.DocumentBuilderImpl;
+import org.lobobrowser.html.test.SimpleHtmlRendererContext;
+import org.lobobrowser.html.test.SimpleUserAgentContext;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
 
 /**
  *
@@ -27,8 +37,11 @@ public class ViewMailScreen extends javax.swing.JFrame {
     //The level we're currently in on reading the message
     private int level;
     
+    private String body; 
     
-    /**
+    
+    
+   /**
      * Creates new form ViewMailScreen
      * @param message The message object which represents the
      *                received e-mail
@@ -37,10 +50,39 @@ public class ViewMailScreen extends javax.swing.JFrame {
     {
         this.message = message;
         this.level = 0;
+        
+        body = "";
         initComponents();
+        
+        
+        UserAgentContext ucontext = new SimpleUserAgentContext();
+        SimpleHtmlRendererContext rContext = new SimpleHtmlRendererContext(panel, ucontext);
+        DocumentBuilderImpl dbi = new DocumentBuilderImpl(ucontext, rContext);
+                
+
+        //bodyTextPane.getDocument().putProperty("IgnoreCharsetDirective", Boolean.TRUE);
         try 
         {
+            System.out.println("\nWriting message...\n");
             writeMessage(message);
+            panel.setHtml(body, body, rContext);
+            System.out.println("\n---------------DONE-------------------\n");
+            
+            if (body.indexOf("<body") > -1)
+            {
+                System.out.println("Found <body");
+            }
+            else
+                System.out.println("Didn't find <body>");
+            
+            if (body.indexOf("</body>") > -1)
+            {
+                System.out.println("Found </body>"); 
+            }
+            else
+                System.out.println("Didn't find </body>");
+            
+            //bodyTextPane.setText(body);
         } 
         catch (Exception ex) 
         {
@@ -65,21 +107,21 @@ public class ViewMailScreen extends javax.swing.JFrame {
         //having to get the content data until we need it
         if (part.isMimeType("text/plain") || part.isMimeType("TEXT/PLAIN"))
         {
-            bodyTextPane.setContentType("text/plain");
-            bodyTextPane.setText((String)part.getContent());
+
+            //bodyTextPane.setContentType("text/plain");
+            System.out.println("Found plain");
+            //System.out.println("\nPlain Section:\n" + part.getContent());
+            //body += (String)part.getContent();
         }
-        if (part.isMimeType("text/html") || part.isMimeType("TEXT/HTML"))
+        else if (part.isMimeType("text/html") || part.isMimeType("TEXT/HTML"))
         {
-            bodyTextPane.setContentType("text/html");
-            System.out.println("Found html!");
-            System.out.println("Message:");
-            System.out.println(part.getContent());
-            System.out.println();
-            System.out.println("Length: " + part.getContent().toString().length());
-            bodyTextPane.setText((String)part.getContent());
+            //bodyTextPane.setContentType("text/html");
+            System.out.println("Found html");
+            body += (String)part.getContent();
         }
         else if (part.isMimeType("multipart/*"))
         {
+            System.out.println("Found multipart/*");
             Multipart multipart = (Multipart)part.getContent();
             level++; //Increment the level...
             int count = multipart.getCount();
@@ -89,15 +131,18 @@ public class ViewMailScreen extends javax.swing.JFrame {
         }
         else if (part.isMimeType("message/rfc822"))
         {
+            System.out.println("Found message/rfc822");
             level++; //Again increment as we're going 'deeper' into the message
             writeMessage((Part)part.getContent());
             level--; //Decrement level
         }
         else
         {
+            System.out.println("Into else!");
             //TODO Try and show the attatchment?
             if (level != 0 && part instanceof MimeBodyPart && !part.isMimeType("multipart/*"))
             {
+                System.out.println("Into attatchment section!");
                 String disposition = part.getDisposition();
                 //Some mailers don't include a content-disposition
                 if (disposition == null || disposition.equalsIgnoreCase(Part.ATTACHMENT))
@@ -115,7 +160,7 @@ public class ViewMailScreen extends javax.swing.JFrame {
                         if (file.exists())
                         {
                             //TODO What to do if file exists?
-                            throw new IOException("file already exists!");
+                            //throw new IOException("file already exists!");
                            
                         }
                         ((MimeBodyPart)part).saveFile(file);
@@ -202,8 +247,6 @@ public class ViewMailScreen extends javax.swing.JFrame {
         sentLabelStatic = new javax.swing.JLabel();
         fromLabel = new javax.swing.JLabel();
         toLabel = new javax.swing.JLabel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        bodyTextPane = new javax.swing.JTextPane();
         subjectLabelStatic = new javax.swing.JLabel();
         subjectLabel = new javax.swing.JLabel();
         replyButton = new javax.swing.JButton();
@@ -212,6 +255,7 @@ public class ViewMailScreen extends javax.swing.JFrame {
         sentLabel = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
         replyToLabel = new javax.swing.JLabel();
+        panel = new org.lobobrowser.html.gui.HtmlPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
@@ -246,10 +290,6 @@ public class ViewMailScreen extends javax.swing.JFrame {
         fromLabel.setText("???");
 
         toLabel.setText("To Label");
-
-        bodyTextPane.setEditable(false);
-        bodyTextPane.setDisabledTextColor(new java.awt.Color(0, 0, 0));
-        jScrollPane1.setViewportView(bodyTextPane);
 
         subjectLabelStatic.setText("Subject:");
 
@@ -287,9 +327,6 @@ public class ViewMailScreen extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane1)
-                        .addContainerGap())
-                    .addGroup(layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(sentLabelStatic)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -317,7 +354,10 @@ public class ViewMailScreen extends javax.swing.JFrame {
                                     .addComponent(fromLabel)
                                     .addComponent(replyToLabel)
                                     .addComponent(toLabel))))
-                        .addGap(0, 571, Short.MAX_VALUE))))
+                        .addGap(0, 571, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(panel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addContainerGap())))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -350,9 +390,9 @@ public class ViewMailScreen extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(subjectLabel)
                     .addComponent(subjectLabelStatic))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 435, Short.MAX_VALUE)
-                .addContainerGap())
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(panel, javax.swing.GroupLayout.PREFERRED_SIZE, 416, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(20, Short.MAX_VALUE))
         );
 
         pack();
@@ -400,13 +440,12 @@ public class ViewMailScreen extends javax.swing.JFrame {
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JTextPane bodyTextPane;
     private javax.swing.JButton deleteButton;
     private javax.swing.JButton forwardButton;
     private javax.swing.JLabel fromLabel;
     private javax.swing.JLabel fromLabelStatic;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JScrollPane jScrollPane1;
+    private org.lobobrowser.html.gui.HtmlPanel panel;
     private javax.swing.JButton replyButton;
     private javax.swing.JLabel replyToLabel;
     private javax.swing.JLabel sentLabel;
