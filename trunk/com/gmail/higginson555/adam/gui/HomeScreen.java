@@ -319,8 +319,9 @@ public class HomeScreen extends javax.swing.JFrame
      */
     private void optionsMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_optionsMenuItemActionPerformed
         
-        //OptionsScreen options = new OptionsScreen(config);
-        //options.setVisible(true);
+        OptionsScreen options = new OptionsScreen(config, false);
+        options.setAlwaysOnTop(true);
+        options.setVisible(true);
     }//GEN-LAST:event_optionsMenuItemActionPerformed
 
     /*
@@ -350,11 +351,13 @@ public class HomeScreen extends javax.swing.JFrame
             
             //Read info from property file
             String usernameProp = config.getProperty("username");
+            String password = config.getProperty("password");
             String serverType = config.getProperty("server_type");
             String incoming = config.getProperty("incoming_server");
+            String port = config.getProperty("smtp_port");
             
             //If these haven't been filled in, we can't connect to the server!
-            if (usernameProp == null || serverType == null || incoming == null)
+            if (usernameProp == null || serverType == null || incoming == null || password == null || port == null)
             {
                 JOptionPane.showMessageDialog(rootPane, "Make sure option fields are filled!", 
                                               "Error!", JOptionPane.OK_OPTION);
@@ -384,13 +387,10 @@ public class HomeScreen extends javax.swing.JFrame
     //built by connectToServer()
     private void buildJTree()
     {
-                
         StoreNode storeNode = new StoreNode(store, config, password);
         DefaultTreeModel treeModel = new DefaultTreeModel(storeNode);
         emailJTree.setModel(treeModel);
-        emailJTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-        
-        
+        emailJTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);   
     }
     
     private void refreshButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshButtonActionPerformed
@@ -412,22 +412,16 @@ public class HomeScreen extends javax.swing.JFrame
         {
             DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode)emailJTree.getLastSelectedPathComponent();
         
-            if (selectedNode.isLeaf())
-                System.out.println("Is leaf!");
             if (selectedNode instanceof FolderNode)
             {
-                System.out.println("In if!");
                 FolderNode folderNode = (FolderNode)selectedNode;
                 //Get all messages held in this folder
                 Folder folder = folderNode.getFolder();
                     
                 try 
                 {
-                    System.out.println(folder.getType());
-                    System.out.println("Hold folders: " + Folder.HOLDS_FOLDERS);
                     if (folder.getType() == Folder.HOLDS_FOLDERS)
                     {
-                        System.out.println("Holds folders! " + folder.getType());
                         return;
                     }
                     if (!folder.isOpen())
@@ -460,7 +454,6 @@ public class HomeScreen extends javax.swing.JFrame
                     
                     for (int i = allMessages.length - 1; i >= 0; i--)
                     {
-                        long startMessage = System.nanoTime();
                         String subject = allMessages[i].getSubject();
                         Address[] addresses = allMessages[i].getFrom();
                         String from = addresses[0].toString();
@@ -470,18 +463,12 @@ public class HomeScreen extends javax.swing.JFrame
                         newData[allMessages.length - 1 - i][1] = from;
                         newData[allMessages.length - 1 - i][2] = date;
                         newData[allMessages.length - 1 - i][3] = Boolean.TRUE;
-                        long time = System.nanoTime() - startMessage;
-                        System.out.println("Time: " + (double)(time / 1000000000.0));
-                        //System.out.println("Set: " + (allMessages.length - 1 - i));
-                        
                         messagesInFolder.add(allMessages[i]);
                         
                         progress++;
                         dlProgressBar.setValue(progress);
                         
                     }
-                    long estimatedTime = System.nanoTime() - startTime;
-                    System.out.println("Estimated time: " + (double)(estimatedTime / 1000000000.0));
                     
                     emailModel.setData(newData);
                     
