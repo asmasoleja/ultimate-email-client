@@ -7,12 +7,15 @@ package com.gmail.higginson555.adam.gui;
 import java.awt.BorderLayout;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
+import javax.swing.DefaultListModel;
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import org.lobobrowser.html.UserAgentContext;
 import org.lobobrowser.html.gui.HtmlPanel;
@@ -36,6 +39,10 @@ public class ViewMailScreen extends javax.swing.JFrame {
     private Message message;
     //The level we're currently in on reading the message
     private int level;
+    //The level of the attachment list we're at
+    private int listLevel;
+    //The ArrayList of all attachments of the message
+    private ArrayList<Part> attachments;
     
     private String body; 
     
@@ -50,6 +57,8 @@ public class ViewMailScreen extends javax.swing.JFrame {
     {
         this.message = message;
         this.level = 0;
+        
+        this.attachments = new ArrayList<Part>();
         
         body = "";
         initComponents();
@@ -154,22 +163,30 @@ public class ViewMailScreen extends javax.swing.JFrame {
                     }
                     System.out.println("Saving attatchment to file: " + filename);
                     
-                    try
-                    {
-                        File file = new File(filename);
+                    
+                    DefaultListModel listModel = (DefaultListModel) attachmentList.getModel();
+                    listModel.insertElementAt(filename, listLevel);
+                    //Insert attachment into arraylist
+                    attachments.add(part);
+                    
+                    
+                   // try
+                   // {
+ 
+                        /*File file = new File(filename);
                         if (file.exists())
                         {
                             //TODO What to do if file exists?
                             //throw new IOException("file already exists!");
                            
                         }
-                        ((MimeBodyPart)part).saveFile(file);
-                    }
-                    catch (IOException ex)
+                        ((MimeBodyPart)part).saveFile(file);*/
+                    //}
+                    /*catch (IOException ex)
                     {
                         System.err.println("Failed to save attachment!" + ex);
                         JOptionPane.showConfirmDialog(rootPane, "Error! Could not save attatchment!\n" + ex.getMessage(), "Error!", JOptionPane.OK_OPTION);
-                    }
+                    }*/
                 }
             }
         }
@@ -182,7 +199,7 @@ public class ViewMailScreen extends javax.swing.JFrame {
     {
         //The addresses of the message
         Address[] addresses;
-        
+                
         //From
         addresses = message.getFrom();
         String fromText = "";
@@ -256,9 +273,9 @@ public class ViewMailScreen extends javax.swing.JFrame {
         jLabel1 = new javax.swing.JLabel();
         replyToLabel = new javax.swing.JLabel();
         panel = new org.lobobrowser.html.gui.HtmlPanel();
-        jSeparator1 = new javax.swing.JSeparator();
-        jComboBox1 = new javax.swing.JComboBox();
         jLabel2 = new javax.swing.JLabel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        attachmentList = new javax.swing.JList();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
@@ -322,11 +339,15 @@ public class ViewMailScreen extends javax.swing.JFrame {
 
         replyToLabel.setText("Reply To");
 
-        panel.add(jSeparator1);
+        jLabel2.setText("Attachments:");
 
-        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-
-        jLabel2.setText("Attachments");
+        attachmentList.setModel(new DefaultListModel());
+        attachmentList.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                attachmentListMouseClicked(evt);
+            }
+        });
+        jScrollPane1.setViewportView(attachmentList);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -335,8 +356,7 @@ public class ViewMailScreen extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(panel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                    .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(subjectLabelStatic)
@@ -347,7 +367,10 @@ public class ViewMailScreen extends javax.swing.JFrame {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(forwardButton)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(deleteButton))
+                                .addComponent(deleteButton)))
+                        .addGap(392, 392, 392))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jLabel1)
@@ -357,42 +380,36 @@ public class ViewMailScreen extends javax.swing.JFrame {
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(fromLabel)
                                     .addComponent(replyToLabel)
-                                    .addComponent(toLabel))))
-                        .addGap(337, 337, 337)
-                        .addComponent(jLabel2)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 154, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(sentLabelStatic)
+                                    .addComponent(toLabel))
+                                .addGap(0, 0, Short.MAX_VALUE)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel2)
+                                    .addComponent(sentLabelStatic))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(sentLabel)))
-                        .addGap(0, 0, Short.MAX_VALUE)))
-                .addContainerGap())
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 281, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(sentLabel)))
+                            .addComponent(panel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 769, Short.MAX_VALUE))
+                        .addContainerGap())))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(replyButton)
+                    .addComponent(forwardButton)
+                    .addComponent(deleteButton))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(replyButton)
-                            .addComponent(forwardButton)
-                            .addComponent(deleteButton))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(fromLabelStatic)
                             .addComponent(fromLabel))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel1)
-                            .addComponent(replyToLabel)))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(sentLabelStatic)
-                        .addComponent(sentLabel)))
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
+                            .addComponent(replyToLabel))
                         .addGap(11, 11, 11)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(toLabel)
@@ -402,9 +419,13 @@ public class ViewMailScreen extends javax.swing.JFrame {
                             .addComponent(subjectLabel)
                             .addComponent(subjectLabelStatic)))
                     .addGroup(layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGap(8, 8, 8)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(sentLabel)
+                            .addComponent(sentLabelStatic))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel2))))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(panel, javax.swing.GroupLayout.PREFERRED_SIZE, 416, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -413,6 +434,38 @@ public class ViewMailScreen extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void attachmentListMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_attachmentListMouseClicked
+        //Double click
+        if (evt.getClickCount() == 2)
+        {
+            int index = attachmentList.getSelectedIndex();
+            String filename = (String)attachmentList.getSelectedValue();
+            MimeBodyPart attachment = (MimeBodyPart)attachments.get(index);
+            
+            final JFileChooser fileChooser = new JFileChooser();
+            
+            fileChooser.setSelectedFile(new File(filename));
+            
+            int returnVal = fileChooser.showSaveDialog(panel);
+            if (returnVal == JFileChooser.APPROVE_OPTION)
+            {
+                File file = fileChooser.getSelectedFile();
+                try 
+                {
+                    attachment.saveFile(file);
+                } 
+                catch (IOException ex) 
+                {
+                    JOptionPane.showMessageDialog(rootPane, ex.toString(), "IOException", JOptionPane.ERROR_MESSAGE);
+                } 
+                catch (MessagingException ex) 
+                {
+                    JOptionPane.showMessageDialog(rootPane, ex.toString(), "Messaging Exception", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }
+    }//GEN-LAST:event_attachmentListMouseClicked
 
     /**
      * @param args the command line arguments
@@ -456,14 +509,14 @@ public class ViewMailScreen extends javax.swing.JFrame {
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JList attachmentList;
     private javax.swing.JButton deleteButton;
     private javax.swing.JButton forwardButton;
     private javax.swing.JLabel fromLabel;
     private javax.swing.JLabel fromLabelStatic;
-    private javax.swing.JComboBox jComboBox1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JSeparator jSeparator1;
+    private javax.swing.JScrollPane jScrollPane1;
     private org.lobobrowser.html.gui.HtmlPanel panel;
     private javax.swing.JButton replyButton;
     private javax.swing.JLabel replyToLabel;
