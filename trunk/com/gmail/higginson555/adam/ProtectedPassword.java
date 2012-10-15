@@ -12,7 +12,8 @@ import sun.misc.BASE64Encoder;
 
 /**
  * Encrypts/Decrypts a given user password.
- * @author Adam
+ * Based heavily off of: 
+ * http://stackoverflow.com/questions/1132567/encrypt-password-in-configuration-files-java
  */
 public class ProtectedPassword 
 {
