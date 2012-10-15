@@ -4,9 +4,14 @@
  */
 package com.gmail.higginson555.adam.gui;
 
+import com.gmail.higginson555.adam.ProtectedPassword;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.Properties;
-import javax.mail.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.mail.Message.RecipientType;
+import javax.mail.*;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
@@ -21,17 +26,44 @@ public class ComposeMailScreen extends javax.swing.JFrame {
     private String username, password;
     //The properties to use for this message
     private Properties properties;
+    //The reply message, can be null if we should just compose a blank
+    //message.
+    private Message replyMessage;
     /**
-     * Creates new form ComposeMailScreen
+     * 
+     * @param config The Properties holding a username, password etc.
+     * @param properties Properties holding server settings and configuration
      */
-    public ComposeMailScreen(String username, String password, 
-                             Properties properties) 
+    public ComposeMailScreen(Properties config, 
+                             Properties serverProperties) 
     {
-        this.username = username;
-        this.password = password;
-        this.properties = properties;
+        this.username = config.getProperty("username");
+        //The password which will be decrypted
+        String passwordDec = config.getProperty("password");
+        try 
+        {
+            passwordDec = ProtectedPassword.decrypt(passwordDec);
+        } 
+        catch (GeneralSecurityException ex) 
+        {
+            JOptionPane.showMessageDialog(rootPane, ex.toString(), "GeneralSecurityException", JOptionPane.ERROR_MESSAGE);
+        } 
+        catch (IOException ex) 
+        {
+            JOptionPane.showMessageDialog(rootPane, ex.toString(), "GeneralSecurityException", JOptionPane.ERROR_MESSAGE);
+        }
+        
+        this.password = passwordDec;
+        this.properties = serverProperties;
         initComponents();
         this.setLocationRelativeTo(null);
+    }
+    
+    public ComposeMailScreen(Properties config, Properties serverProperties,
+                             Message replyMessage)
+    {
+        this(config, serverProperties);
+        this.replyMessage = replyMessage;
     }
 
     /**
@@ -154,7 +186,7 @@ public class ComposeMailScreen extends javax.swing.JFrame {
                 }
             };
             
-            Session session = Session.getDefaultInstance(this.properties, authenticator);       
+            Session session = Session.getInstance(this.properties, authenticator);       
             Message message = new MimeMessage(session);
             //Set FROM and TO fields
             message.setFrom(new InternetAddress(this.username));

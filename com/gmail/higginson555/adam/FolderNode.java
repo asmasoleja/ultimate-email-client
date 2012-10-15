@@ -1,5 +1,7 @@
 package com.gmail.higginson555.adam;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -37,9 +39,9 @@ public class FolderNode extends DefaultMutableTreeNode
     {
         try
         {
-            if ((folder.getType() & Folder.HOLDS_FOLDERS) == 0)
+            if (folder.getType() == Folder.HOLDS_FOLDERS)
             {
-                return true;
+                return false;
             }
         }
         catch (MessagingException mesEx)
@@ -49,7 +51,7 @@ public class FolderNode extends DefaultMutableTreeNode
                             "Messaing Exception!", JOptionPane.ERROR_MESSAGE);
         }
         
-        return false;
+        return true;
     }
     
     /**
@@ -127,6 +129,18 @@ public class FolderNode extends DefaultMutableTreeNode
     @Override
     public String toString()
     {
+        if (this.isLeaf())
+        {
+            try 
+            {
+                return folder.getName() + " (" + Integer.toString(folder.getMessageCount()) + ")";
+            } 
+            catch (MessagingException ex) 
+            {
+                ex.printStackTrace();
+            }    
+        }
+        
         return folder.getName();
     }
 }

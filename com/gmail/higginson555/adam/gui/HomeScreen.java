@@ -5,25 +5,25 @@
 package com.gmail.higginson555.adam.gui;
 
 import com.gmail.higginson555.adam.FolderNode;
-import com.gmail.higginson555.adam.MessageNode;
 import com.gmail.higginson555.adam.ProtectedPassword;
 import com.gmail.higginson555.adam.StoreNode;
-import java.io.FileInputStream;
+import java.awt.Component;
+import java.awt.Font;
+import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
-import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.Properties;
-import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
- 
 import javax.mail.*;
-import javax.swing.JList;
 import javax.swing.JOptionPane;
+import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeSelectionModel;
@@ -50,8 +50,6 @@ public class HomeScreen extends javax.swing.JFrame
     private Store store = null;
     //The inbox folder
     private Folder inbox = null;
-    //Model for email table
-    private EmailTableModel model = null;
 
     /**
      * Creates new form HomeScreen
@@ -79,46 +77,39 @@ public class HomeScreen extends javax.swing.JFrame
         //Initialise GUI
         initComponents();
         
-        String usernameProp = config.getProperty("username");
-        String serverType = config.getProperty("server_type");
-        String incoming = config.getProperty("incoming_server");
-        String outgoing = config.getProperty("outgoing_server");
-        String smtpPort = config.getProperty("smtp_port");
-        
-        System.out.println(incoming);
-        CountDownLatch countdown = null;
-        //If these haven't been filled in, we can't connect to the server!
-        if (usernameProp == null || serverType == null || incoming == null 
-                || smtpPort == null || outgoing == null)
-        {
-            //Open up options pane
-            countdown = new CountDownLatch(1);
-            OptionsScreen options = new OptionsScreen(config, false);
-            options.setVisible(true);
-            options.setAlwaysOnTop(true);
-        }
-                       
-        this.setLocationRelativeTo(null);
-        
-        //Try connecting, waiting for the options screen to exit if there is one
-        if (countdown != null)
-        {
-            try 
+        //Set email table to bold unread messages!
+        emailTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value, 
+                    boolean isSelected, boolean hasFocus, int row, int column) 
             {
-                System.out.println("AWAITING!");
-                countdown.await();
-            } catch (InterruptedException ex) 
-            {
-                JOptionPane.showMessageDialog(rootPane, ex.toString(), "Interrupted Exception!", JOptionPane.ERROR_MESSAGE);
+                Component comp = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                Font font = comp.getFont();
+                //Get the row and check whether it has been read
+                Boolean isRead = (Boolean)table.getModel().getValueAt(row, 3);
+                if (!isRead)
+                {
+                    comp.setFont(font.deriveFont(Font.BOLD));
+                }
+                else
+                {
+                    comp.setFont(font.deriveFont(Font.PLAIN));
+                }
+                
+                return comp;
             }
-        }
+        
+        });
+                    
+        this.setLocationRelativeTo(null);
+
         connectToServer();
     }
     
     class EmailTableModel extends AbstractTableModel
     {
         private String[] columnNames = {"Subject", "From", "Date", "Read"};
-        private Object[][] data = {{"", "", "", ""}};
+        private Object[][] data = {{"", "", "", Boolean.FALSE}};
         
         public void setRowCount(int count)
         {
@@ -176,6 +167,55 @@ public class HomeScreen extends javax.swing.JFrame
             System.out.println("Inserted row @ " + row + " with data: " + data[row][0]);
         }
         
+        public void deleteRows(int[] rows)
+        {
+            ArrayList<Object[]> allRows = new ArrayList<Object[]>();
+            
+            for (int i = 0; i < getRowCount(); i++)
+            {
+                Object[] row = new Object[getColumnCount()];
+                System.arraycopy(data[i], 0, row, 0, getColumnCount());
+                
+                allRows.add(row);               
+            }
+            
+            for (int i = rows.length - 1; i >= 0; i--)
+            {
+                allRows.remove(rows[i]);
+            }
+            
+            Object[][] newData = new Object[allRows.size()][getColumnCount()];
+            for (int i = 0; i < allRows.size(); i++)
+            {
+                Object[] row = allRows.get(i);
+                System.arraycopy(row, 0, newData[i], 0, getColumnCount());
+            }
+            
+            data = newData;
+            fireTableDataChanged();
+            
+            
+        }
+        
+        public void deleteRow(int row)
+        {
+            Object[][] newData = new Object[getRowCount() - 1][getColumnCount()];
+            
+            System.out.println("Row: " + row);
+            for (int i = 0; i < row; i++)
+            {
+                System.out.println("i != row");
+                for (int j = 0; j < getColumnCount(); j++)
+                {
+                    //System.out.println("j: " + data[i][j]);
+                    newData[i][j] = data[i][j];
+                }
+            }
+            
+            data = newData;
+            fireTableDataChanged();
+        }
+        
         public void setData(Object[][] newData)
         {
             data = newData;
@@ -192,6 +232,8 @@ public class HomeScreen extends javax.swing.JFrame
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        String deleteLabel = "Delete";
+        folderPopup = new javax.swing.JPopupMenu();
         composeButton = new javax.swing.JButton();
         refreshButton = new javax.swing.JButton();
         jScrollPane3 = new javax.swing.JScrollPane();
@@ -199,11 +241,22 @@ public class HomeScreen extends javax.swing.JFrame
         jScrollPane1 = new javax.swing.JScrollPane();
         emailTable = new javax.swing.JTable();
         jTextField1 = new javax.swing.JTextField();
-        dlProgressBar = new javax.swing.JProgressBar();
+        deleteSelectedButton = new javax.swing.JButton();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         settingsMenu = new javax.swing.JMenu();
         optionsMenuItem = new javax.swing.JMenuItem();
+
+        folderPopup.add(deleteLabel);
+        folderPopup.addPopupMenuListener(new javax.swing.event.PopupMenuListener() {
+            public void popupMenuCanceled(javax.swing.event.PopupMenuEvent evt) {
+            }
+            public void popupMenuWillBecomeInvisible(javax.swing.event.PopupMenuEvent evt) {
+                folderPopupPopupMenuWillBecomeInvisible(evt);
+            }
+            public void popupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent evt) {
+            }
+        });
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Ultimate E-mail Client");
@@ -211,6 +264,7 @@ public class HomeScreen extends javax.swing.JFrame
         setName("homeFrame");
 
         composeButton.setText("Compose");
+        composeButton.setToolTipText("Compose a new message");
         composeButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 composeButtonActionPerformed(evt);
@@ -218,12 +272,14 @@ public class HomeScreen extends javax.swing.JFrame
         });
 
         refreshButton.setText("Refresh");
+        refreshButton.setToolTipText("Refresh to check for new e-mails");
         refreshButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 refreshButtonActionPerformed(evt);
             }
         });
 
+        emailJTree.setToolTipText("The folders of a particular account");
         emailJTree.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 emailJTreeMouseClicked(evt);
@@ -233,6 +289,7 @@ public class HomeScreen extends javax.swing.JFrame
 
         emailTable.setModel(new EmailTableModel()
         );
+        emailTable.setToolTipText("Shows the messages from the selected folder");
         emailTable.setShowHorizontalLines(false);
         emailTable.setShowVerticalLines(false);
         emailTable.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -243,6 +300,13 @@ public class HomeScreen extends javax.swing.JFrame
         jScrollPane1.setViewportView(emailTable);
 
         jTextField1.setText("Search...");
+
+        deleteSelectedButton.setText("Delete Selected");
+        deleteSelectedButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                deleteSelectedButtonActionPerformed(evt);
+            }
+        });
 
         jMenu1.setText("File");
         jMenuBar1.add(jMenu1);
@@ -269,30 +333,29 @@ public class HomeScreen extends javax.swing.JFrame
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 250, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(composeButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(refreshButton, javax.swing.GroupLayout.PREFERRED_SIZE, 107, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(dlProgressBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 410, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(refreshButton, javax.swing.GroupLayout.PREFERRED_SIZE, 107, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 250, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 817, Short.MAX_VALUE)))
+                        .addComponent(deleteSelectedButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 410, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 817, Short.MAX_VALUE))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(composeButton)
-                        .addComponent(refreshButton)
-                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(dlProgressBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(composeButton)
+                    .addComponent(refreshButton)
+                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(deleteSelectedButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane3)
@@ -309,7 +372,7 @@ public class HomeScreen extends javax.swing.JFrame
      */
     private void composeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_composeButtonActionPerformed
 
-        ComposeMailScreen mailScreen = new ComposeMailScreen(config.getProperty("username"), password, this.properties);       
+        ComposeMailScreen mailScreen = new ComposeMailScreen(config, this.properties);       
         mailScreen.setVisible((true));
     }//GEN-LAST:event_composeButtonActionPerformed
 
@@ -401,13 +464,21 @@ public class HomeScreen extends javax.swing.JFrame
         }
         catch (Exception ex)
         {
-            JOptionPane.showConfirmDialog(rootPane, "Error! Could not close connections!", "Error!", JOptionPane.OK_OPTION);
+            JOptionPane.showConfirmDialog(rootPane, "Error! Could not close connections!\n" + ex.toString(), "Error!", JOptionPane.OK_OPTION);
         }
         connectToServer();
     }//GEN-LAST:event_refreshButtonActionPerformed
 
     private void emailJTreeMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_emailJTreeMouseClicked
-        if (evt.getClickCount() == 2 || evt.getClickCount() == 3)
+        
+        //System.out.println("Button pressed, Button: " + evt.getButton());
+        if (evt.getButton() == MouseEvent.BUTTON3)
+        {
+            emailJTree.setSelectionRow(emailJTree.getClosestRowForLocation(evt.getX(), evt.getY()));
+            folderPopup.show(emailJTree, evt.getX(), evt.getY());
+        }
+        
+        if (evt.getClickCount() == 2)
         {
             DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode)emailJTree.getLastSelectedPathComponent();
         
@@ -424,29 +495,22 @@ public class HomeScreen extends javax.swing.JFrame
                         return;
                     }
                     if (!folder.isOpen())
-                        folder.open(Folder.READ_ONLY);
+                        folder.open(Folder.READ_WRITE);
                     //Get all messages in this folder
                     Message[] allMessages = folder.getMessages();
-                    
-                    dlProgressBar.setMaximum(allMessages.length);
-                    dlProgressBar.setValue(0);
-                    
+                                        
                     FetchProfile fp = new FetchProfile();
                     fp.add(FetchProfile.Item.ENVELOPE);
                     fp.add(FetchProfile.Item.FLAGS);
-                    fp.add(FetchProfile.Item.CONTENT_INFO);
-                    //fp.add("X-mailer");
+                    //fp.add(FetchProfile.Item.CONTENT_INFO);
+                    fp.add("X-mailer");
                     
                     folder.fetch(allMessages, fp);
                     
                     EmailTableModel emailModel = (EmailTableModel) emailTable.getModel();
                     emailModel.setRowCount(allMessages.length);
-                    //First row is subject
-                    //TODO insert back to front, front at the moment is oldest value
+                    //The data the table will hold
                     Object[][] newData = new Object[allMessages.length][4];
-                    
-                    long startTime = System.nanoTime();
-                    int progress = 0;
                     
                     //Make sure to empty out current messages in ArrayList
                     messagesInFolder.clear();
@@ -457,19 +521,47 @@ public class HomeScreen extends javax.swing.JFrame
                         Address[] addresses = allMessages[i].getFrom();
                         String from = addresses[0].toString();
                         String date = allMessages[i].getSentDate().toString();
+                        Boolean isRead = allMessages[i].isSet(Flags.Flag.SEEN);
                         
                         newData[allMessages.length - 1 - i][0] = subject;
                         newData[allMessages.length - 1 - i][1] = from;
                         newData[allMessages.length - 1 - i][2] = date;
-                        newData[allMessages.length - 1 - i][3] = Boolean.TRUE;
-                        messagesInFolder.add(allMessages[i]);
-                        
-                        progress++;
-                        dlProgressBar.setValue(progress);
-                        
+                        newData[allMessages.length - 1 - i][3] = isRead;
+                        messagesInFolder.add(allMessages[i]);         
                     }
                     
                     emailModel.setData(newData);
+                    
+                    /*
+                    //TODO make this an option to disable?
+                    Iterator<Message> messageIt = messagesInFolder.iterator();
+                    FileOutputStream fos = null;
+                    try
+                    {
+                        fos = new FileOutputStream(new File(folder.getName() + ".txt"));
+                        while (messageIt.hasNext())
+                        {
+                            Message currentMsg = messageIt.next();
+                            currentMsg.writeTo(fos);
+                        }
+                    }
+                    catch (IOException ex)
+                    {
+                        JOptionPane.showMessageDialog(rootPane, ex.toString(), "IOException", JOptionPane.ERROR_MESSAGE);
+                    }
+                    finally
+                    {
+                        try 
+                        {
+                            if (fos != null)
+                                fos.close();
+                        } 
+                        catch (IOException ex) 
+                        {
+                            JOptionPane.showMessageDialog(rootPane, "Could not close cache output stream!\n" 
+                                    + ex.toString(), "IOException", JOptionPane.ERROR_MESSAGE);
+                        }
+                    }*/
                     
                 } 
                 catch (MessagingException ex) 
@@ -482,13 +574,74 @@ public class HomeScreen extends javax.swing.JFrame
 
     private void emailTableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_emailTableMouseClicked
         if (evt.getClickCount() == 2 || evt.getClickCount() == 3)
-        {
+        {            
+            //Make sure to set message as read!
             int row = emailTable.rowAtPoint(evt.getPoint());
-            ViewMailScreen viewMail = new ViewMailScreen(messagesInFolder.get(row));
+            Message selectedMsg = messagesInFolder.get(row);
+            try 
+            {
+                selectedMsg.setFlag(Flags.Flag.SEEN, true);
+                emailTable.getModel().setValueAt(Boolean.TRUE, row, 3);
+            } 
+            catch (MessagingException ex) {
+                JOptionPane.showMessageDialog(rootPane, ex.toString(), "MessagingException", JOptionPane.ERROR_MESSAGE);
+            }
+            ViewMailScreen viewMail = new ViewMailScreen(selectedMsg);
             viewMail.setVisible(true);
             //TODO get message at this row
         }
     }//GEN-LAST:event_emailTableMouseClicked
+
+    private void folderPopupPopupMenuWillBecomeInvisible(javax.swing.event.PopupMenuEvent evt) {//GEN-FIRST:event_folderPopupPopupMenuWillBecomeInvisible
+        System.out.println("Will become invisible!");
+        if (folderPopup.getSelectionModel().isSelected())
+        {
+            int index = folderPopup.getSelectionModel().getSelectedIndex();
+            System.out.println("Index: " + index);
+            if (index == 0)
+            {
+                int result = JOptionPane.showConfirmDialog(rootPane, "Are you sure you wish to delete this folder?", "Confirm", JOptionPane.YES_NO_OPTION);
+                
+                if (result == JOptionPane.YES_OPTION)
+                {
+                    System.out.println("Deleting folder...");
+                }
+            }
+        }
+    }//GEN-LAST:event_folderPopupPopupMenuWillBecomeInvisible
+
+    private void deleteSelectedButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteSelectedButtonActionPerformed
+        int[] selectedRows = emailTable.getSelectedRows();
+        
+        int result = JOptionPane.showConfirmDialog(rootPane, 
+                "Are you sure you want to delete " 
+                + Integer.toString(selectedRows.length) 
+                + " messages?", "Confirm", JOptionPane.YES_NO_OPTION);
+        
+        if (result == JOptionPane.YES_OPTION)
+        {
+            try
+            {
+                for (int i = selectedRows.length - 1; i >= 0; i--)
+                {
+                    Message msg = messagesInFolder.remove(selectedRows[i]);
+                    msg.setFlag(Flags.Flag.DELETED, true);
+                    System.out.println("Selected row: " + selectedRows[i]);
+                }
+                
+                
+                
+                
+                EmailTableModel model = (EmailTableModel)emailTable.getModel();
+                model.deleteRows(selectedRows);
+            }
+            catch (MessagingException ex)
+            {
+                JOptionPane.showMessageDialog(rootPane, "Could not delete message!\n" 
+                        + ex.toString(), "MessagingException", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }//GEN-LAST:event_deleteSelectedButtonActionPerformed
 
     @Override
     public void dispose()
@@ -544,9 +697,10 @@ public class HomeScreen extends javax.swing.JFrame
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton composeButton;
-    private javax.swing.JProgressBar dlProgressBar;
+    private javax.swing.JButton deleteSelectedButton;
     private javax.swing.JTree emailJTree;
     private javax.swing.JTable emailTable;
+    private javax.swing.JPopupMenu folderPopup;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JScrollPane jScrollPane1;
