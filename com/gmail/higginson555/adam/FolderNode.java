@@ -1,9 +1,6 @@
 package com.gmail.higginson555.adam;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.mail.Folder;
-import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.swing.JOptionPane;
 import javax.swing.tree.DefaultMutableTreeNode;
