@@ -39,10 +39,26 @@ public class OptionsScreen extends javax.swing.JFrame {
         String username = props.getProperty("username");
         String serverType = props.getProperty("server_type");
         String port = props.getProperty("smtp_port");
+        String passwordEnc = props.getProperty("password");
 
+        String passwordDec = null;
+        try
+        {
+            passwordDec = ProtectedPassword.decrypt(passwordEnc);
+        }
+        catch (GeneralSecurityException ex)
+        {
+            JOptionPane.showMessageDialog(rootPane, ex.toString(), "GeneralSecuritException", JOptionPane.ERROR_MESSAGE);
+        }
+        catch (IOException ex)
+        {
+            JOptionPane.showMessageDialog(rootPane, ex.toString(), "IOException", JOptionPane.ERROR_MESSAGE);
+        }
         this.incomingField.setText(incoming);
         this.outgoingField.setText(outgoing);
         this.usernameField.setText(username);
+        if (passwordDec != null)
+            this.passwordField.setText(passwordDec);
         this.portField.setText(port);
         if (serverType != null && serverType.equals("POP3"))
         {
@@ -87,7 +103,7 @@ public class OptionsScreen extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setResizable(false);
 
-        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 12));
         jLabel1.setText("Server Information");
 
         jLabel2.setText("Account Type:");
@@ -103,14 +119,14 @@ public class OptionsScreen extends javax.swing.JFrame {
 
         jLabel4.setText("Outgoing mail server (SMTP):");
 
-        jLabel5.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        jLabel5.setFont(new java.awt.Font("Tahoma", 1, 12));
         jLabel5.setText("Login Information");
 
         jLabel6.setText("Username:");
 
         jLabel7.setText("Password:");
 
-        jLabel8.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jLabel8.setFont(new java.awt.Font("Tahoma", 1, 14));
         jLabel8.setText("Options");
 
         jLabel9.setText("Configure default mail settings here.");
@@ -141,7 +157,7 @@ public class OptionsScreen extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jSeparator1)
+            .addComponent(jSeparator1, javax.swing.GroupLayout.DEFAULT_SIZE, 389, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
@@ -152,16 +168,13 @@ public class OptionsScreen extends javax.swing.JFrame {
                             .addGroup(layout.createSequentialGroup()
                                 .addGap(31, 31, 31)
                                 .addComponent(jLabel9)))
-                        .addGap(0, 0, Short.MAX_VALUE))
+                        .addGap(0, 112, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addGap(0, 251, Short.MAX_VALUE)
-                                .addComponent(applyButton)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(cancelButton)
-                                .addGap(5, 5, 5))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel5)
+                                .addGap(0, 236, Short.MAX_VALUE))
                             .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jLabel2)
@@ -173,15 +186,17 @@ public class OptionsScreen extends javax.swing.JFrame {
                                     .addComponent(jLabel10))
                                 .addGap(27, 27, 27)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(incomingField)
-                                    .addComponent(serverCombo, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(outgoingField)
-                                    .addComponent(usernameField)
-                                    .addComponent(passwordField)
-                                    .addComponent(portField)))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel5)
-                                .addGap(0, 0, Short.MAX_VALUE)))))
+                                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                        .addComponent(applyButton, javax.swing.GroupLayout.DEFAULT_SIZE, 85, Short.MAX_VALUE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(cancelButton)
+                                        .addGap(5, 5, 5))
+                                    .addComponent(incomingField, javax.swing.GroupLayout.DEFAULT_SIZE, 151, Short.MAX_VALUE)
+                                    .addComponent(serverCombo, 0, 151, Short.MAX_VALUE)
+                                    .addComponent(outgoingField, javax.swing.GroupLayout.DEFAULT_SIZE, 151, Short.MAX_VALUE)
+                                    .addComponent(usernameField, javax.swing.GroupLayout.DEFAULT_SIZE, 151, Short.MAX_VALUE)
+                                    .addComponent(passwordField, javax.swing.GroupLayout.DEFAULT_SIZE, 151, Short.MAX_VALUE)
+                                    .addComponent(portField, javax.swing.GroupLayout.DEFAULT_SIZE, 151, Short.MAX_VALUE))))))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
