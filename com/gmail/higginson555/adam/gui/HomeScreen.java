@@ -10,15 +10,10 @@ import com.gmail.higginson555.adam.StoreNode;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.event.MouseEvent;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.mail.*;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
@@ -401,11 +396,12 @@ public class HomeScreen extends javax.swing.JFrame
             };
             
             //Set properties
-            this.properties = System.getProperties();
-            this.properties.put("mail.smtp.auth", "true");
+            properties = System.getProperties();
+            /*this.properties.put("mail.smtp.auth", "true");
             this.properties.put("mail.smtp.starttls.enable", "true");
             this.properties.put("mail.smtp.host", config.getProperty("outgoing_server"));
-            this.properties.put("mail.smtp.port", config.getProperty("smtp_port"));
+            this.properties.put("mail.smtp.port", config.getProperty("smtp_port"));*/
+            properties.setProperty("mail.store.protocol", "imaps");
             
             Session session = Session.getInstance(properties, authenticator);
             
@@ -428,7 +424,8 @@ public class HomeScreen extends javax.swing.JFrame
             }
 
             System.out.println("Username: " + usernameProp + " Server type: " + serverType + " incoming " + incoming);
-            store = session.getStore(serverType.toLowerCase());
+            //store = session.getStore(serverType.toLowerCase());
+            store = session.getStore("imaps");
             
             //Build the JTree folder structure
             buildJTree();         
