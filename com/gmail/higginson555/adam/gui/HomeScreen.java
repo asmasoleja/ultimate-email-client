@@ -45,6 +45,8 @@ public class HomeScreen extends javax.swing.JFrame
     private Store store = null;
     //The inbox folder
     private Folder inbox = null;
+    //Session for this mail client
+    private Session session;
 
     /**
      * Creates new form HomeScreen
@@ -367,7 +369,7 @@ public class HomeScreen extends javax.swing.JFrame
      */
     private void composeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_composeButtonActionPerformed
 
-        ComposeMailScreen mailScreen = new ComposeMailScreen(config, this.properties);       
+        ComposeMailScreen mailScreen = new ComposeMailScreen(config, session);
         mailScreen.setVisible((true));
     }//GEN-LAST:event_composeButtonActionPerformed
 
@@ -403,7 +405,7 @@ public class HomeScreen extends javax.swing.JFrame
             this.properties.put("mail.smtp.port", config.getProperty("smtp_port"));*/
             properties.setProperty("mail.store.protocol", "imaps");
             
-            Session session = Session.getInstance(properties, null);
+            session = Session.getInstance(properties, null);
             
             //config.load(new FileInputStream("config.properties"));
             
@@ -583,7 +585,7 @@ public class HomeScreen extends javax.swing.JFrame
             catch (MessagingException ex) {
                 JOptionPane.showMessageDialog(rootPane, ex.toString(), "MessagingException", JOptionPane.ERROR_MESSAGE);
             }
-            ViewMailScreen viewMail = new ViewMailScreen(selectedMsg);
+            ViewMailScreen viewMail = new ViewMailScreen(selectedMsg, config, session);
             viewMail.setVisible(true);
             //TODO get message at this row
         }

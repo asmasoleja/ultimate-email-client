@@ -24,18 +24,18 @@ import javax.swing.JOptionPane;
 public class ComposeMailScreen extends javax.swing.JFrame {
 
     private String username, password;
-    //The properties to use for this message
-    private Properties properties;
+    //The session to use for this message
+    private Session session;
     //The reply message, can be null if we should just compose a blank
     //message.
-    private Message replyMessage;
+    private Part replyMessage;
     /**
      * 
      * @param config The Properties holding a username, password etc.
      * @param properties Properties holding server settings and configuration
      */
     public ComposeMailScreen(Properties config, 
-                             Properties serverProperties) 
+                             Session session)
     {
         this.username = config.getProperty("username");
         //The password which will be decrypted
@@ -54,16 +54,32 @@ public class ComposeMailScreen extends javax.swing.JFrame {
         }
         
         this.password = passwordDec;
-        this.properties = serverProperties;
         initComponents();
         this.setLocationRelativeTo(null);
     }
     
-    public ComposeMailScreen(Properties config, Properties serverProperties,
-                             Message replyMessage)
+    public ComposeMailScreen(Properties config, Session session,
+                             Part replyMessage, String replyTo, String recipients,
+                             String subject)
     {
-        this(config, serverProperties);
+        this(config, session);
         this.replyMessage = replyMessage;
+        this.messageArea.setContentType("text/html");
+        try
+        {
+            this.messageArea.setText(this.replyMessage.getContent().toString());
+            this.toField.setText(replyTo);
+            this.ccField.setText(recipients);
+            this.subjectField.setText(subject);
+        }
+        catch (IOException ex)
+        {
+            Logger.getLogger(ComposeMailScreen.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        catch (MessagingException ex)
+        {
+            Logger.getLogger(ComposeMailScreen.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     /**
@@ -79,24 +95,24 @@ public class ComposeMailScreen extends javax.swing.JFrame {
         jLabel2 = new javax.swing.JLabel();
         toField = new javax.swing.JTextField();
         subjectField = new javax.swing.JTextField();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        messageArea = new javax.swing.JTextArea();
         sendButton = new javax.swing.JButton();
         discardButton = new javax.swing.JButton();
         saveButton = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        messageArea = new javax.swing.JEditorPane();
+        jLabel3 = new javax.swing.JLabel();
+        jLabel4 = new javax.swing.JLabel();
+        ccField = new javax.swing.JTextField();
+        bccField = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Compose Mail");
 
-        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 12));
         jLabel1.setText("To:");
 
-        jLabel2.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        jLabel2.setFont(new java.awt.Font("Tahoma", 1, 12));
         jLabel2.setText("Subject:");
-
-        messageArea.setColumns(20);
-        messageArea.setRows(5);
-        jScrollPane1.setViewportView(messageArea);
 
         sendButton.setText("Send");
         sendButton.addActionListener(new java.awt.event.ActionListener() {
@@ -114,6 +130,14 @@ public class ComposeMailScreen extends javax.swing.JFrame {
 
         saveButton.setText("Save");
 
+        jScrollPane1.setViewportView(messageArea);
+
+        jLabel3.setFont(new java.awt.Font("DejaVu Sans", 1, 13)); // NOI18N
+        jLabel3.setText("CC:");
+
+        jLabel4.setFont(new java.awt.Font("DejaVu Sans", 1, 13)); // NOI18N
+        jLabel4.setText("BCC:");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -121,42 +145,68 @@ public class ComposeMailScreen extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel1)
-                            .addComponent(jLabel2))
-                        .addGap(13, 13, 13)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(subjectField)
-                            .addComponent(toField)))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 730, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(sendButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(saveButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(discardButton)
-                        .addGap(0, 476, Short.MAX_VALUE)))
+                        .addComponent(discardButton))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                .addGroup(layout.createSequentialGroup()
+                                    .addComponent(jLabel1)
+                                    .addGap(36, 36, 36))
+                                .addComponent(jLabel2))
+                            .addComponent(jLabel4)
+                            .addComponent(jLabel3))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(12, 12, 12)
+                                .addComponent(subjectField, javax.swing.GroupLayout.DEFAULT_SIZE, 658, Short.MAX_VALUE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(ccField, javax.swing.GroupLayout.DEFAULT_SIZE, 658, Short.MAX_VALUE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(bccField, javax.swing.GroupLayout.DEFAULT_SIZE, 658, Short.MAX_VALUE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(toField, javax.swing.GroupLayout.DEFAULT_SIZE, 658, Short.MAX_VALUE)))))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(sendButton)
                     .addComponent(saveButton)
                     .addComponent(discardButton))
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1)
-                    .addComponent(toField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel2)
-                    .addComponent(subjectField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 370, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(12, 12, 12)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel1)
+                        .addGap(18, 18, 18)
+                        .addComponent(jLabel3)
+                        .addGap(16, 16, 16))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(toField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(ccField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel4)
+                    .addGroup(layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(bccField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(8, 8, 8)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(subjectField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel2))
+                .addGap(26, 26, 26)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 382, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
 
@@ -185,8 +235,7 @@ public class ComposeMailScreen extends javax.swing.JFrame {
                     return new PasswordAuthentication(username, password);
                 }
             };
-            
-            Session session = Session.getInstance(this.properties, authenticator);       
+                
             Message message = new MimeMessage(session);
             //Set FROM and TO fields
             message.setFrom(new InternetAddress(this.username));
@@ -255,11 +304,15 @@ public class ComposeMailScreen extends javax.swing.JFrame {
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JTextField bccField;
+    private javax.swing.JTextField ccField;
     private javax.swing.JButton discardButton;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTextArea messageArea;
+    private javax.swing.JEditorPane messageArea;
     private javax.swing.JButton saveButton;
     private javax.swing.JButton sendButton;
     private javax.swing.JTextField subjectField;

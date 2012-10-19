@@ -4,13 +4,11 @@
  */
 package com.gmail.higginson555.adam.gui;
 
-import java.awt.BorderLayout;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Properties;
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
@@ -18,12 +16,9 @@ import javax.swing.DefaultListModel;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import org.lobobrowser.html.UserAgentContext;
-import org.lobobrowser.html.gui.HtmlPanel;
 import org.lobobrowser.html.parser.DocumentBuilderImpl;
 import org.lobobrowser.html.test.SimpleHtmlRendererContext;
 import org.lobobrowser.html.test.SimpleUserAgentContext;
-import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
 
 /**
  *
@@ -43,8 +38,20 @@ public class ViewMailScreen extends javax.swing.JFrame {
     private int listLevel;
     //The ArrayList of all attachments of the message
     private ArrayList<Part> attachments;
-    
-    private String body; 
+    //The config and session for sending messages
+    private Properties config;
+    private Session session;
+    //The part of the message which holds the body
+    private Part messageBody;
+    //The string body representation
+    private String body;
+    //The reply to String, used for the Reply to message functionality
+    private String replyTo;
+    //The recipient string
+    private String recipient;
+    //Subject
+    private String subject;
+
     
     
     
@@ -53,9 +60,11 @@ public class ViewMailScreen extends javax.swing.JFrame {
      * @param message The message object which represents the
      *                received e-mail
      */
-    public ViewMailScreen(Message message) 
+    public ViewMailScreen(Message message, Properties config, Session session)
     {
         this.message = message;
+        this.config = config;
+        this.session = session;
         this.level = 0;
         
         this.attachments = new ArrayList<Part>();
@@ -75,22 +84,7 @@ public class ViewMailScreen extends javax.swing.JFrame {
             System.out.println("\nWriting message...\n");
             writeMessage(message);
             panel.setHtml(body, body, rContext);
-            System.out.println("\n---------------DONE-------------------\n");
-            
-            if (body.indexOf("<body") > -1)
-            {
-                System.out.println("Found <body");
-            }
-            else
-                System.out.println("Didn't find <body>");
-            
-            if (body.indexOf("</body>") > -1)
-            {
-                System.out.println("Found </body>"); 
-            }
-            else
-                System.out.println("Didn't find </body>");
-            
+            System.out.println("\n---------------DONE-------------------\n");            
             //bodyTextPane.setText(body);
         } 
         catch (Exception ex) 
@@ -100,7 +94,7 @@ public class ViewMailScreen extends javax.swing.JFrame {
     }
     
     /*
-     * Writes message to the text area
+     * Writes message to the message area
      */
     private void writeMessage(Part part) throws Exception 
     {
@@ -127,6 +121,7 @@ public class ViewMailScreen extends javax.swing.JFrame {
             //bodyTextPane.setContentType("text/html");
             System.out.println("Found html");
             body += (String)part.getContent();
+            this.messageBody = part;
         }
         else if (part.isMimeType("multipart/*"))
         {
@@ -218,6 +213,7 @@ public class ViewMailScreen extends javax.swing.JFrame {
             for (int i = 0; i < addresses.length; i++)
                 replyToText += addresses[i].toString() + " ";
         }
+        replyTo = addresses[0].toString();
         replyToLabel.setText(replyToText);
         
         //To
@@ -237,9 +233,11 @@ public class ViewMailScreen extends javax.swing.JFrame {
                 }
             }
         }
+        recipient = toText;
         toLabel.setText(toText);
         
         subjectLabel.setText(message.getSubject());
+        subject = message.getSubject();
         
         Date date = message.getSentDate();
         if (date != null)
@@ -328,6 +326,11 @@ public class ViewMailScreen extends javax.swing.JFrame {
         subjectLabel.setText("???");
 
         replyButton.setText("Reply");
+        replyButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                replyButtonActionPerformed(evt);
+            }
+        });
 
         forwardButton.setText("Forward");
 
@@ -381,7 +384,7 @@ public class ViewMailScreen extends javax.swing.JFrame {
                                     .addComponent(fromLabel)
                                     .addComponent(replyToLabel)
                                     .addComponent(toLabel))
-                                .addGap(0, 0, Short.MAX_VALUE)
+                                .addGap(0, 235, Short.MAX_VALUE)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jLabel2)
                                     .addComponent(sentLabelStatic))
@@ -466,6 +469,12 @@ public class ViewMailScreen extends javax.swing.JFrame {
             }
         }
     }//GEN-LAST:event_attachmentListMouseClicked
+
+    private void replyButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_replyButtonActionPerformed
+
+        ComposeMailScreen replyScreen = new ComposeMailScreen(config, session, messageBody, replyTo, recipient, subject);
+        replyScreen.setVisible(true);
+    }//GEN-LAST:event_replyButtonActionPerformed
 
     /**
      * @param args the command line arguments
