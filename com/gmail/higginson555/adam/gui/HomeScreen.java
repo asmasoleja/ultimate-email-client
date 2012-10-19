@@ -403,7 +403,7 @@ public class HomeScreen extends javax.swing.JFrame
             this.properties.put("mail.smtp.port", config.getProperty("smtp_port"));*/
             properties.setProperty("mail.store.protocol", "imaps");
             
-            Session session = Session.getInstance(properties, authenticator);
+            Session session = Session.getInstance(properties, null);
             
             //config.load(new FileInputStream("config.properties"));
             
