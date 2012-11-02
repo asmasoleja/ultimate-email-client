@@ -79,6 +79,11 @@ public class Database
         Logger.getLogger("emailClient").log(Level.INFO, "Created database: {0}", name);
     }
     
+    public void dropDatabase(String name) throws SQLException
+    {
+        execute("DROP DATABASE " + name);
+    }
+    
     /**
      * Changes the connection of this database to the new database
      * @param name The new database to connect to
@@ -110,6 +115,29 @@ public class Database
         }
         
         return tableData;      
+    }
+    
+    public ArrayList<Object[]> selectFromTableWhere(String tableName, 
+                                                    String values, 
+                                                    String whereSQL) throws SQLException
+    {
+        String sql = "SELECT " + values + " FROM " + tableName + " WHERE " + whereSQL;
+        System.out.println("Query is: " + sql);
+        Statement select = connection.createStatement();
+        ResultSet result = select.executeQuery(sql);
+        ArrayList<Object[]> tableData = new ArrayList<Object[]>();
+        
+        while (result.next())
+        {
+            Object[] line = new Object[result.getMetaData().getColumnCount()];
+            for (int i = 0; i < line.length; i++)
+            {
+                line[i] = result.getObject(i + 1);
+            }
+            tableData.add(line);
+        }
+        
+        return tableData;
     }
     
     public ArrayList<Object[]> selectAllFromTable(String tableName) throws SQLException

@@ -1,6 +1,11 @@
 package com.gmail.higginson555.adam;
 
+import com.gmail.higginson555.adam.gui.LoadingScreen;
+import java.security.GeneralSecurityException;
+import java.sql.SQLException;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.mail.Folder;
 import javax.mail.MessagingException;
 import javax.mail.Store;
@@ -27,14 +32,54 @@ public class StoreNode extends DefaultMutableTreeNode
     private Properties config;
     //Username and password of the user. Used for connecting to the store
     private String password;
+    //The account manager used
+    private AccountManager accountManager;
+    //The account this represents
+    private Account account;
     
-    public StoreNode(Store store, Properties config, String password)
+
+    
+    public StoreNode(Store store, Properties config, String password, AccountManager accountManager)
     {
         super(store);
         this.store = store;
         this.config = config;
         //this.username = username;
         this.password = password;
+        this.accountManager = accountManager;
+        
+        if (!store.isConnected())
+        {
+            //store.connect();
+            String username = config.getProperty("username");
+            String incoming = config.getProperty("incoming_server");
+            try 
+            {
+                store.connect(incoming, username, password);
+            } catch (MessagingException ex) 
+            {
+                Logger.getLogger(StoreNode.class.getName()).log(Level.SEVERE, null, ex);
+                System.exit(-1);
+            }
+        }
+        
+        System.out.println("Found URL name: " + store.getURLName().getUsername());
+        String storeName = store.getURLName().getUsername();
+        try 
+        {
+            accountManager.addAccount(storeName, ProtectedPassword.encrypt(password));
+            int accountID = accountManager.getAccountID(storeName);
+            this.account = new Account(accountID, storeName, ProtectedPassword.encrypt(password), null);
+            
+        } catch (SQLException ex) {
+            Logger.getLogger(StoreNode.class.getName()).log(Level.SEVERE, null, ex);
+            System.exit(-1);
+        }
+        catch (GeneralSecurityException ex)
+        {
+            Logger.getLogger(StoreNode.class.getName()).log(Level.SEVERE, null, ex);
+            System.exit(-1);
+        }
     }
     
     /**
@@ -82,12 +127,16 @@ public class StoreNode extends DefaultMutableTreeNode
             //List all subscribed folders to it
             Folder[] subscribedFolders = folder.list();         
             //Create a FolderNode for every folder found
+            FolderManager fm = new FolderManager(accountManager.getDatabase());
+            LoadingScreen ls = new LoadingScreen("Please wait, initialising local database...");
+            ls.setVisible(true);
             for (int i = 0; i < subscribedFolders.length; ++i)
             {
-                FolderNode newNode = new FolderNode(subscribedFolders[i]);
+                FolderNode newNode = new FolderNode(subscribedFolders[i], fm, account);
                 //Insert into tree
                 insert(newNode, i);
             }
+            ls.dispose();
             
             
         }
