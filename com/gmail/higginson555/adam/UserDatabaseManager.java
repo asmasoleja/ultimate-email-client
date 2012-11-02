@@ -1,5 +1,6 @@
 package com.gmail.higginson555.adam;
 
+import com.gmail.higginson555.adam.gui.LoadingScreen;
 import java.sql.SQLException;
 
 /**
@@ -29,16 +30,41 @@ public class UserDatabaseManager
         }
         catch (SQLException ex)
         {
+            LoadingScreen ls = new LoadingScreen("Please wait, creating database...");
+            ls.setVisible(true);
             //Create the User database
             database.createDatabase("User");
             database.selectDatabase("User");
+            //ACCOUNT TABLE
             String accountTableSQL = "accountID int NOT NULL AUTO_INCREMENT,"
                         + "username varchar(255) NOT NULL,"
                         + "password varchar(255) NOT NULL,"
                         + "PRIMARY KEY(accountID)";
-            database.createTable("Account", accountTableSQL);
+            database.createTable("Accounts", accountTableSQL);
+            //FOLDER TABLE
+            String folderTableSQL = "folderID int NOT NULL AUTO_INCREMENT,"
+                                  + "name varchar(255) NOT NULL,"
+                                  + "accountID int NOT NULL,"
+                                  + "parentFolder int,"
+                                  + "PRIMARY KEY(folderID),"
+                                  + "FOREIGN KEY(accountID) REFERENCES accounts(accountID),"
+                                  + "FOREIGN KEY(parentFolder) REFERENCES folders(folderID)";
+            database.createTable("Folders", folderTableSQL);
+            //MESSAGE TABLE
+            /*String messageTableSQL = "messageID int NOT NULL AUTO_INCREMENT,"
+                                   + "messageUID int NOT NULL,"
+                                   + "subject varchar(255),"
+                                   + "from varchar(255),"
+                                   + "to varchar(255)"
+                                   + "dateSent DATE,"
+                                   + "dateReceived DATE,"
+                                   + "folderID int NOT NULL,"
+                                   + "PRIMARY KEY(messageID),"
+                                   + "FOREIGN KEY(folderID) REFERENCES folders(folderID)";
+            database.createTable("Messages", messageTableSQL);*/
             //database = createNewDatabase(database);
             
+            ls.dispose();
         }
         
         return database;

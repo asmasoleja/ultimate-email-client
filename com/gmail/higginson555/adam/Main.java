@@ -28,29 +28,6 @@ public class Main
     {
         Logger.getLogger("emailClient").log(Level.INFO, "Started e-mail client...");
 
-        Database database = null;
-        AccountManager accountManager = null;
-        UserDatabaseManager dbManager = new UserDatabaseManager();
-        
-        try
-        {
-            database = dbManager.getDatabaseInstance();
-            accountManager = new AccountManager(database);
-            accountManager.addAccount(new Account("adam.higginson555@gmail.com", "encryptedStuff", null));
-            
-        }
-        catch (SQLException ex)
-        {
-            ex.printStackTrace();
-            System.exit(-1);
-        }
-        catch (ClassNotFoundException ex)
-        {
-            ex.printStackTrace();
-            System.exit(-1);
-        }
-        
-        /*
         //Check if the config file exists, if it doesn't, run first time stuff
         Properties config = new Properties();
         try 
@@ -87,7 +64,7 @@ public class Main
         {
             JOptionPane.showMessageDialog(null, ex.toString(), "IO Exception", JOptionPane.ERROR_MESSAGE);
             System.exit(-1);
-        }*/
+        }
     }
     
 }

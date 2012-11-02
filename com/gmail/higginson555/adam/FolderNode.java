@@ -1,5 +1,8 @@
 package com.gmail.higginson555.adam;
 
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.mail.Folder;
 import javax.mail.MessagingException;
 import javax.swing.JOptionPane;
@@ -14,17 +17,51 @@ public class FolderNode extends DefaultMutableTreeNode
 {
     //The folder held by this node
     private Folder folder;
-    //Whether we habe loaded up all the subfolders for this folder
+    //Whether we have loaded up all the subfolders for this folder
     private boolean hasLoadedSubfolders = false;
+    //The account this folder belongs to
+    private Account account;
+    //The folder manager to use
+    private FolderManager folderManager;
     
     /**
      * Creates a FolderNode with the specified folder inside it
      * @param folder The folder used for this node
      */
-    public FolderNode(Folder folder)
+    public FolderNode(Folder folder, FolderManager folderManager, Account account)
     {
         super(folder);
+        System.out.println("\n\n----------------CREATING NEW FOLDER NODE " + folder.getName().toUpperCase() + "--------------\n\n");
         this.folder = folder;
+        this.folderManager = folderManager;
+        this.account = account;
+        try 
+        {
+            Folder parent = null;
+            try 
+            {
+                parent = folder.getParent();
+            } catch (MessagingException ex) 
+            {
+                Logger.getLogger(FolderNode.class.getName()).log(Level.SEVERE, null, ex);
+                System.exit(-1);
+            }
+            if (parent != null && !parent.getName().isEmpty())
+            {
+                System.out.println("This folder: " + folder.getName());
+                System.out.println("Parent: " + parent.getName());
+                String parentName = parent.getName();
+                folderManager.addFolder(folder.getName(), parentName, account);
+            }
+            else
+            {
+                folderManager.addFolder(folder.getName(), this.account);
+            }
+        } 
+        catch (SQLException ex) {
+            Logger.getLogger(FolderNode.class.getName()).log(Level.SEVERE, null, ex);
+            System.exit(-1);
+        }
     }
     
     /**
@@ -110,7 +147,7 @@ public class FolderNode extends DefaultMutableTreeNode
             //Add folder nodes for each subfolder
             for (int i = 0; i < subfolders.length; ++i)
             {
-                FolderNode newNode = new FolderNode(subfolders[i]);
+                FolderNode newNode = new FolderNode(subfolders[i], folderManager, account);
                 insert(newNode, i);
             }
             //}
