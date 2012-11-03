@@ -51,17 +51,17 @@ public class UserDatabaseManager
                                   + "FOREIGN KEY(parentFolder) REFERENCES folders(folderID)";
             database.createTable("Folders", folderTableSQL);
             //MESSAGE TABLE
-            /*String messageTableSQL = "messageID int NOT NULL AUTO_INCREMENT,"
+            String messageTableSQL = "messageID int NOT NULL AUTO_INCREMENT,"
                                    + "messageUID int NOT NULL,"
                                    + "subject varchar(255),"
-                                   + "from varchar(255),"
-                                   + "to varchar(255)"
-                                   + "dateSent DATE,"
-                                   + "dateReceived DATE,"
+                                   + "messageFrom varchar(255),"
+                                   + "messageTo varchar(255),"
+                                   + "dateSent datetime,"
+                                   + "dateReceived datetime,"
                                    + "folderID int NOT NULL,"
                                    + "PRIMARY KEY(messageID),"
                                    + "FOREIGN KEY(folderID) REFERENCES folders(folderID)";
-            database.createTable("Messages", messageTableSQL);*/
+            database.createTable("Messages", messageTableSQL);
             //database = createNewDatabase(database);
             
             ls.dispose();

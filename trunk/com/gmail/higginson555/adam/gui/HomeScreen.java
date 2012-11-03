@@ -4,16 +4,22 @@
  */
 package com.gmail.higginson555.adam.gui;
 
+import com.gmail.higginson555.adam.AccountManager;
+import com.gmail.higginson555.adam.Database;
 import com.gmail.higginson555.adam.FolderNode;
 import com.gmail.higginson555.adam.ProtectedPassword;
 import com.gmail.higginson555.adam.StoreNode;
+import com.gmail.higginson555.adam.UserDatabaseManager;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.mail.*;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
@@ -47,6 +53,8 @@ public class HomeScreen extends javax.swing.JFrame
     private Folder inbox = null;
     //Session for this mail client
     private Session session;
+    //The user database to use
+    private Database userDatabase;
 
     /**
      * Creates new form HomeScreen
@@ -55,6 +63,25 @@ public class HomeScreen extends javax.swing.JFrame
     {
         this.config = config;
         this.messagesInFolder = new ArrayList<Message>(MESSAGES_DEFAULT_SIZE);
+        
+        UserDatabaseManager dbManager = new UserDatabaseManager();
+        try 
+        {
+            this.userDatabase = dbManager.getDatabaseInstance();
+        } 
+        catch (SQLException ex) 
+        {
+            JOptionPane.showMessageDialog(rootPane, ex.toString(), "SQL Exception!", JOptionPane.ERROR_MESSAGE);
+            Logger.getLogger(HomeScreen.class.getName()).log(Level.SEVERE, null, ex);
+            System.exit(-1);
+            
+        } 
+        catch (ClassNotFoundException ex) 
+        {
+            JOptionPane.showMessageDialog(rootPane, ex.toString(), "Class Not Found Exception!", JOptionPane.ERROR_MESSAGE);
+            Logger.getLogger(HomeScreen.class.getName()).log(Level.SEVERE, null, ex);
+            System.exit(-1);
+        }
         
         try 
         {
@@ -389,14 +416,7 @@ public class HomeScreen extends javax.swing.JFrame
     private void connectToServer()
     {
         try
-        {
-            Authenticator authenticator = new Authenticator() {
-                @Override
-                protected PasswordAuthentication getPasswordAuthentication() {
-                    return new PasswordAuthentication(config.getProperty("username"), password);
-                }
-            };
-            
+        {            
             //Set properties
             properties = System.getProperties();
             /*this.properties.put("mail.smtp.auth", "true");
@@ -448,7 +468,8 @@ public class HomeScreen extends javax.swing.JFrame
     //built by connectToServer()
     private void buildJTree()
     {
-        StoreNode storeNode = new StoreNode(store, config, password);
+        AccountManager am = new AccountManager(userDatabase);
+        StoreNode storeNode = new StoreNode(store, config, password, am);
         DefaultTreeModel treeModel = new DefaultTreeModel(storeNode);
         emailJTree.setModel(treeModel);
         emailJTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);   
@@ -479,10 +500,14 @@ public class HomeScreen extends javax.swing.JFrame
         
         if (evt.getClickCount() == 2)
         {
+            System.out.println("\n\n--------------Double click on JTree, D/Ling messages-------------------\n\n");
             DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode)emailJTree.getLastSelectedPathComponent();
         
             if (selectedNode instanceof FolderNode)
             {
+                LoadingScreen ls = new LoadingScreen("Please wait, downloading messages...");
+                ls.setVisible(true);
+                this.setEnabled(false);
                 FolderNode folderNode = (FolderNode)selectedNode;
                 //Get all messages held in this folder
                 Folder folder = folderNode.getFolder();
@@ -491,6 +516,8 @@ public class HomeScreen extends javax.swing.JFrame
                 {
                     if (folder.getType() == Folder.HOLDS_FOLDERS)
                     {
+                        ls.dispose();
+                        this.setEnabled(true);
                         return;
                     }
                     if (!folder.isOpen())
@@ -528,9 +555,12 @@ public class HomeScreen extends javax.swing.JFrame
                         newData[allMessages.length - 1 - i][3] = isRead;
                         messagesInFolder.add(allMessages[i]);         
                     }
-                    
+                                        
                     emailModel.setData(newData);
                     
+                    ls.dispose();
+                    this.setEnabled(true);
+
                     /*
                     //TODO make this an option to disable?
                     Iterator<Message> messageIt = messagesInFolder.iterator();
