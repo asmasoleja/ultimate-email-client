@@ -2,6 +2,7 @@ package com.gmail.higginson555.adam;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -172,6 +173,66 @@ public class Database
         execute(sql);
     }
     
+    /**
+     * Inserts multiple rows into the database at once
+     * @param tableName The table to insert rows into
+     * @param fieldNames The names of the fields to update
+     * @param fieldValues An arraylist, where each element corresponds to a single row in the database
+     * @throws SQLException 
+     */
+    public void insertRecords(String tableName, String[] fieldNames, ArrayList<Object[]> fieldValues)
+            throws SQLException
+    {
+        String query = "INSERT INTO " + tableName + " (";
+        for (int i = 0; i < fieldNames.length - 1; i++)
+        {
+            query += (fieldNames[i] + ", ");
+        }
+        query += fieldNames[fieldNames.length - 1] + ") VALUES (";
+        //Now insert as many question marks as needed
+        for (int i = 0; i < fieldNames.length - 1; i++)
+        {
+            query += "?, ";
+        }
+        query += "?)";
+        
+        System.out.println("Query is: " + query);
+        
+        Iterator<Object[]> lineIter = fieldValues.iterator();
+        
+        PreparedStatement ps = connection.prepareStatement(query);
+        while (lineIter.hasNext())
+        {
+            Object[] line = lineIter.next();
+            for (int i = 0; i < line.length; i++)
+            {
+                if (line[i] instanceof Integer) {
+                    ps.setInt(i + 1, (Integer)line[i]);
+                }
+                else if (line[i] instanceof Double) {
+                    ps.setDouble(i + 1, (Double)line[i]);
+                }
+                else if (line[i] instanceof java.util.Date)
+                {
+                    java.util.Date date = (java.util.Date) line[i];
+                    Timestamp ts = new Timestamp(date.getTime());
+                    ps.setTimestamp(i + 1, ts);
+                }
+                else if (line[i] instanceof String) {
+                    ps.setString(i + 1, (String)line[i]);
+                }
+                
+                System.out.println("Field value: " + line[i]);
+            }
+            
+            System.out.println("\n\n");
+           
+            ps.addBatch();
+        }
+        
+        int[] results = ps.executeBatch();
+    }
+    
     public void insertRecord(String tableName, String[] fieldNames, Object[] fieldValues) throws SQLException
     {
         String query = "INSERT INTO " + tableName + " (";
@@ -196,11 +257,17 @@ public class Database
                 ps.setInt(i + 1, (Integer)fieldValues[i]);
             else if (fieldValues[i] instanceof Double)
                 ps.setDouble(i + 1, (Double)fieldValues[i]);
-            else if (fieldValues[i] instanceof Date)
-                ps.setDate(i + 1, (Date)fieldValues[i]);
+            else if (fieldValues[i] instanceof java.util.Date)
+            {
+                System.out.println("Found date!");
+                java.util.Date date = (java.util.Date) fieldValues[i];
+                Timestamp ts = new Timestamp(date.getTime());
+                ps.setTimestamp(i + 1, ts);
+            }
             else if (fieldValues[i] instanceof String)
                 ps.setString(i + 1, (String)fieldValues[i]);
             
+            //System.out.print("Field value type: " + fieldValues[i].getClass().getName() + ", ");
             System.out.println("Field value: " + fieldValues[i]);
             //ps.addBatch();
     

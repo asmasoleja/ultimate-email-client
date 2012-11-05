@@ -56,8 +56,8 @@ public class UserDatabaseManager
                                    + "subject varchar(255),"
                                    + "messageFrom varchar(255),"
                                    + "messageTo varchar(255),"
-                                   + "dateSent datetime,"
-                                   + "dateReceived datetime,"
+                                   + "dateSent TIMESTAMP,"
+                                   + "dateReceived TIMESTAMP,"
                                    + "folderID int NOT NULL,"
                                    + "PRIMARY KEY(messageID),"
                                    + "FOREIGN KEY(folderID) REFERENCES folders(folderID)";

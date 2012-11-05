@@ -33,22 +33,46 @@ public class FolderManager
         }
     }
     
-    public void addFolder(String folderName, String parentFolder, Account account) throws SQLException
+    public void addFolder(String folderName, String parentFolderList[], Account account) throws SQLException
     {
-        //Only add a folder if it is unique
-        ArrayList<Object[]> resultDuplicate = database.selectFromTableWhere("Folders", "name", "name='" + folderName + "'");
-        if (resultDuplicate.isEmpty())
+        
+        int[] idList = new int[parentFolderList.length];
+        //for each item in list
+        for (int i = 0; i < parentFolderList.length; i++)
         {
-            String whereSQL = "name='" + parentFolder + "'";
-            ArrayList<Object[]> result = database.selectFromTableWhere("Folders", "folderID", whereSQL);
-            int parentID = (Integer) result.get(0)[0];
-
+            //If at top of list
+            if (i == 0)
+            {
+                ArrayList<Object[]> result = database.selectFromTableWhere("Folders", 
+                        "folderID", 
+                        "name='" + parentFolderList[0] + "' AND parentFolder IS NULL");
+                idList[0] = (Integer) result.get(0)[0];
+            }
+            else
+            {
+                ArrayList<Object[]> result = database.selectFromTableWhere("Folders", 
+                        "folderID", 
+                        "name='" + parentFolderList[i] + 
+                        "' AND parentFolder=" + Integer.toString(idList[i - 1]));
+                idList[i] = (Integer) result.get(0)[0];
+                
+            }
+        }
+        
+        ArrayList<Object[]> result = database.selectFromTableWhere("Folders", 
+                "folderID", 
+                "name='" + folderName + 
+                "' AND parentFolder=" + Integer.toString(idList[idList.length - 1]));
+        
+        //Only add a folder if it is unique
+        if (result.isEmpty())
+        {
             String[] fieldNames = {"name", "accountID", "parentFolder"};
-            Object[] fieldValues = {folderName, account.getAccountID(), parentID};
+            Object[] fieldValues = {folderName, account.getAccountID(), idList[idList.length - 1]};
 
 
             database.insertRecord("Folders", fieldNames, fieldValues);
-        }
+        } 
     }
     
     public int getFolderID(String folderName) throws SQLException
@@ -73,29 +97,35 @@ public class FolderManager
             //If at top of list
             if (i == 0)
             {
-                ArrayList<Object[]> result = database.selectFromTableWhere("Folders", "folderID", "name='" + parentFolderList[0] + "' AND parentID=NULL");
+                ArrayList<Object[]> result = database.selectFromTableWhere("Folders", 
+                        "folderID", 
+                        "name='" + parentFolderList[0] + "' AND parentFolder IS NULL");
                 idList[0] = (Integer) result.get(0)[0];
             }
+            else
+            {
+                ArrayList<Object[]> result = database.selectFromTableWhere("Folders", 
+                        "folderID", 
+                        "name='" + parentFolderList[i] + 
+                        "' AND parentFolder=" + Integer.toString(idList[i - 1]));
+                idList[i] = (Integer) result.get(0)[0];
+                
+            }
         }
-        ArrayList<Object[]> result = database.selectFromTableWhere("Folders", "folderID, parentFolder", "name='" + folderName + "'");
-        ArrayList<Object[]> parentResult = database.se
-        Iterator<Object[]> lineIter = result.iterator();
-        while (lineIter.hasNext())
-        {
-            Object[] line = lineIter.next();
-            
-        }
-        int folderID = -1;
+        
+        //Select id of folder where the name is the given name, and it's parent
+        //is the last in the id list, i.e it's parent
+        ArrayList<Object[]> result = database.selectFromTableWhere("Folders", 
+                "folderID", 
+                "name='" + folderName + 
+                "' AND parentFolder=" + Integer.toString(idList[idList.length - 1]));
+        
+        int foundID = -1;
         if (!result.isEmpty())
         {
-            folderID = (Integer) result.get(0)[0];
+            foundID = (Integer) result.get(0)[0];
         }
-    }
-    
-    public int getParentFolderID(String parentFolder) throws SQLException
-    {
         
-        ArrayList<Object[]> result = database.selectFromTableWhere("Folders", "folderID", parentFolder)
-    }
-    
+        return foundID;
+    }    
 }

@@ -6,7 +6,9 @@ package com.gmail.higginson555.adam.gui;
 
 import com.gmail.higginson555.adam.AccountManager;
 import com.gmail.higginson555.adam.Database;
+import com.gmail.higginson555.adam.FolderManager;
 import com.gmail.higginson555.adam.FolderNode;
+import com.gmail.higginson555.adam.MessageManager;
 import com.gmail.higginson555.adam.ProtectedPassword;
 import com.gmail.higginson555.adam.StoreNode;
 import com.gmail.higginson555.adam.UserDatabaseManager;
@@ -507,7 +509,6 @@ public class HomeScreen extends javax.swing.JFrame
             {
                 LoadingScreen ls = new LoadingScreen("Please wait, downloading messages...");
                 ls.setVisible(true);
-                this.setEnabled(false);
                 FolderNode folderNode = (FolderNode)selectedNode;
                 //Get all messages held in this folder
                 Folder folder = folderNode.getFolder();
@@ -517,11 +518,11 @@ public class HomeScreen extends javax.swing.JFrame
                     if (folder.getType() == Folder.HOLDS_FOLDERS)
                     {
                         ls.dispose();
-                        this.setEnabled(true);
                         return;
                     }
-                    if (!folder.isOpen())
+                    if (!folder.isOpen()) {
                         folder.open(Folder.READ_WRITE);
+                    }
                     //Get all messages in this folder
                     Message[] allMessages = folder.getMessages();
                                         
@@ -553,13 +554,19 @@ public class HomeScreen extends javax.swing.JFrame
                         newData[allMessages.length - 1 - i][1] = from;
                         newData[allMessages.length - 1 - i][2] = date;
                         newData[allMessages.length - 1 - i][3] = isRead;
-                        messagesInFolder.add(allMessages[i]);         
+                        messagesInFolder.add(allMessages[i]); 
+                        
                     }
+                    
+                    //TODO, only add new messages if needed!
+                    MessageManager mm = new MessageManager(userDatabase);
+                    mm.addMessages(allMessages, new FolderManager(userDatabase));
+                    
+                    
                                         
                     emailModel.setData(newData);
                     
                     ls.dispose();
-                    this.setEnabled(true);
 
                     /*
                     //TODO make this an option to disable?
@@ -592,7 +599,11 @@ public class HomeScreen extends javax.swing.JFrame
                         }
                     }*/
                     
-                } 
+                }
+                catch (SQLException ex)
+                {
+                    JOptionPane.showMessageDialog(rootPane, ex.toString(), "SQL Exception!", JOptionPane.ERROR_MESSAGE);
+                }
                 catch (MessagingException ex) 
                 {
                     JOptionPane.showMessageDialog(rootPane, ex.toString(), "Messaging Exception!", JOptionPane.ERROR_MESSAGE);
