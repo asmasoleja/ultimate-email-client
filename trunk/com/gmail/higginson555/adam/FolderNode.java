@@ -1,6 +1,8 @@
 package com.gmail.higginson555.adam;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.mail.Folder;
@@ -41,21 +43,29 @@ public class FolderNode extends DefaultMutableTreeNode
             try 
             {
                 parent = folder.getParent();
+                if (folder.getParent() == null || folder.getParent().getName().isEmpty())
+                {
+                    folderManager.addFolder(folder.getName(), account);
+                }
+                else //Folder has parent, work out parent tree!
+                {
+                    ArrayList<String> folderStack = new ArrayList<String>();
+                    while (parent != null && !parent.getName().isEmpty())
+                    {
+                        folderStack.add(parent.getName());
+                        System.out.println("Adding: " + parent.getName() + "@ " + folderStack.lastIndexOf(parent.getName()));
+                        parent = parent.getParent();
+                    }
+
+                    Collections.reverse(folderStack);
+                    String[] parentFolderList = folderStack.toArray(new String[folderStack.size()]);
+                    folderManager.addFolder(folder.getName(), parentFolderList, account);
+                }
+                
             } catch (MessagingException ex) 
             {
                 Logger.getLogger(FolderNode.class.getName()).log(Level.SEVERE, null, ex);
                 System.exit(-1);
-            }
-            if (parent != null && !parent.getName().isEmpty())
-            {
-                System.out.println("This folder: " + folder.getName());
-                System.out.println("Parent: " + parent.getName());
-                String parentName = parent.getName();
-                folderManager.addFolder(folder.getName(), parentName, account);
-            }
-            else
-            {
-                folderManager.addFolder(folder.getName(), this.account);
             }
         } 
         catch (SQLException ex) {

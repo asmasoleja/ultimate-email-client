@@ -276,6 +276,7 @@ public class ViewMailScreen extends javax.swing.JFrame {
         attachmentList = new javax.swing.JList();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setTitle("View Message");
 
         fromLabelStatic.setText("From:");
 
@@ -403,7 +404,6 @@ public class ViewMailScreen extends javax.swing.JFrame {
                     .addComponent(replyButton)
                     .addComponent(forwardButton)
                     .addComponent(deleteButton))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
