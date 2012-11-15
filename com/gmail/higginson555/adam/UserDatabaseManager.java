@@ -46,6 +46,7 @@ public class UserDatabaseManager
                                   + "name varchar(255) NOT NULL,"
                                   + "accountID int NOT NULL,"
                                   + "parentFolder int,"
+                                  + "lastMessage TIMESTAMP NULL DEFAULT NULL,"
                                   + "PRIMARY KEY(folderID),"
                                   + "FOREIGN KEY(accountID) REFERENCES accounts(accountID),"
                                   + "FOREIGN KEY(parentFolder) REFERENCES folders(folderID)";

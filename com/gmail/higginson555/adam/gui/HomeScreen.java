@@ -19,10 +19,14 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.mail.*;
+import javax.mail.search.SearchTerm;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
@@ -512,6 +516,7 @@ public class HomeScreen extends javax.swing.JFrame
                 FolderNode folderNode = (FolderNode)selectedNode;
                 //Get all messages held in this folder
                 Folder folder = folderNode.getFolder();
+                int folderID = folderNode.getFolderID();
                     
                 try 
                 {
@@ -542,63 +547,95 @@ public class HomeScreen extends javax.swing.JFrame
                     //Make sure to empty out current messages in ArrayList
                     messagesInFolder.clear();
                     
+                    ArrayList<Object[]> dbData = new ArrayList<Object[]>(allMessages.length); 
                     for (int i = allMessages.length - 1; i >= 0; i--)
                     {
+                        long startTime = System.currentTimeMillis();
                         String subject = allMessages[i].getSubject();
                         Address[] addresses = allMessages[i].getFrom();
                         String from = addresses[0].toString();
+                        String to = "";
+                        addresses = allMessages[i].getAllRecipients();
+                        if (addresses != null)
+                        {
+                            for (int j = 0; j < addresses.length - 1; j++)
+                            {
+                                to += addresses[j].toString() + ",";
+                            }
+                            //So we don't add a comma at the end
+                            to += addresses[addresses.length - 1];
+                        }
                         String date = allMessages[i].getSentDate().toString();
-                        Boolean isRead = allMessages[i].isSet(Flags.Flag.SEEN);
+                        Boolean isRead = allMessages[i].isSet(Flags.Flag.SEEN);        
+                        
+                        Date dateSent = allMessages[i].getSentDate();
+                        Date dateReceived = allMessages[i].getReceivedDate();
+                        Object[] line = {1, subject, from, to, dateSent, dateReceived, folderNode.getFolderID()};
+                        dbData.add(line);
                         
                         newData[allMessages.length - 1 - i][0] = subject;
                         newData[allMessages.length - 1 - i][1] = from;
                         newData[allMessages.length - 1 - i][2] = date;
                         newData[allMessages.length - 1 - i][3] = isRead;
                         messagesInFolder.add(allMessages[i]); 
+                        long endTime = System.currentTimeMillis();
                         
+                        System.out.println("To add a single line of data took: " + (endTime - startTime));
                     }
+                    
+                    Comparator<Message> messageComp = new Comparator<Message>() 
+                    {
+
+                        @Override
+                        public int compare(Message o1, Message o2) {
+                            try 
+                            {
+                                Date d1 = o1.getReceivedDate();
+                                Date d2 = o2.getReceivedDate();
+                                return d1.compareTo(d2);
+                            } catch (MessagingException ex) 
+                            {
+                                Logger.getLogger(HomeScreen.class.getName()).log(Level.SEVERE, null, ex);
+                                System.exit(-1);
+                            }                          
+                            return 0;
+                        }
+                    };
+                    
+                    Collections.sort(messagesInFolder, messageComp);
+                    
+                    Comparator<Object[]> messageDataComp = new Comparator<Object[]>()
+                    {
+
+                        @Override
+                        public int compare(Object[] o1, Object[] o2) 
+                        {
+                            Date d1 = (Date) o1[5];
+                            Date d2 = (Date) o2[5];
+                            
+                            return d1.compareTo(d2);
+                        }
+                        
+                    };
+                    
+                    Collections.sort(dbData, messageDataComp);
+                    
+                    
+                    
+                    Date dateRec = messagesInFolder.get(0).getReceivedDate();
+                    System.out.println("Setting last received date to: " + dateRec);
+                    FolderManager fm = new FolderManager(userDatabase);
+                    fm.setLastdate(folderID, dateRec);
                     
                     //TODO, only add new messages if needed!
                     MessageManager mm = new MessageManager(userDatabase);
-                    mm.addMessages(allMessages, new FolderManager(userDatabase));
+                    mm.addMessages(dbData);
                     
                     
                                         
                     emailModel.setData(newData);
                     
-                    ls.dispose();
-
-                    /*
-                    //TODO make this an option to disable?
-                    Iterator<Message> messageIt = messagesInFolder.iterator();
-                    FileOutputStream fos = null;
-                    try
-                    {
-                        fos = new FileOutputStream(new File(folder.getName() + ".txt"));
-                        while (messageIt.hasNext())
-                        {
-                            Message currentMsg = messageIt.next();
-                            currentMsg.writeTo(fos);
-                        }
-                    }
-                    catch (IOException ex)
-                    {
-                        JOptionPane.showMessageDialog(rootPane, ex.toString(), "IOException", JOptionPane.ERROR_MESSAGE);
-                    }
-                    finally
-                    {
-                        try 
-                        {
-                            if (fos != null)
-                                fos.close();
-                        } 
-                        catch (IOException ex) 
-                        {
-                            JOptionPane.showMessageDialog(rootPane, "Could not close cache output stream!\n" 
-                                    + ex.toString(), "IOException", JOptionPane.ERROR_MESSAGE);
-                        }
-                    }*/
-                    
+                    ls.dispose();                    
                 }
                 catch (SQLException ex)
                 {
