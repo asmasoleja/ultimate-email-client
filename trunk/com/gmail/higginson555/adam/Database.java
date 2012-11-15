@@ -2,6 +2,7 @@ package com.gmail.higginson555.adam;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -11,7 +12,7 @@ import java.util.logging.Logger;
  * object.
  * @author Adam Higginson
  */
-public class Database 
+public class Database
 {
     private String databaseURL;
     private String username;
@@ -51,6 +52,21 @@ public class Database
         this(databaseURL + "/" + databaseName, username, password);
     }
     
+    /**
+     * Copy constructor
+     * @param database The database to copy
+     */
+    public Database(Database database) throws SQLException, ClassNotFoundException
+    {
+        this.databaseURL = database.databaseURL;
+        this.username = database.username;
+        this.password = database.password;
+        Class.forName("com.mysql.jdbc.Driver");
+        
+        connection = DriverManager.getConnection(databaseURL, username, password);
+        statement = connection.createStatement();
+    }
+        
     /**
      * Closes this database object
      * @throws SQLException If fails to close database
@@ -94,7 +110,7 @@ public class Database
     {
         this.close();
         selectedDB = name;
-        connection = DriverManager.getConnection(databaseURL + "/" + selectedDB, username, password);
+        connection = DriverManager.getConnection(databaseURL + "/" + selectedDB + "?useServerPreStmts=false&rewriteBatchedStatements=true", username, password);
         statement = connection.createStatement();
     }
     
@@ -203,6 +219,7 @@ public class Database
         PreparedStatement ps = connection.prepareStatement(query);
         while (lineIter.hasNext())
         {
+            long startTime = System.currentTimeMillis();
             Object[] line = lineIter.next();
             for (int i = 0; i < line.length; i++)
             {
@@ -224,13 +241,14 @@ public class Database
                 
                 System.out.println("Field value: " + line[i]);
             }
-            
             System.out.println("\n\n");
            
             ps.addBatch();
+            long endTime = System.currentTimeMillis();
+            System.out.println("Took: " + (endTime - startTime) + " to add a single item to the batch!");
         }
         
-        int[] results = ps.executeBatch();
+        ps.executeBatch();
     }
     
     public void insertRecord(String tableName, String[] fieldNames, Object[] fieldValues) throws SQLException
@@ -289,6 +307,7 @@ public class Database
     {
         Statement update = connection.createStatement();
         String sql = "UPDATE " + tableName + " SET " + setSQL + " WHERE " + whereSQL;
+        System.out.println("Query is: " + sql);
         update.execute(sql);
         update.close();
     }

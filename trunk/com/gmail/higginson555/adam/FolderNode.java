@@ -25,6 +25,8 @@ public class FolderNode extends DefaultMutableTreeNode
     private Account account;
     //The folder manager to use
     private FolderManager folderManager;
+    //The folder ID in the DB
+    private int folderID;
     
     /**
      * Creates a FolderNode with the specified folder inside it
@@ -45,7 +47,7 @@ public class FolderNode extends DefaultMutableTreeNode
                 parent = folder.getParent();
                 if (folder.getParent() == null || folder.getParent().getName().isEmpty())
                 {
-                    folderManager.addFolder(folder.getName(), account);
+                    this.folderID = folderManager.addFolder(folder.getName(), account);
                 }
                 else //Folder has parent, work out parent tree!
                 {
@@ -59,7 +61,13 @@ public class FolderNode extends DefaultMutableTreeNode
 
                     Collections.reverse(folderStack);
                     String[] parentFolderList = folderStack.toArray(new String[folderStack.size()]);
-                    folderManager.addFolder(folder.getName(), parentFolderList, account);
+                    this.folderID = folderManager.addFolder(folder.getName(), parentFolderList, account);
+                    
+                }
+                
+                if (folderID == -1)
+                {
+                    System.out.println("Folder ID -1 for: " + this.toString());
                 }
                 
             } catch (MessagingException ex) 
@@ -168,6 +176,11 @@ public class FolderNode extends DefaultMutableTreeNode
             JOptionPane.showMessageDialog(null, mesEx.toString(), 
                     "Messaing Exception!", JOptionPane.ERROR_MESSAGE);
         }
+    }
+    
+    public int getFolderID()
+    {
+        return folderID;
     }
     
     @Override

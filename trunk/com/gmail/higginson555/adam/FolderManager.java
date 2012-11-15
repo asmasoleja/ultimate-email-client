@@ -1,7 +1,9 @@
 package com.gmail.higginson555.adam;
 
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 
 
@@ -20,8 +22,9 @@ public class FolderManager
         this.database = database;
     }
     
-    public void addFolder(String folderName, Account account) throws SQLException
+    public int addFolder(String folderName, Account account) throws SQLException
     {
+        int folderID = -1;
         //Only add a folder if it is unique
         ArrayList<Object[]> resultDuplicate = database.selectFromTableWhere("Folders", "name", "name='" + folderName + "'");
         if (resultDuplicate.isEmpty())
@@ -29,11 +32,25 @@ public class FolderManager
             String[] fieldNames = {"name", "accountID"};
             Object[] fieldValues = {folderName, account.getAccountID()};
 
-            database.insertRecord("Folders", fieldNames, fieldValues);
+            database.insertRecord("Folders", fieldNames, fieldValues);       
         }
+   
+        
+        ArrayList<Object[]> result = database.selectFromTableWhere("Folders", "folderID", "name='" + folderName + "' AND parentFolder IS NULL");
+        folderID = (Integer) result.get(0)[0];  
+        
+        return folderID;
     }
     
-    public void addFolder(String folderName, String parentFolderList[], Account account) throws SQLException
+    /**
+     * Adds a folder
+     * @param folderName The name of the folder to add
+     * @param parentFolderList The parent list of the folder
+     * @param account The account to use
+     * @return the id of this folder, or -1 if not added because not unique
+     * @throws SQLException 
+     */
+    public int addFolder(String folderName, String parentFolderList[], Account account) throws SQLException
     {
         
         int[] idList = new int[parentFolderList.length];
@@ -64,6 +81,8 @@ public class FolderManager
                 "name='" + folderName + 
                 "' AND parentFolder=" + Integer.toString(idList[idList.length - 1]));
         
+        int folderID = -1;
+        
         //Only add a folder if it is unique
         if (result.isEmpty())
         {
@@ -73,6 +92,11 @@ public class FolderManager
 
             database.insertRecord("Folders", fieldNames, fieldValues);
         } 
+        
+        result = database.selectFromTableWhere("Folders", "folderID", "name='" + folderName + "' AND parentFolder=" + Integer.toString(idList[idList.length - 1]));
+        folderID = (Integer) result.get(0)[0];  
+        
+        return folderID;
     }
     
     public int getFolderID(String folderName) throws SQLException
@@ -127,5 +151,26 @@ public class FolderManager
         }
         
         return foundID;
-    }    
+    }
+    
+    public Date getLastDate(int folderID) throws SQLException
+    {
+        ArrayList<Object[]> result = database.selectFromTableWhere("Folders", 
+                "lastMessage", "folderID="+Integer.toString(folderID));
+        Date date = new Date();
+        if (!result.isEmpty())
+        {
+            Object foundObject = result.get(0)[0];
+            System.out.println("Found object type: " + foundObject.getClass().getName());
+        }
+        
+        return date;
+    }
+    
+    public void setLastdate(int folderID, Date date) throws SQLException
+    {
+        String setSQL = "lastMessage='" + new Timestamp(date.getTime()).toString() + "'";
+        String whereSQL = "folderID=" + Integer.toString(folderID);
+        database.updateRecord("Folders", setSQL, whereSQL);
+    }
 }
