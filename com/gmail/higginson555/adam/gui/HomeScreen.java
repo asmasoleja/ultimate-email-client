@@ -18,10 +18,14 @@ import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -592,7 +596,7 @@ public class HomeScreen extends javax.swing.JFrame
                             {
                                 Date d1 = o1.getReceivedDate();
                                 Date d2 = o2.getReceivedDate();
-                                return d1.compareTo(d2);
+                                return d2.compareTo(d1);
                             } catch (MessagingException ex) 
                             {
                                 Logger.getLogger(HomeScreen.class.getName()).log(Level.SEVERE, null, ex);
@@ -602,7 +606,30 @@ public class HomeScreen extends javax.swing.JFrame
                         }
                     };
                     
+                    Comparator<Object[]> tableDataComp = new Comparator<Object[]>()
+                    {
+                        SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy");
+                        @Override
+                        public int compare(Object[] o1, Object[] o2)
+                        {
+                            try 
+                            {
+                                Date d1 = sdf.parse((String) o1[2]);
+                                Date d2 = sdf.parse((String) o2[2]);
+                                return d2.compareTo(d1);
+                            } catch (ParseException ex) {
+                                
+                                Logger.getLogger(HomeScreen.class.getName()).log(Level.SEVERE, null, ex);
+                                System.exit(-1);
+                            }
+                            return 0;
+                        }
+                    };
+                    
+                    System.out.println("Sorting data...");
                     Collections.sort(messagesInFolder, messageComp);
+                    Arrays.sort(newData, tableDataComp);
+                    System.out.println("Done!");
                     
                     Comparator<Object[]> messageDataComp = new Comparator<Object[]>()
                     {
@@ -613,7 +640,7 @@ public class HomeScreen extends javax.swing.JFrame
                             Date d1 = (Date) o1[5];
                             Date d2 = (Date) o2[5];
                             
-                            return d1.compareTo(d2);
+                            return d2.compareTo(d1);
                         }
                         
                     };
@@ -622,14 +649,43 @@ public class HomeScreen extends javax.swing.JFrame
                     
                     
                     
-                    Date dateRec = messagesInFolder.get(0).getReceivedDate();
-                    System.out.println("Setting last received date to: " + dateRec);
+                    //System.out.println("Setting last received date to: " + dateRec);
                     FolderManager fm = new FolderManager(userDatabase);
-                    fm.setLastdate(folderID, dateRec);
+                    Date lastSetDate = fm.getLastDate(folderID);
+                    System.out.println("\nLast set date: " + lastSetDate);
                     
-                    //TODO, only add new messages if needed!
-                    MessageManager mm = new MessageManager(userDatabase);
-                    mm.addMessages(dbData);
+                    Iterator<Object[]> dataIter = dbData.iterator();
+                    ArrayList<Object[]> dbDataToAdd = new ArrayList<Object[]>();
+                    boolean isUpdatingDB = false;
+                    while (dataIter.hasNext())
+                    {
+                        Object[] currentLine = dataIter.next();
+                        Date foundDate = (Date) currentLine[5];
+                        System.out.println("Found date: " + foundDate);
+                        
+                        //If we've found a message which was sent after the last set
+                        //date, we need to update the database with the latest message data
+                        if (lastSetDate == null || foundDate.after(lastSetDate))
+                        {
+                            dbDataToAdd.add(currentLine);
+                            isUpdatingDB = true;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                    
+                    
+                    if (isUpdatingDB)
+                    {
+                        System.out.println("\n----UPDATING DATABASE WITH NEW MESSAGES!----\n");
+                        fm.setLastDate(folderID, (Date) dbDataToAdd.get(0)[5]);
+                        MessageManager mm = new MessageManager(userDatabase);
+                        mm.addMessages(dbDataToAdd);
+                    }
+                    
+
                     
                     
                                         

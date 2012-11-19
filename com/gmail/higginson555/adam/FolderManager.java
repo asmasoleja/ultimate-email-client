@@ -157,17 +157,20 @@ public class FolderManager
     {
         ArrayList<Object[]> result = database.selectFromTableWhere("Folders", 
                 "lastMessage", "folderID="+Integer.toString(folderID));
-        Date date = new Date();
+        Date date = null;
         if (!result.isEmpty())
         {
-            Object foundObject = result.get(0)[0];
-            System.out.println("Found object type: " + foundObject.getClass().getName());
+            Timestamp foundTimestamp = (Timestamp) result.get(0)[0];
+            if (foundTimestamp == null)
+                return null;
+            //System.out.println("Found timestamp: " + foundTimestamp.toString());
+            date = new Date(foundTimestamp.getTime());
         }
         
         return date;
     }
     
-    public void setLastdate(int folderID, Date date) throws SQLException
+    public void setLastDate(int folderID, Date date) throws SQLException
     {
         String setSQL = "lastMessage='" + new Timestamp(date.getTime()).toString() + "'";
         String whereSQL = "folderID=" + Integer.toString(folderID);
