@@ -12,7 +12,10 @@ import com.gmail.higginson555.adam.MessageManager;
 import com.gmail.higginson555.adam.ProtectedPassword;
 import com.gmail.higginson555.adam.StoreNode;
 import com.gmail.higginson555.adam.UserDatabaseManager;
+import com.sun.mail.imap.IMAPFolder;
+import com.sun.mail.pop3.POP3Folder;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
@@ -33,6 +36,7 @@ import javax.mail.*;
 import javax.mail.search.SearchTerm;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
+import javax.swing.SwingUtilities;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -515,20 +519,14 @@ public class HomeScreen extends javax.swing.JFrame
         
             if (selectedNode instanceof FolderNode)
             {
-                LoadingScreen ls = new LoadingScreen("Please wait, downloading messages...");
-                ls.setVisible(true);
+                this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
                 FolderNode folderNode = (FolderNode)selectedNode;
                 //Get all messages held in this folder
-                Folder folder = folderNode.getFolder();
+                Folder folder = folderNode.getFolder();        
                 int folderID = folderNode.getFolderID();
                     
                 try 
                 {
-                    if (folder.getType() == Folder.HOLDS_FOLDERS)
-                    {
-                        ls.dispose();
-                        return;
-                    }
                     if (!folder.isOpen()) {
                         folder.open(Folder.READ_WRITE);
                     }
@@ -538,10 +536,15 @@ public class HomeScreen extends javax.swing.JFrame
                     FetchProfile fp = new FetchProfile();
                     fp.add(FetchProfile.Item.ENVELOPE);
                     fp.add(FetchProfile.Item.FLAGS);
+                    fp.add(UIDFolder.FetchProfileItem.UID);
                     //fp.add(FetchProfile.Item.CONTENT_INFO);
                     fp.add("X-mailer");
                     
+                    System.out.println("Fetching all messages...");
+                    long startTime = System.currentTimeMillis();
                     folder.fetch(allMessages, fp);
+                    long endTime = System.currentTimeMillis();
+                    System.out.println("Done! Took: " + (endTime - startTime) + "ms");
                     
                     EmailTableModel emailModel = (EmailTableModel) emailTable.getModel();
                     emailModel.setRowCount(allMessages.length);
@@ -554,12 +557,15 @@ public class HomeScreen extends javax.swing.JFrame
                     ArrayList<Object[]> dbData = new ArrayList<Object[]>(allMessages.length); 
                     for (int i = allMessages.length - 1; i >= 0; i--)
                     {
-                        long startTime = System.currentTimeMillis();
-                        String subject = allMessages[i].getSubject();
+                        startTime = System.currentTimeMillis();
+                        String subject = "";
+                        String from = "";
+                        subject = allMessages[i].getSubject();
                         Address[] addresses = allMessages[i].getFrom();
-                        String from = addresses[0].toString();
+                        from = addresses[0].toString();
                         String to = "";
-                        addresses = allMessages[i].getAllRecipients();
+                        //This bit here is slow for some reason?
+                        /*addresses = allMessages[i].getAllRecipients();
                         if (addresses != null)
                         {
                             for (int j = 0; j < addresses.length - 1; j++)
@@ -568,13 +574,26 @@ public class HomeScreen extends javax.swing.JFrame
                             }
                             //So we don't add a comma at the end
                             to += addresses[addresses.length - 1];
+                        }*/
+                        String UID = "";
+                        if (config.getProperty("server_type").equals("IMAP"))
+                        {
+                            IMAPFolder imapFolder = (IMAPFolder) folder;
+                            UID = Long.toString(imapFolder.getUID(allMessages[i]));
                         }
-                        String date = allMessages[i].getSentDate().toString();
-                        Boolean isRead = allMessages[i].isSet(Flags.Flag.SEEN);        
+                        else if (config.getProperty("server_type").equals("POP3"))
+                        {
+                            POP3Folder pop3Folder = (POP3Folder) folder;
+                            UID = pop3Folder.getUID(allMessages[i]);
+                        }
+                        String date = "";
+                        Boolean isRead = true;
+                        date = allMessages[i].getSentDate().toString();
+                        isRead = allMessages[i].isSet(Flags.Flag.SEEN);        
                         
                         Date dateSent = allMessages[i].getSentDate();
                         Date dateReceived = allMessages[i].getReceivedDate();
-                        Object[] line = {1, subject, from, to, dateSent, dateReceived, folderNode.getFolderID()};
+                        Object[] line = {UID, subject, from, to, dateSent, dateReceived, folderNode.getFolderID()};
                         dbData.add(line);
                         
                         newData[allMessages.length - 1 - i][0] = subject;
@@ -582,7 +601,7 @@ public class HomeScreen extends javax.swing.JFrame
                         newData[allMessages.length - 1 - i][2] = date;
                         newData[allMessages.length - 1 - i][3] = isRead;
                         messagesInFolder.add(allMessages[i]); 
-                        long endTime = System.currentTimeMillis();
+                        endTime = System.currentTimeMillis();
                         
                         System.out.println("To add a single line of data took: " + (endTime - startTime));
                     }
@@ -690,8 +709,7 @@ public class HomeScreen extends javax.swing.JFrame
                     
                                         
                     emailModel.setData(newData);
-                    
-                    ls.dispose();                    
+                    this.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
                 }
                 catch (SQLException ex)
                 {

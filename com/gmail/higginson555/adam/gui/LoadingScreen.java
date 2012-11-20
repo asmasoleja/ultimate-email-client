@@ -4,11 +4,14 @@
  */
 package com.gmail.higginson555.adam.gui;
 
+import javax.swing.SwingUtilities;
+
 /**
  *
  * @author Adam
  */
-public class LoadingScreen extends javax.swing.JFrame {
+public class LoadingScreen extends javax.swing.JFrame implements Runnable
+{
 
     private String loadingText;
     /**
@@ -112,4 +115,9 @@ public class LoadingScreen extends javax.swing.JFrame {
     private javax.swing.JLabel messageLabel;
     private javax.swing.JProgressBar progressBar;
     // End of variables declaration//GEN-END:variables
+
+    @Override
+    public void run() {
+        this.setVisible(true);
+    }
 }
