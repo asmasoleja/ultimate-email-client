@@ -44,7 +44,8 @@ public class OptionsScreen extends javax.swing.JFrame {
         String passwordDec = null;
         try
         {
-            passwordDec = ProtectedPassword.decrypt(passwordEnc);
+            if (passwordEnc != null)
+                passwordDec = ProtectedPassword.decrypt(passwordEnc);
         }
         catch (GeneralSecurityException ex)
         {
