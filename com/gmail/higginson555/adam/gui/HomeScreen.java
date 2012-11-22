@@ -606,6 +606,8 @@ public class HomeScreen extends javax.swing.JFrame
                         System.out.println("To add a single line of data took: " + (endTime - startTime));
                     }
                     
+                    //Need to sort by date. Probably more efficient ways of doing
+                    //this...
                     Comparator<Message> messageComp = new Comparator<Message>() 
                     {
 
@@ -703,11 +705,7 @@ public class HomeScreen extends javax.swing.JFrame
                         MessageManager mm = new MessageManager(userDatabase);
                         mm.addMessages(dbDataToAdd);
                     }
-                    
-
-                    
-                    
-                                        
+                    //Set table data          
                     emailModel.setData(newData);
                     this.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
                 }
