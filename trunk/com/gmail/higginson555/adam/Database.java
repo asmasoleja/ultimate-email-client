@@ -251,6 +251,8 @@ public class Database
         ps.executeBatch();
     }
     
+
+    
     public void insertRecord(String tableName, String[] fieldNames, Object[] fieldValues) throws SQLException
     {
         String query = "INSERT INTO " + tableName + " (";

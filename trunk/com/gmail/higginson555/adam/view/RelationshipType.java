@@ -30,7 +30,7 @@ public class RelationshipType
     public static final RelationshipType UNKNOWN =          new RelationshipType("Unknown");
     
     //A list containing all default relations
-    public static final ArrayList<RelationshipType> ALL_DEFAULT_RELATIONS 
+    private static final ArrayList<RelationshipType> ALL_DEFAULT_RELATIONS 
             = new ArrayList<RelationshipType>(20);
     
     static
@@ -66,6 +66,11 @@ public class RelationshipType
     public String toString()
     {
         return name;
+    }
+    
+    public static ArrayList<RelationshipType> getDefaultRelationships()
+    {
+        return ALL_DEFAULT_RELATIONS;
     }
     
     

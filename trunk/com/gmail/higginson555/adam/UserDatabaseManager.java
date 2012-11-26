@@ -1,7 +1,10 @@
 package com.gmail.higginson555.adam;
 
 import com.gmail.higginson555.adam.gui.LoadingScreen;
+import com.gmail.higginson555.adam.view.RelationshipType;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * A class which provides access to the local user
@@ -63,6 +66,36 @@ public class UserDatabaseManager
                                    + "PRIMARY KEY(messageID),"
                                    + "FOREIGN KEY(folderID) REFERENCES folders(folderID)";
             database.createTable("Messages", messageTableSQL);
+            //Tags table
+            String tagsTableSQL = "tagID int NOT NULL AUTO_INCREMENT,"
+                             + "tagValue varchar(50),"
+                             + "PRIMARY KEY(tagID)";
+            database.createTable("Tags", tagsTableSQL);
+            //MessagesToTags table
+            String messagesToTagsSQL = "messageToTagID int NOT NULL AUTO_INCREMENT,"
+                                     + "messageID int NOT NULL,"
+                                     + "tagID int NOT NULL,"
+                                     + "PRIMARY KEY(messageToTagID),"
+                                     + "FOREIGN KEY(messageID) REFERENCES messages(messageID),"
+                                     + "FOREIGN KEY(tagID) REFERENCES tags(tagID)";
+            database.createTable("MessagesToTags", messagesToTagsSQL);
+            //RelationshipTypes table
+            String relationshipTypesTableSQL = "relationshipID int NOT NULL AUTO_INCREMENT,"
+                                             + "relationshipName varchar(30),"
+                                             + "PRIMARY KEY(relationshipID)";
+            database.createTable("RelationshipTypes", relationshipTypesTableSQL);
+            ArrayList<RelationshipType> relationshipTypes = RelationshipType.getDefaultRelationships();
+            String[] fieldNames = {"relationshipName"};
+            ArrayList<Object[]> fieldValues = new ArrayList<Object[]>(relationshipTypes.size());
+            Iterator<RelationshipType> relationshipTypeIter = relationshipTypes.iterator();
+   
+            //Convert to data structure needed for database
+            while (relationshipTypeIter.hasNext())
+            {
+                Object[] line = {relationshipTypeIter.next().toString()};
+                fieldValues.add(line);
+            }
+            database.insertRecords("RelationshipTypes", fieldNames, fieldValues);
             //database = createNewDatabase(database);
             
             ls.dispose();
