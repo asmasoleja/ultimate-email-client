@@ -1,0 +1,41 @@
+public class ThreeWeights
+{
+  public static void main(String[] args)
+  {
+    // Declare the variables from the command line
+    int weight1 = Integer.parseInt(args[0]);
+    int weight2 = Integer.parseInt(args[1]);
+    int weight3 = Integer.parseInt(args[2]);
+    
+    //Calculate all possible values the weight can be
+    //This is given by R - L, where R is the right weight, and L is the left
+    
+    System.out.println("1 "0 - (weight1 + weight2 + weight3));
+    System.out.println("2 "0 - (weight1 + weight2));
+    System.out.println("3 "weight3 - (weight1 + weight2));
+    System.out.println("4 "0 - (weight1 + weight3));
+    System.out.println("5 "0 - weight1);
+    System.out.println("6 "weight3 - weight1);
+    System.out.println("7 "weight2 - (weight1 + weight3));
+    System.out.println("8 "weight2 - weight1);
+    System.out.println("9 "(weight2 + weight3) - weight1);
+    System.out.println("10 "0 - (weight2 + weight3));
+    System.out.println("11 "0 - weight2);
+    System.out.println("12 "weight3 - weight2);
+    System.out.println("13 "0 - weight3);
+    System.out.println("14 " 0);
+    System.out.println("15" weight3);
+    System.out.println("16 "weight2 - weight3);
+    System.out.println("17 "weight2);
+    System.out.println("18" weight2 + weight3);
+    System.out.println("19 "weight1 - (weight2 + weight3));
+    System.out.println("20 "weight1 - weight2);
+    System.out.println("21 "(weight1 + weight3) - weight2);
+    System.out.println("22 "weight1 - weight3);
+    System.out.println("23 "weight1);
+    System.out.println("24 "weight1 + weight3);
+    System.out.println("25 "(weight1 + weight2) - weight3);
+    System.out.println("26 "weight1 + weight2);
+    System.out.println("27 "weight1 + weight2 + weight3);
+  }
+}
