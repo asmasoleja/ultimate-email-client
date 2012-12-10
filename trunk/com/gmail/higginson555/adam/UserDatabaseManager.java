@@ -68,7 +68,7 @@ public class UserDatabaseManager
             database.createTable("Messages", messageTableSQL);
             //Tags table
             String tagsTableSQL = "tagID int NOT NULL AUTO_INCREMENT,"
-                             + "tagValue varchar(50),"
+                             + "tagValue varchar(255),"
                              + "PRIMARY KEY(tagID)";
             database.createTable("Tags", tagsTableSQL);
             //MessagesToTags table

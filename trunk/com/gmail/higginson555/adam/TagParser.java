@@ -47,6 +47,10 @@ public class TagParser
      */
     public ArrayList<String> getTags(String s)
     {
+        if (s == null) {
+            return null;
+        }
+        
         ArrayList<String> keyWords = new ArrayList<String>();
         String[] splitString = s.split("\\s+");
         for (int i = 0; i < splitString.length; i++)

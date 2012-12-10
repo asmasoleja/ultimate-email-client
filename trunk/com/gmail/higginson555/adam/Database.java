@@ -139,7 +139,7 @@ public class Database
                                                     String whereSQL) throws SQLException
     {
         String sql = "SELECT " + values + " FROM " + tableName + " WHERE " + whereSQL;
-        System.out.println("Query is: " + sql);
+        //System.out.println("Query is: " + sql);
         Statement select = connection.createStatement();
         ResultSet result = select.executeQuery(sql);
         ArrayList<Object[]> tableData = new ArrayList<Object[]>();
@@ -212,7 +212,7 @@ public class Database
         }
         query += "?)";
         
-        System.out.println("Query is: " + query);
+        //System.out.println("Query is: " + query);
         
         Iterator<Object[]> lineIter = fieldValues.iterator();
         
@@ -239,13 +239,13 @@ public class Database
                     ps.setString(i + 1, (String)line[i]);
                 }
                 
-                System.out.println("Field value: " + line[i]);
+                //System.out.println("Field value: " + line[i]);
             }
-            System.out.println("\n\n");
+            //System.out.println("\n\n");
            
             ps.addBatch();
             long endTime = System.currentTimeMillis();
-            System.out.println("Took: " + (endTime - startTime) + " to add a single item to the batch!");
+            //System.out.println("Took: " + (endTime - startTime) + " to add a single item to the batch!");
         }
         
         ps.executeBatch();
@@ -268,7 +268,7 @@ public class Database
         }
         query += "?)";
         
-        System.out.println("Query is: " + query);
+       // System.out.println("Query is: " + query);
 
         PreparedStatement ps = connection.prepareStatement(query);
         for (int i = 0; i < fieldValues.length; i++)
@@ -323,6 +323,11 @@ public class Database
         ResultSet result = statement.getResultSet();
                 
         return result;
+    }
+    
+    public String getSelectedDB()
+    {
+        return selectedDB;
     }
     
     
