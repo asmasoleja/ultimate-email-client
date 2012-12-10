@@ -35,36 +35,8 @@ public class MessageManager
     public void addMessages(ArrayList<Object[]> dbData)
             throws SQLException, MessagingException
     {                
-        String[] fieldNames = {"messageUID", "subject", "messageFrom", 
-            "messageTo", "dateSent", "dateReceived", "folderID"};
-        
-        database.insertRecords("Messages", fieldNames, dbData);
-        
-
-        
-        //Get subject data for each message, and extract out key words
-        Iterator<Object[]> dataIter = dbData.iterator();
-        while (dataIter.hasNext())
-        {
-            Object[] currentLine = dataIter.next();
-            //Get the id of the inserted message
-            ArrayList<Object[]> result = database.selectFromTableWhere("Messages", "messageID", "messageUID=" + (String)currentLine[0]);
-            int id = (Integer) result.get(0)[0];
-            //Parse the key words from the subject
-            String subject = (String)currentLine[1];
-            ArrayList<String> keyWords = TagParser.getInstance().getTags(subject);
-            Iterator<String> keyWordsIter = keyWords.iterator();
-            while (keyWordsIter.hasNext())
-            {
-                String currentWord = keyWordsIter.next();
-                String tagFieldNames[] = {"tagValue"};
-                Object[] tagFieldValues = {keyWordsIter.next()};
-                
-                //TODO: Finish inserting tags into the DB!
-                
-            }
-        }
-        
+        Thread job = new MessageAdderJob(database, dbData);
+        job.start();
     }
     
     /*public void addMessage(Message message, FolderManager fm) 
