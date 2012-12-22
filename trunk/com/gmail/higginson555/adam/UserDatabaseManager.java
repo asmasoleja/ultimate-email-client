@@ -96,6 +96,25 @@ public class UserDatabaseManager
                 fieldValues.add(line);
             }
             database.insertRecords("RelationshipTypes", fieldNames, fieldValues);
+            
+            String viewTableSQL = "viewID int NOT NULL AUTO_INCREMENT,"
+                                + "viewName varchar(50),"
+                                + "PRIMARY KEY(viewID)";
+            
+            database.createTable("Views", viewTableSQL);
+            
+            String viewTagsSQL = "viewTagID int NOT NULL AUTO_INCREMENT,"
+                               + "viewTagValue varchar(50),"
+                               + "PRIMARY KEY(viewTagID)";
+            database.createTable("ViewTags", viewTagsSQL);
+            
+            String viewToTagsSQL = "viewID int NOT NULL,"
+                               + "viewTagID int NOT NULL,"
+                               + "PRIMARY KEY(viewTagID, viewID),"
+                               + "FOREIGN KEY(viewTagID) REFERENCES viewtags(viewTagID),"
+                               + "FOREIGN KEY(viewID) REFERENCES views(viewID)";
+            database.createTable("ViewToViewTags", viewToTagsSQL);
+            
             //database = createNewDatabase(database);
             
             ls.dispose();
