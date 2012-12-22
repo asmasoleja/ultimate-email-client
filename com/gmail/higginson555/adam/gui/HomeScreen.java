@@ -704,6 +704,7 @@ public class HomeScreen extends javax.swing.JFrame
                         fm.setLastDate(folderID, (Date) dbDataToAdd.get(0)[5]);
                         MessageManager mm = new MessageManager(userDatabase);
                         mm.addMessages(dbDataToAdd);
+                        System.out.println("\n\n\n\n -------------- RETURNED, THREAD WORKED?! ------------------\n\n\n\n");
                     }
                     //Set table data          
                     emailModel.setData(newData);
