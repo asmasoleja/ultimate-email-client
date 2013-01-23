@@ -115,6 +115,7 @@ public class AddAccountScreen extends javax.swing.JFrame {
         cancelButton = new javax.swing.JButton();
         jLabel10 = new javax.swing.JLabel();
         portField = new javax.swing.JTextField();
+        progressBar = new javax.swing.JProgressBar();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setResizable(false);
@@ -199,8 +200,9 @@ public class AddAccountScreen extends javax.swing.JFrame {
                                     .addComponent(jLabel6)
                                     .addComponent(jLabel1)
                                     .addComponent(jLabel7)
-                                    .addComponent(jLabel10))
-                                .addGap(27, 27, 27)
+                                    .addComponent(jLabel10)
+                                    .addComponent(progressBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGap(21, 21, 21)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                                         .addComponent(addButton, javax.swing.GroupLayout.DEFAULT_SIZE, 85, Short.MAX_VALUE)
@@ -253,9 +255,11 @@ public class AddAccountScreen extends javax.swing.JFrame {
                     .addComponent(jLabel7)
                     .addComponent(passwordField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(addButton)
-                    .addComponent(cancelButton))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(addButton)
+                        .addComponent(cancelButton))
+                    .addComponent(progressBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18))
         );
 
@@ -268,6 +272,7 @@ public class AddAccountScreen extends javax.swing.JFrame {
 
     private void addButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addButtonActionPerformed
         
+        progressBar.setIndeterminate(true);
         //Validation
         int port = -1;
         try
@@ -421,6 +426,7 @@ public class AddAccountScreen extends javax.swing.JFrame {
     private javax.swing.JTextField outgoingField;
     private javax.swing.JPasswordField passwordField;
     private javax.swing.JTextField portField;
+    private javax.swing.JProgressBar progressBar;
     private javax.swing.JComboBox serverCombo;
     private javax.swing.JTextField usernameField;
     // End of variables declaration//GEN-END:variables

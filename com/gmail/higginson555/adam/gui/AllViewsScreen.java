@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.mail.MessagingException;
+import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
@@ -27,6 +29,8 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
 {
     //All the accounts currently in the system
     private ArrayList<Account> accounts;
+    //Currently active message adder threads
+    private int messageManagerThreads;
 
     /**
      * Creates new form AllViewsScreen
@@ -56,8 +60,9 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
         viewsLabel = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         viewTree = new javax.swing.JTree();
-        jTabbedPane1 = new javax.swing.JTabbedPane();
+        tabbedPane = new javax.swing.JTabbedPane();
         openViewsLabel = new javax.swing.JLabel();
+        warningLabel = new javax.swing.JLabel();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenu2 = new javax.swing.JMenu();
@@ -69,14 +74,22 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
         jMenu3.setText("jMenu3");
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Ultimate E-mail Client");
 
         viewsLabel.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
         viewsLabel.setText("Views");
 
+        viewTree.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                viewTreeMouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(viewTree);
 
         openViewsLabel.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
         openViewsLabel.setText("Opened Views");
+
+        warningLabel.setText("State: OK");
 
         jMenu1.setText("File");
         jMenuBar1.add(jMenu1);
@@ -117,27 +130,33 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(viewsLabel)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 433, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jTabbedPane1)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(openViewsLabel)
-                        .addGap(0, 555, Short.MAX_VALUE)))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(viewsLabel)
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 433, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(tabbedPane)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(openViewsLabel)
+                                .addGap(0, 555, Short.MAX_VALUE))))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(warningLabel)
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
+                .addComponent(warningLabel)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(viewsLabel)
                     .addComponent(openViewsLabel))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jTabbedPane1)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 594, Short.MAX_VALUE))
+                    .addComponent(tabbedPane)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 585, Short.MAX_VALUE))
                 .addContainerGap())
         );
 
@@ -148,7 +167,7 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
     {   
         try
         {
-            DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("Views");
+            DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("Accounts");
 
             for (Account account : accounts)
             {
@@ -182,6 +201,24 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
         CreateViewScreen createViewScreen = new CreateViewScreen(this, accounts);
         createViewScreen.setVisible(true);
     }//GEN-LAST:event_addViewMenuItemActionPerformed
+
+    private void viewTreeMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_viewTreeMouseClicked
+        //Double click
+        if (evt.getClickCount() == 2)
+        {
+            DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) viewTree.getLastSelectedPathComponent();
+            if (selectedNode != null)
+            {
+                Object nodeObject = selectedNode.getUserObject();
+                //View is selected, load data
+                if (nodeObject instanceof View)
+                {
+                    View view = (View) nodeObject;
+                    tabbedPane.add(new ViewPanel(view));
+                }
+            }
+        }
+    }//GEN-LAST:event_viewTreeMouseClicked
 
     /**
      * @param args the command line arguments
@@ -233,12 +270,13 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
     private javax.swing.JMenu jMenu3;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JMenuItem newAccountMenuItem;
     private javax.swing.JLabel openViewsLabel;
+    private javax.swing.JTabbedPane tabbedPane;
     private javax.swing.JTree viewTree;
     private javax.swing.JLabel viewsLabel;
     private javax.swing.JMenu viewsMenu;
+    private javax.swing.JLabel warningLabel;
     // End of variables declaration//GEN-END:variables
 
     @Override
@@ -262,9 +300,38 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
                 DefaultMutableTreeNode child = new DefaultMutableTreeNode(account);
                 root.add(child);
                 
-                AccountMessageDownloader amd = new AccountMessageDownloader(account);
-                amd.getMessages();
+                try
+                {
+                    AccountMessageDownloader amd = new AccountMessageDownloader(account);
+                    amd.addListener(this);
+                    amd.getMessages();
+                }
+                catch (MessagingException ex)
+                {
+                    JOptionPane.showMessageDialog(this, "Error, cannot connect to E-mail Server", "MessagingException", JOptionPane.ERROR_MESSAGE);
+                    Logger.getLogger("EmailClient").log(Level.SEVERE, "Could not connect to e-mail server", ex);
+                }
+                catch (SQLException ex)
+                {
+                    JOptionPane.showMessageDialog(this, "Error, cannot connect to User Server", "SQLException", JOptionPane.ERROR_MESSAGE);
+                    Logger.getLogger("EmailClient").log(Level.SEVERE, "Could not connect to SQL server", ex);
+                }
             }
         }
+        else if (name.equalsIgnoreCase("MessageManagerThreadStart"))
+        {
+            messageManagerThreads++;
+            System.out.println("Thread started, text should change?");
+            warningLabel.setText("State: Adding data to the local database, views may not work correctly!");
+        }
+        else if (name.equalsIgnoreCase("MessageManagerThreadFinished"))
+        {
+            messageManagerThreads--;
+            if (messageManagerThreads == 0)
+            {
+                warningLabel.setText("State: OK");
+            }
+        }
+                
     }
 }

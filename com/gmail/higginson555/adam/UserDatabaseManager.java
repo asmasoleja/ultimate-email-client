@@ -22,6 +22,14 @@ public class UserDatabaseManager
         username = "root";
         password = "";
     }
+
+    public UserDatabaseManager(String databaseURL, String username, String password) {
+        this.databaseURL = databaseURL;
+        this.username = username;
+        this.password = password;
+    }
+    
+    
     
     public Database getDatabaseInstance() throws SQLException, ClassNotFoundException
     {

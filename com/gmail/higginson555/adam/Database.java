@@ -139,7 +139,7 @@ public class Database
                                                     String whereSQL) throws SQLException
     {
         String sql = "SELECT " + values + " FROM " + tableName + " WHERE " + whereSQL;
-        System.out.println("Query is: " + sql);
+        //System.out.println("Query is: " + sql);
         Statement select = connection.createStatement();
         ResultSet result = select.executeQuery(sql);
         ArrayList<Object[]> tableData = new ArrayList<Object[]>();
@@ -212,7 +212,7 @@ public class Database
         }
         query += "?)";
         
-        System.out.println("Query is: " + query);
+        //System.out.println("Query is: " + query);
         
         Iterator<Object[]> lineIter = fieldValues.iterator();
         
@@ -277,7 +277,7 @@ public class Database
         }
         query += "?)";
         
-       System.out.println("Query is: " + query);
+       //System.out.println("Query is: " + query);
 
         PreparedStatement ps = connection.prepareStatement(query);
         for (int i = 0; i < fieldValues.length; i++)
@@ -321,7 +321,7 @@ public class Database
     {
         Statement update = connection.createStatement();
         String sql = "UPDATE " + tableName + " SET " + setSQL + " WHERE " + whereSQL;
-        System.out.println("Query is: " + sql);
+        //System.out.println("Query is: " + sql);
         update.execute(sql);
         update.close();
     }
