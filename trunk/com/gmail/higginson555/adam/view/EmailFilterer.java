@@ -1,18 +1,12 @@
 package com.gmail.higginson555.adam.view;
 
 import com.gmail.higginson555.adam.Account;
-import com.gmail.higginson555.adam.ProtectedPassword;
+import com.gmail.higginson555.adam.Database;
 import com.gmail.higginson555.adam.UserDatabase;
-import java.io.IOException;
-import java.security.GeneralSecurityException;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.mail.Message;
-import javax.mail.NoSuchProviderException;
-import javax.mail.Session;
-import javax.mail.Store;
+import java.util.HashSet;
 
 /**
  * A class which filters all e-mails by a given view.
@@ -22,16 +16,21 @@ import javax.mail.Store;
 public class EmailFilterer 
 {
     //A mapping of an account to an e-mail filterer
-    private static HashMap<Account, EmailFilterer> filterers;
+    private static HashMap<Account, EmailFilterer> filterers = new HashMap<Account, EmailFilterer>();
     
-    public static synchronized EmailFilterer getSingleton(Account account)
+    /**
+     * Get an instance of an EmailFilterer for a specific account.
+     * @param account
+     * @return 
+     */
+    public static synchronized EmailFilterer getInstance(Account account)
     {
         if (filterers.containsKey(account))
         {
             return filterers.get(account);
         }
         
-        EmailFilterer filterer = new EmailFilterer();
+        EmailFilterer filterer = new EmailFilterer(account);
         filterers.put(account, filterer);
         return filterer;
     }
@@ -41,12 +40,58 @@ public class EmailFilterer
     
     private EmailFilterer(Account account)
     {
-        connectToServer();
+        this.account = account;
     }
     
-    private void connectToServer()
+    /**
+     * Get the data back in a format suitable for the 4 column
+     * JTable. Connects to the database each time this is called,
+     * so make take a lot of time!
+     * @param view The view used to filter data
+     * @return An ArrayList, where each element corresponds to
+     *         a row in the table.
+     */
+    public ArrayList<Object[]> getTableData(View view) throws SQLException
     {
-
+        System.out.println("Getting table data!");
+        Database user = UserDatabase.getInstance();
+        ArrayList<String> keyWords = view.getKeyWords();
+        System.out.println("Key words no: " + keyWords.size());
+        
+        //All ids already found
+        HashSet<Integer> foundIDs = new HashSet<Integer>();
+        //The return list
+        ArrayList<Object[]> returnList = new ArrayList<Object[]>();
+        //For each key word, get the ids
+        for (String keyWord : keyWords)
+        {
+            System.out.println("Key word: " + keyWord);
+            //Get id of key word from tag table
+            ArrayList<Object[]> result = user.selectFromTableWhere("tags", "tagID", "tagValue = '" + keyWord + "'");
+            
+            if (!result.isEmpty())
+            {
+                String tagID = Integer.toString((Integer) result.get(0)[0]);
+                //Tag exists, so message for that tag should also exist (if not deleted by mistake)
+                //Select message ids from message to tags
+                result = user.selectFromTableWhere("messagestotags", "messageID", "tagID = " + tagID);
+                //Go through, selecting messages where id = this
+                for (Object[] line : result)
+                {
+                    int messageID = (Integer) line[0];
+                    //Only continue if message not already added
+                    if (!foundIDs.contains(messageID))
+                    {
+                        foundIDs.add(messageID);
+                        result = user.selectFromTableWhere("messages", "*", "messageID = " + Integer.toString(messageID));
+                        returnList.add(result.get(0));
+                    }
+                }   
+            }        
+        }
+        
+        return returnList;
     }
+    
     
 }

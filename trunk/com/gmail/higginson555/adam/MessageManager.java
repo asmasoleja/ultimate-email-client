@@ -1,5 +1,6 @@
 package com.gmail.higginson555.adam;
 
+import com.gmail.higginson555.adam.gui.PropertyListener;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,10 +20,26 @@ public class MessageManager
 {
     //The database to use
     private Database database;
+    //Property listeners
+    private ArrayList<PropertyListener> listeners;
     
     public MessageManager(Database database)
     {
         this.database = database;
+        listeners = new ArrayList<PropertyListener>();
+    }
+    
+    public void addListener(PropertyListener listener)
+    {
+        listeners.add(listener);
+    }
+    
+    private void publishPropertyEvent(String name, Object value)
+    {
+        for (PropertyListener listener : listeners)
+        {
+            listener.onPropertyEvent(this.getClass(), name, value);
+        }
     }
     
     /**
@@ -34,8 +51,11 @@ public class MessageManager
      */
     public void addMessages(ArrayList<Object[]> dbData)
             throws SQLException, MessagingException
-    {                
-        Thread job = new MessageAdderJob(database, dbData);
+    {         
+        MessageAdderJob job = new MessageAdderJob(database, dbData);
+        for (PropertyListener listener : listeners) {
+            job.addListener(listener);
+        }
         job.start();
     }
     

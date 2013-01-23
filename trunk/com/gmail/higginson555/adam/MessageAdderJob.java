@@ -1,5 +1,6 @@
 package com.gmail.higginson555.adam;
 
+import com.gmail.higginson555.adam.gui.PropertyListener;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -15,9 +16,12 @@ public class MessageAdderJob extends Thread
     //The database to use
     private Database database;
     //The list of stuff to add to the db
-    ArrayList<Object[]> dbData;
+    private ArrayList<Object[]> dbData;
+    
+    private ArrayList<PropertyListener> listeners;
 
     public MessageAdderJob(Database database, ArrayList<Object[]> dbData) {
+        listeners = new ArrayList<PropertyListener>();
         try {
             //Create a new database connection
             this.database = new Database(database);
@@ -27,6 +31,19 @@ public class MessageAdderJob extends Thread
             Logger.getLogger(MessageAdderJob.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(MessageAdderJob.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void addListener(PropertyListener listener)
+    {
+        listeners.add(listener);
+    }
+    
+    private void publishPropertyEvent(String name, Object value)
+    {
+        for (PropertyListener listener : listeners)
+        {
+            listener.onPropertyEvent(this.getClass(), name, value);
         }
     }
 
@@ -50,7 +67,7 @@ public class MessageAdderJob extends Thread
                 //Get the id of the inserted message
                 ArrayList<Object[]> result = database.selectFromTableWhere("Messages", "messageID", "messageUID=" + (String)currentLine[0]);
                 int id = (Integer) result.get(0)[0];
-                System.out.println("Found id: " + id);
+                //System.out.println("Found id: " + id);
                 //Parse the key words from the subject
                 String subject = (String)currentLine[1];
                 ArrayList<String> keyWords = TagParser.getInstance().getTags(subject);
@@ -71,7 +88,7 @@ public class MessageAdderJob extends Thread
                     {
                         Object[] tagFieldValues = {keyWord};
                         tagDBLines.add(tagFieldValues);     
-                        System.out.println("Added: " + keyWord + " as it doesn't already exist in the table!");
+                        //System.out.println("Added: " + keyWord + " as it doesn't already exist in the table!");
                     }
                     
                 }
@@ -113,6 +130,8 @@ public class MessageAdderJob extends Thread
         } catch (SQLException ex) {
             Logger.getLogger(MessageAdderJob.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+        publishPropertyEvent("MessageManagerThreadFinished", null);
     }
     
 

@@ -44,6 +44,7 @@ public class View
      */
     public View(String viewName, Account account)
     {
+        this.viewName = viewName;
         this.keyWords = new ArrayList<String>();
         this.account = account;
         this.relationships = new ArrayList<Relationship>();
@@ -200,7 +201,18 @@ public class View
             int viewID = (Integer) line[0];
             String viewName = (String) line[1];
             
-            View view = new View(viewName, account);
+            //Select all key words mapped to this view
+            result = database.selectFromTableWhere("viewtoviewtags", "viewTagID", "viewID = " + Integer.toString(viewID));
+            //Go through each found id, adding it to the keywords list
+            ArrayList<String> keyWords = new ArrayList<String>(result.size());
+            for (Object[] dbLine : result)
+            {
+                String foundID = Integer.toString((Integer) dbLine[0]);
+                result = database.selectFromTableWhere("viewtags", "viewTagValue", "viewTagID = " + foundID);
+                keyWords.add((String) result.get(0)[0]);
+            }
+            
+            View view = new View(viewName, account, keyWords);
             view.id = viewID;
             
             returnList.add(view);

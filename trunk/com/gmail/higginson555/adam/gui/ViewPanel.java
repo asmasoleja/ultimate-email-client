@@ -4,7 +4,11 @@
  */
 package com.gmail.higginson555.adam.gui;
 
+import com.gmail.higginson555.adam.view.EmailFilterer;
 import com.gmail.higginson555.adam.view.View;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -20,7 +24,28 @@ public class ViewPanel extends javax.swing.JPanel {
      */
     public ViewPanel(View view) {
         this.view = view;
+        this.setName(view.getViewName());
         initComponents();
+        EmailFilterer filterer = EmailFilterer.getInstance(view.getAccount());
+        try
+        {
+            ArrayList<Object[]> filterData = filterer.getTableData(view);
+            Object[][] newTableData = new Object[filterData.size()][4]; 
+            EmailTableModel model = (EmailTableModel) messageTable.getModel();
+            int row = 0;
+            for (Object[] line : filterData)
+            {
+                Object[] tableLine = {line[2], line[3], line[6], Boolean.TRUE};
+                newTableData[row] = tableLine;
+                row++;
+            }
+            
+            model.setData(newTableData);
+        } 
+        catch (SQLException ex)
+        {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "SQLException", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     /**
@@ -36,7 +61,7 @@ public class ViewPanel extends javax.swing.JPanel {
         messagesLabel = new javax.swing.JLabel();
         jSeparator1 = new javax.swing.JSeparator();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
+        messageTable = new javax.swing.JTable();
 
         viewNameLabel.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
         viewNameLabel.setText(view.getViewName());
@@ -44,8 +69,8 @@ public class ViewPanel extends javax.swing.JPanel {
         messagesLabel.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         messagesLabel.setText("Messages");
 
-        jTable1.setModel(new EmailTableModel());
-        jScrollPane1.setViewportView(jTable1);
+        messageTable.setModel(new EmailTableModel());
+        jScrollPane1.setViewportView(messageTable);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -80,7 +105,7 @@ public class ViewPanel extends javax.swing.JPanel {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSeparator jSeparator1;
-    private javax.swing.JTable jTable1;
+    private javax.swing.JTable messageTable;
     private javax.swing.JLabel messagesLabel;
     private javax.swing.JLabel viewNameLabel;
     // End of variables declaration//GEN-END:variables

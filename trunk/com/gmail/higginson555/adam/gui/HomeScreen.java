@@ -367,7 +367,7 @@ public class HomeScreen extends javax.swing.JFrame
     //built by connectToServer()
     private void buildJTree()
     {
-        AccountManager am = new AccountManager(userDatabase);
+        AccountManager am = AccountManager.getSingleton();
         StoreNode storeNode = new StoreNode(store, config, password, am);
         DefaultTreeModel treeModel = new DefaultTreeModel(storeNode);
         emailJTree.setModel(treeModel);
