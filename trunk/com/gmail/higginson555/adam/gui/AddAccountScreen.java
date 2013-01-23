@@ -4,10 +4,15 @@
  */
 package com.gmail.higginson555.adam.gui;
 
+import com.gmail.higginson555.adam.Account;
+import com.gmail.higginson555.adam.AccountManager;
+import com.gmail.higginson555.adam.Database;
 import com.gmail.higginson555.adam.ProtectedPassword;
+import com.gmail.higginson555.adam.UserDatabase;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
@@ -19,16 +24,26 @@ import javax.swing.JOptionPane;
  *
  * @author Adam
  */
-public class OptionsScreen extends javax.swing.JFrame {
+public class AddAccountScreen extends javax.swing.JFrame {
 
     //The config file
     private Properties props;
     //Whether this is a first time run, if it is, we create a HomeScreen
     private boolean firstTime;
+    
+    private PropertyListener listener;
+        
     /**
      * Creates new form OptionsScreen
      */
-    public OptionsScreen(Properties props, boolean firstTime) 
+    public AddAccountScreen(PropertyListener listener)
+    {
+        this.listener = listener;
+        initComponents();
+        setLocationRelativeTo(null);
+    }
+    
+    public AddAccountScreen(Properties props, boolean firstTime) 
     {
         initComponents();
         this.setLocationRelativeTo(null);
@@ -69,8 +84,8 @@ public class OptionsScreen extends javax.swing.JFrame {
         {
             this.serverCombo.setSelectedIndex(1);
         }  
-        
     }
+    
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -96,7 +111,7 @@ public class OptionsScreen extends javax.swing.JFrame {
         jSeparator1 = new javax.swing.JSeparator();
         jLabel8 = new javax.swing.JLabel();
         jLabel9 = new javax.swing.JLabel();
-        applyButton = new javax.swing.JButton();
+        addButton = new javax.swing.JButton();
         cancelButton = new javax.swing.JButton();
         jLabel10 = new javax.swing.JLabel();
         portField = new javax.swing.JTextField();
@@ -104,12 +119,12 @@ public class OptionsScreen extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setResizable(false);
 
-        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 12));
+        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
         jLabel1.setText("Server Information");
 
         jLabel2.setText("Account Type:");
 
-        serverCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] {"POP3", "IMAP"}));
+        serverCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] {"POP3", "IMAP", "IMAPS"}));
         serverCombo.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 serverComboActionPerformed(evt);
@@ -120,22 +135,22 @@ public class OptionsScreen extends javax.swing.JFrame {
 
         jLabel4.setText("Outgoing mail server (SMTP):");
 
-        jLabel5.setFont(new java.awt.Font("Tahoma", 1, 12));
+        jLabel5.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
         jLabel5.setText("Login Information");
 
         jLabel6.setText("Username:");
 
         jLabel7.setText("Password:");
 
-        jLabel8.setFont(new java.awt.Font("Tahoma", 1, 14));
-        jLabel8.setText("Options");
+        jLabel8.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jLabel8.setText("Add Account");
 
-        jLabel9.setText("Configure default mail settings here.");
+        jLabel9.setText("Add a new account");
 
-        applyButton.setText("Apply");
-        applyButton.addActionListener(new java.awt.event.ActionListener() {
+        addButton.setText("Add");
+        addButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                applyButtonActionPerformed(evt);
+                addButtonActionPerformed(evt);
             }
         });
 
@@ -169,7 +184,7 @@ public class OptionsScreen extends javax.swing.JFrame {
                             .addGroup(layout.createSequentialGroup()
                                 .addGap(31, 31, 31)
                                 .addComponent(jLabel9)))
-                        .addGap(0, 112, Short.MAX_VALUE))
+                        .addGap(0, 256, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -188,7 +203,7 @@ public class OptionsScreen extends javax.swing.JFrame {
                                 .addGap(27, 27, 27)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                        .addComponent(applyButton, javax.swing.GroupLayout.DEFAULT_SIZE, 85, Short.MAX_VALUE)
+                                        .addComponent(addButton, javax.swing.GroupLayout.DEFAULT_SIZE, 85, Short.MAX_VALUE)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(cancelButton)
                                         .addGap(5, 5, 5))
@@ -239,7 +254,7 @@ public class OptionsScreen extends javax.swing.JFrame {
                     .addComponent(passwordField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(applyButton)
+                    .addComponent(addButton)
                     .addComponent(cancelButton))
                 .addGap(18, 18, 18))
         );
@@ -251,12 +266,20 @@ public class OptionsScreen extends javax.swing.JFrame {
               
     }//GEN-LAST:event_serverComboActionPerformed
 
-    private void applyButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_applyButtonActionPerformed
-        props.setProperty("incoming_server", this.incomingField.getText());
-        props.setProperty("outgoing_server", this.outgoingField.getText());
-        props.setProperty("username", this.usernameField.getText());
-        props.setProperty("smtp_port", this.portField.getText());
+    private void addButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addButtonActionPerformed
         
+        //Validation
+        int port = -1;
+        try
+        {
+            port = Integer.parseInt(portField.getText());
+        } catch (NumberFormatException ex)
+        {
+            JOptionPane.showMessageDialog(this, "Error! Port Field must be a number!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        //Decrypt password
         char[] inputPassword = passwordField.getPassword();
         String passwordString = new String(inputPassword);
         String encryptedPassword = null;
@@ -269,10 +292,32 @@ public class OptionsScreen extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(rootPane, ex.toString(), "Security Exception!", JOptionPane.ERROR_MESSAGE);
             System.exit(-1);
         }
+
+        Account account = new Account(usernameField.getText(), 
+                                encryptedPassword, 
+                                (String) serverCombo.getSelectedItem(), 
+                                incomingField.getText(), 
+                                outgoingField.getText(), 
+                                port);
+
+        try 
+        {
+            AccountManager.getSingleton().addAccount(account);
+        } catch (SQLException ex) {
+            Logger.getLogger(AddAccountScreen.class.getName()).log(Level.SEVERE, null, ex);
+            System.exit(-1);
+        }
         
-        Arrays.fill(inputPassword, '0');
+        /*props.setProperty("incoming_server", this.incomingField.getText());
+        props.setProperty("outgoing_server", this.outgoingField.getText());
+        props.setProperty("username", this.usernameField.getText());
+        props.setProperty("smtp_port", this.portField.getText());
+        
+
         
         props.setProperty("password", encryptedPassword);
+        
+        Arrays.fill(inputPassword, '0');
         
         if (this.serverCombo.getSelectedIndex() == 0)
             props.setProperty("server_type", "POP3");
@@ -291,11 +336,12 @@ public class OptionsScreen extends javax.swing.JFrame {
         {
             HomeScreen home = new HomeScreen(props);
             home.setVisible(true);
-        }
-                
+        }*/
+        
+        listener.onPropertyEvent(this.getClass(), "AddAccount", account);
         this.dispose();
         
-    }//GEN-LAST:event_applyButtonActionPerformed
+    }//GEN-LAST:event_addButtonActionPerformed
 
     private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
         if (firstTime)
@@ -337,13 +383,13 @@ public class OptionsScreen extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(OptionsScreen.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(AddAccountScreen.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(OptionsScreen.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(AddAccountScreen.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(OptionsScreen.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(AddAccountScreen.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(OptionsScreen.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(AddAccountScreen.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
 
@@ -358,7 +404,7 @@ public class OptionsScreen extends javax.swing.JFrame {
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton applyButton;
+    private javax.swing.JButton addButton;
     private javax.swing.JButton cancelButton;
     private javax.swing.JTextField incomingField;
     private javax.swing.JLabel jLabel1;

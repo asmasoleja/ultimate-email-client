@@ -5,7 +5,7 @@
 package com.gmail.higginson555.adam;
 
 import com.gmail.higginson555.adam.gui.HomeScreen;
-import com.gmail.higginson555.adam.gui.OptionsScreen;
+import com.gmail.higginson555.adam.gui.AddAccountScreen;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -45,7 +45,7 @@ public class Main
             if (username == null || password == null || incoming == null
                     || outgoing == null || port == null)
             {
-                OptionsScreen options = new OptionsScreen(config, true);
+                AddAccountScreen options = new AddAccountScreen(config, true);
                 options.setVisible(true);
             }
             else
@@ -57,7 +57,7 @@ public class Main
         catch (FileNotFoundException ex) 
         {
             System.out.println("Could not find email.cfg...");
-            OptionsScreen options = new OptionsScreen(config, true);
+            AddAccountScreen options = new AddAccountScreen(config, true);
             options.setVisible(true);
         }
         catch (IOException ex)

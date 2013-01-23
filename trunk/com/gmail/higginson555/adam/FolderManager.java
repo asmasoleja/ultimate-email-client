@@ -29,8 +29,8 @@ public class FolderManager
         ArrayList<Object[]> resultDuplicate = database.selectFromTableWhere("Folders", "name", "name='" + folderName + "'");
         if (resultDuplicate.isEmpty())
         {
-            String[] fieldNames = {"name", "accountID"};
-            Object[] fieldValues = {folderName, account.getAccountID()};
+            String[] fieldNames = {"name", "accountUsername"};
+            Object[] fieldValues = {folderName, account.getUsername()};
 
             database.insertRecord("Folders", fieldNames, fieldValues);       
         }
@@ -86,8 +86,8 @@ public class FolderManager
         //Only add a folder if it is unique
         if (result.isEmpty())
         {
-            String[] fieldNames = {"name", "accountID", "parentFolder"};
-            Object[] fieldValues = {folderName, account.getAccountID(), idList[idList.length - 1]};
+            String[] fieldNames = {"name", "accountUsername", "parentFolder"};
+            Object[] fieldValues = {folderName, account.getUsername(), idList[idList.length - 1]};
 
 
             database.insertRecord("Folders", fieldNames, fieldValues);

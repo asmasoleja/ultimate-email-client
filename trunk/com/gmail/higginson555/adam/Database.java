@@ -139,7 +139,7 @@ public class Database
                                                     String whereSQL) throws SQLException
     {
         String sql = "SELECT " + values + " FROM " + tableName + " WHERE " + whereSQL;
-        //System.out.println("Query is: " + sql);
+        System.out.println("Query is: " + sql);
         Statement select = connection.createStatement();
         ResultSet result = select.executeQuery(sql);
         ArrayList<Object[]> tableData = new ArrayList<Object[]>();
@@ -212,7 +212,7 @@ public class Database
         }
         query += "?)";
         
-        //System.out.println("Query is: " + query);
+        System.out.println("Query is: " + query);
         
         Iterator<Object[]> lineIter = fieldValues.iterator();
         
@@ -239,7 +239,7 @@ public class Database
                     ps.setString(i + 1, (String)line[i]);
                 }
                 
-                //System.out.println("Field value: " + line[i]);
+                System.out.println("Field value: " + line[i]);
             }
             //System.out.println("\n\n");
            
@@ -268,15 +268,17 @@ public class Database
         }
         query += "?)";
         
-       // System.out.println("Query is: " + query);
+       System.out.println("Query is: " + query);
 
         PreparedStatement ps = connection.prepareStatement(query);
         for (int i = 0; i < fieldValues.length; i++)
         {
-            if (fieldValues[i] instanceof Integer)
+            if (fieldValues[i] instanceof Integer) {
                 ps.setInt(i + 1, (Integer)fieldValues[i]);
-            else if (fieldValues[i] instanceof Double)
+            }
+            else if (fieldValues[i] instanceof Double) {
                 ps.setDouble(i + 1, (Double)fieldValues[i]);
+            }
             else if (fieldValues[i] instanceof java.util.Date)
             {
                 System.out.println("Found date!");
@@ -284,8 +286,9 @@ public class Database
                 Timestamp ts = new Timestamp(date.getTime());
                 ps.setTimestamp(i + 1, ts);
             }
-            else if (fieldValues[i] instanceof String)
+            else if (fieldValues[i] instanceof String) {
                 ps.setString(i + 1, (String)fieldValues[i]);
+            }
             
             //System.out.print("Field value type: " + fieldValues[i].getClass().getName() + ", ");
             System.out.println("Field value: " + fieldValues[i]);
