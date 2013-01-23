@@ -4,6 +4,7 @@
  */
 package com.gmail.higginson555.adam.gui;
 
+import com.gmail.higginson555.adam.Account;
 import com.gmail.higginson555.adam.TagParser;
 import com.gmail.higginson555.adam.UserDatabase;
 import com.gmail.higginson555.adam.view.View;
@@ -13,6 +14,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JOptionPane;
 
 /**
@@ -23,11 +25,25 @@ public class CreateViewScreen extends javax.swing.JFrame {
     
     //The key words currently added
     private HashSet<String> keyWords;
+    //All accounts in the system
+    private ArrayList<Account> accounts;
+    //The property listener to be updated by the view
+    private PropertyListener listener;
     
-    public CreateViewScreen() 
+    public CreateViewScreen(PropertyListener listener, ArrayList<Account> accounts) 
     {
-        keyWords = new HashSet<String>();
+        System.out.println("listener: " + listener);
+        this.listener = listener;
+        this.accounts = accounts;
+        this.keyWords = new HashSet<String>();
         initComponents();
+        
+        DefaultComboBoxModel comboModel = new DefaultComboBoxModel();
+        for (Account account : accounts)
+        {
+            comboModel.addElement(account);
+        }
+        accountsComboBox.setModel(comboModel);
     }
 
     /**
@@ -50,6 +66,8 @@ public class CreateViewScreen extends javax.swing.JFrame {
         jLabel4 = new javax.swing.JLabel();
         createViewButton = new javax.swing.JButton();
         cancelButton = new javax.swing.JButton();
+        jLabel5 = new javax.swing.JLabel();
+        accountsComboBox = new javax.swing.JComboBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Create View");
@@ -91,6 +109,11 @@ public class CreateViewScreen extends javax.swing.JFrame {
             }
         });
 
+        jLabel5.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        jLabel5.setText("Select Account:");
+
+        accountsComboBox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -104,25 +127,28 @@ public class CreateViewScreen extends javax.swing.JFrame {
                         .addComponent(jLabel4)
                         .addContainerGap(169, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel5)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jScrollPane1)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addGap(0, 0, Short.MAX_VALUE)
+                                .addComponent(createViewButton)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(cancelButton))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(addKeyWordTextField)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(addKeyWordButton))
+                            .addComponent(accountsComboBox, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jLabel2)
-                                    .addComponent(jLabel1)
-                                    .addComponent(jLabel3))
+                                    .addComponent(jLabel3)
+                                    .addComponent(jLabel1))
                                 .addGap(0, 0, Short.MAX_VALUE)))
                         .addContainerGap())))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(createViewButton)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(cancelButton)
-                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -133,7 +159,11 @@ public class CreateViewScreen extends javax.swing.JFrame {
                 .addComponent(jLabel4)
                 .addGap(11, 11, 11)
                 .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(9, 9, 9)
+                .addComponent(jLabel5)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(accountsComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -143,7 +173,7 @@ public class CreateViewScreen extends javax.swing.JFrame {
                 .addComponent(jLabel2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 131, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 25, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(createViewButton)
                     .addComponent(cancelButton))
@@ -189,9 +219,11 @@ public class CreateViewScreen extends javax.swing.JFrame {
 
         String title = JOptionPane.showInputDialog("Please enter view title:");
         //Create the view object
+        Account selectedAccount = (Account) accountsComboBox.getSelectedItem();
         ArrayList<String> viewWords = new ArrayList<String>(keyWords.size());
         viewWords.addAll(keyWords);
-        View view = new View(title, viewWords);
+        View view = new View(title, selectedAccount, viewWords);
+        view.addListener(listener);
         try 
         {
             //If view already exists, don't do anything
@@ -241,11 +273,12 @@ public class CreateViewScreen extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new CreateViewScreen().setVisible(true);
+                new CreateViewScreen(null, null).setVisible(true);
             }
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JComboBox accountsComboBox;
     private javax.swing.JButton addKeyWordButton;
     private javax.swing.JTextField addKeyWordTextField;
     private javax.swing.JButton cancelButton;
@@ -254,6 +287,7 @@ public class CreateViewScreen extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JTextArea keyWordsTextArea;

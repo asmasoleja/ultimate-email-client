@@ -39,19 +39,23 @@ public class UserDatabaseManager
             database.createDatabase("User");
             database.selectDatabase("User");
             //ACCOUNT TABLE
-            String accountTableSQL = "accountID int NOT NULL AUTO_INCREMENT,"
-                        + "username varchar(255) NOT NULL,"
+            String accountTableSQL = 
+                          "username varchar(255) NOT NULL,"
                         + "password varchar(255) NOT NULL,"
-                        + "PRIMARY KEY(accountID)";
+                        + "accountType varchar(5) NOT NULL,"
+                        + "incoming varchar(50) NOT NULL,"
+                        + "outgoing varchar(50) NOT NULL,"
+                        + "outgoingPort int NOT NULL,"
+                        + "PRIMARY KEY(username)";
             database.createTable("Accounts", accountTableSQL);
             //FOLDER TABLE
             String folderTableSQL = "folderID int NOT NULL AUTO_INCREMENT,"
                                   + "name varchar(255) NOT NULL,"
-                                  + "accountID int NOT NULL,"
+                                  + "accountUsername varchar(255) NOT NULL,"
                                   + "parentFolder int,"
                                   + "lastMessage TIMESTAMP NULL DEFAULT NULL,"
                                   + "PRIMARY KEY(folderID),"
-                                  + "FOREIGN KEY(accountID) REFERENCES accounts(accountID),"
+                                  + "FOREIGN KEY(accountUsername) REFERENCES accounts(username),"
                                   + "FOREIGN KEY(parentFolder) REFERENCES folders(folderID)";
             database.createTable("Folders", folderTableSQL);
             //MESSAGE TABLE
@@ -99,7 +103,9 @@ public class UserDatabaseManager
             
             String viewTableSQL = "viewID int NOT NULL AUTO_INCREMENT,"
                                 + "viewName varchar(50),"
-                                + "PRIMARY KEY(viewID)";
+                                + "accountUsername varchar(255),"
+                                + "PRIMARY KEY(viewID),"
+                                + "FOREIGN KEY(accountUsername) REFERENCES accounts(username)";
             
             database.createTable("Views", viewTableSQL);
             

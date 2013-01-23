@@ -1,9 +1,12 @@
 package com.gmail.higginson555.adam.view;
 
+import com.gmail.higginson555.adam.Account;
 import com.gmail.higginson555.adam.Database;
+import com.gmail.higginson555.adam.gui.PropertyListener;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
+import javax.swing.JComponent;
 
 /**
  * A view represents some form of accessing a subset of all e-mails in an 
@@ -18,31 +21,46 @@ public class View
 {
     //The name of this view
     private String viewName;
+    //The id of this view in the database
+    private int id = -1;
+    //The account this view belongs to
+    private Account account;
+
     //The list of key words or 'tags' that e-mails should have to be
     //seen in this view
     private ArrayList<String> keyWords;
     //The relationships that are of interest to this view
     private ArrayList<Relationship> relationships;
     
+    //Any listeners wanting to be updated
+    private ArrayList<PropertyListener> listeners;
+    
+    
+    
     /**
      * Creates an empty view with no key words, relationships or events
      * @param viewName The name the view should be given
+     * @param account The account this view belongs to
      */
-    public View(String viewName)
+    public View(String viewName, Account account)
     {
         this.keyWords = new ArrayList<String>();
+        this.account = account;
         this.relationships = new ArrayList<Relationship>();
+        listeners = new ArrayList<PropertyListener>();
     }
     
-    public View(String viewName, ArrayList<String> keyWords)
+    public View(String viewName, Account account, ArrayList<String> keyWords)
     {
         this.viewName = viewName;
+        this.account = account;
         this.keyWords = keyWords;
+        listeners = new ArrayList<PropertyListener>();
     }
     
-    public View(String viewName, ArrayList<String> keyWords, ArrayList<Relationship> relationships)
+    public View(String viewName, Account account, ArrayList<String> keyWords, ArrayList<Relationship> relationships)
     {
-        this(viewName, keyWords);
+        this(viewName, account, keyWords);
         this.relationships = relationships;
     }
     
@@ -54,19 +72,20 @@ public class View
      */
     public boolean writeToDatabase(Database database) throws SQLException
     {
-        String[] fieldNames = {"viewName"};
-        Object[] fieldValues = {viewName};
+        String[] fieldNames = {"viewName", "accountUsername"};
+        Object[] fieldValues = {viewName, account.getUsername()};
         
         //Return false if row already exists!
-        if (!database.selectFromTableWhere("Views", "viewID", "viewName = '" + viewName + "'").isEmpty())
+        if (!database.selectFromTableWhere("Views", "viewID", "viewName = '" + viewName + "' AND accountUsername = '" + account.getUsername() + "'").isEmpty())
         {
             return false;
         }
       
         database.insertRecord("Views", fieldNames, fieldValues);
         //Get ID of inserted record
-        ArrayList<Object[]> result = database.selectFromTableWhere("Views", "ViewID", "viewName = '" + viewName + "'");
-        int id = (Integer) result.get(0)[0];
+        ArrayList<Object[]> result = database.selectFromTableWhere("Views", "ViewID", 
+                "viewName = '" + viewName + "' AND accountUsername = '" + account.getUsername() + "'");
+        id = (Integer) result.get(0)[0];
         
         //Insert tags for this
         String[] viewTagsFields = {"viewTagValue"};
@@ -90,6 +109,8 @@ public class View
         String[] viewToViewTagsNames = {"viewID", "viewTagID"};
         database.insertRecords("ViewToViewTags", viewToViewTagsNames, viewToViewTagsData);
         
+        publishPropertyEvent("DatabaseWrite", this);
+        
         
         return true;
     }
@@ -106,6 +127,15 @@ public class View
     public String getViewName() {
         return viewName;
     }
+    
+    public int getId() {
+        return id;
+    }
+    
+
+    public Account getAccount() {
+        return account;
+    }
 
     /**
      * 
@@ -113,6 +143,19 @@ public class View
      */
     public ArrayList<String> getKeyWords() {
         return keyWords;
+    }
+    
+    public void addListener(PropertyListener listener)
+    {
+        listeners.add(listener);
+    }
+    
+    private void publishPropertyEvent(String name, Object value)
+    {
+        for (PropertyListener listener : listeners)
+        {
+            listener.onPropertyEvent(this.getClass(), name, value);
+        }
     }
     
    /**
@@ -129,5 +172,46 @@ public class View
         relationships.add(relationship);
     }
     
+    public static View getView(Database database, 
+                               String viewName, Account account) throws SQLException
+    {
+        ArrayList<Object[]> result = database.selectFromTableWhere("Views", "viewID", "viewName = '" 
+                + viewName + "' AND accountUsername='" + account.getUsername() + "'");
+        int id = (Integer) result.get(0)[0];
+        
+        View view = new View(viewName, account);
+        view.id = id;
+        
+        return view;
+    }
     
+    public static ArrayList<View> getViewsForAccount(Database database, Account account)
+            throws SQLException
+    {  
+        ArrayList<Object[]> result = database.selectFromTableWhere("Views", 
+                "viewID, viewName", 
+                "accountUsername='" + account.getUsername() + "'");
+        ArrayList<View> returnList = new ArrayList<View>(result.size());
+        
+        Iterator<Object[]> resultIter = result.iterator();
+        while (resultIter.hasNext())
+        {
+            Object[] line = resultIter.next();
+            int viewID = (Integer) line[0];
+            String viewName = (String) line[1];
+            
+            View view = new View(viewName, account);
+            view.id = viewID;
+            
+            returnList.add(view);
+        }
+        
+        return returnList;
+    }   
+    
+    @Override
+    public String toString()
+    {
+        return this.viewName;
+    }
 }
