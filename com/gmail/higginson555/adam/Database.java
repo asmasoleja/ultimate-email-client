@@ -221,6 +221,8 @@ public class Database
         {
             long startTime = System.currentTimeMillis();
             Object[] line = lineIter.next();
+            
+            
             for (int i = 0; i < line.length; i++)
             {
                 if (line[i] instanceof Integer) {
@@ -238,8 +240,15 @@ public class Database
                 else if (line[i] instanceof String) {
                     ps.setString(i + 1, (String)line[i]);
                 }
+                else
+                {
+                    System.out.println("Warning, not setting something! Value: " + line[i] + " fieldName " + fieldNames[i]);
+                    ps.setNull(i + 1, java.sql.Types.VARCHAR);
+                    if (line[i] != null)
+                        System.out.println("Found weird one: " + line[i].getClass().getName());
+                }
                 
-                System.out.println("Field value: " + line[i]);
+                //System.out.println("Field value: " + line[i]);
             }
             //System.out.println("\n\n");
            

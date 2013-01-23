@@ -58,9 +58,14 @@ public class AccountMessageDownloader
             for (Folder folder : folders)
             {
                 int folderID = -1;
-                if (!folder.isOpen())
+                if ((folder.getType() != Folder.HOLDS_FOLDERS) && !folder.isOpen())
                 {
                     folder.open(Folder.READ_WRITE);
+                }
+                else
+                {
+                    //TODO
+                    continue;
                 }
                     
                 //Add this folder to the database, working out its proper parent path!
