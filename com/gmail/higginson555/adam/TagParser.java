@@ -57,7 +57,7 @@ public class TagParser
         {
             //Remove punctuation from a string
             String withoutPunc = splitString[i].replaceAll("[^A-Za-z0-9]", "");
-            if (!wordsToIgnore.contains(withoutPunc)) {
+            if (!wordsToIgnore.contains(withoutPunc) && !withoutPunc.isEmpty()) {
                 keyWords.add(withoutPunc);
             }           
         }

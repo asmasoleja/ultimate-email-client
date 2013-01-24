@@ -41,6 +41,13 @@ public class AddAccountScreen extends javax.swing.JFrame {
         this.listener = listener;
         initComponents();
         setLocationRelativeTo(null);
+        
+        this.usernameField.setText("adam.higginson555@gmail.com");
+        this.passwordField.setText("Oak55housE");
+        this.incomingField.setText("imap.gmail.com");
+        this.outgoingField.setText("smtp.gmail.com");
+        this.portField.setText("997");
+        this.serverCombo.setSelectedIndex(2);
     }
     
     public AddAccountScreen(Properties props, boolean firstTime) 
@@ -307,6 +314,7 @@ public class AddAccountScreen extends javax.swing.JFrame {
 
         try 
         {
+            //TODO NEED to do this after account can conect to server!
             AccountManager.getSingleton().addAccount(account);
         } catch (SQLException ex) {
             Logger.getLogger(AddAccountScreen.class.getName()).log(Level.SEVERE, null, ex);
