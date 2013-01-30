@@ -63,6 +63,11 @@ public class AccountMessageDownloader
     {
         this.account = account;
         this.listeners = new ArrayList<PropertyListener>();
+        try {
+            connectToServer();
+        } catch (MessagingException ex) {
+            Logger.getLogger(AccountMessageDownloader.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     public void addListener(PropertyListener listener)
@@ -84,8 +89,6 @@ public class AccountMessageDownloader
      */
     public void getMessages() throws MessagingException, SQLException, MalformedURLException
     {
-        connectToServer();
-        
         //Try to insert all folders into the database, as well as messages!
         Folder root = store.getDefaultFolder();
         insertFolderIntoDatabase(-1, root);
