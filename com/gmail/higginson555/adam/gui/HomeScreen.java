@@ -587,8 +587,8 @@ public class HomeScreen extends javax.swing.JFrame
                     {
                         System.out.println("\n----UPDATING DATABASE WITH NEW MESSAGES!----\n");
                         fm.setLastDate(folderID, (Date) dbDataToAdd.get(0)[5]);
-                        MessageManager mm = new MessageManager(userDatabase);
-                        mm.addMessages(dbDataToAdd);
+                        //MessageManager mm = new MessageManager(userDatabase);
+                        //mm.addMessages(dbDataToAdd);
                         System.out.println("\n\n\n\n -------------- RETURNED, THREAD WORKED?! ------------------\n\n\n\n");
                     }
                     //Set table data          
@@ -621,8 +621,8 @@ public class HomeScreen extends javax.swing.JFrame
             catch (MessagingException ex) {
                 JOptionPane.showMessageDialog(rootPane, ex.toString(), "MessagingException", JOptionPane.ERROR_MESSAGE);
             }
-            ViewMailScreen viewMail = new ViewMailScreen(selectedMsg, config, session);
-            viewMail.setVisible(true);
+            //ViewMailScreen viewMail = new ViewMailScreen(selectedMsg, config, session);
+            //viewMail.setVisible(true);
             //TODO get message at this row
         }
     }//GEN-LAST:event_emailTableMouseClicked

@@ -4,7 +4,10 @@
  */
 package com.gmail.higginson555.adam;
 
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Properties;
@@ -62,6 +65,13 @@ public class UserDatabase
             Logger.getLogger("EmailClient").log(Level.WARNING, "Password field is null");
             config.setProperty("password", "");
             password = "";
+        }
+        try {
+            config.store(new FileOutputStream(new File("UltimateEmailClient.cfg")), "Ultimate Email Client config");
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(UserDatabase.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(UserDatabase.class.getName()).log(Level.SEVERE, null, ex);
         }
         
         
