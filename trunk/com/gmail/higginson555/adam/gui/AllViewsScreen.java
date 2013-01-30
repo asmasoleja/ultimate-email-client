@@ -66,6 +66,7 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
         tabbedPane = new javax.swing.JTabbedPane();
         openViewsLabel = new javax.swing.JLabel();
         warningLabel = new javax.swing.JLabel();
+        closeTabButton = new javax.swing.JButton();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenu2 = new javax.swing.JMenu();
@@ -93,6 +94,13 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
         openViewsLabel.setText("Opened Views");
 
         warningLabel.setText("State: OK");
+
+        closeTabButton.setText("Close Selected Tab");
+        closeTabButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                closeTabButtonActionPerformed(evt);
+            }
+        });
 
         jMenu1.setText("File");
         jMenuBar1.add(jMenu1);
@@ -142,7 +150,9 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
                             .addComponent(tabbedPane)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(openViewsLabel)
-                                .addGap(0, 555, Short.MAX_VALUE))))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 420, Short.MAX_VALUE)
+                                .addComponent(closeTabButton)
+                                .addGap(12, 12, 12))))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(warningLabel)
                         .addGap(0, 0, Short.MAX_VALUE)))
@@ -151,11 +161,16 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(warningLabel)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(viewsLabel)
-                    .addComponent(openViewsLabel))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(warningLabel)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(viewsLabel)
+                            .addComponent(openViewsLabel)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(closeTabButton)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(tabbedPane)
@@ -221,7 +236,12 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
                 }
             }
         }
+        
     }//GEN-LAST:event_viewTreeMouseClicked
+
+    private void closeTabButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeTabButtonActionPerformed
+        tabbedPane.remove(tabbedPane.getSelectedIndex());
+    }//GEN-LAST:event_closeTabButtonActionPerformed
 
     /**
      * @param args the command line arguments
@@ -273,6 +293,7 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenu accountMenu;
     private javax.swing.JMenuItem addViewMenuItem;
+    private javax.swing.JButton closeTabButton;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenu jMenu3;
