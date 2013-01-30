@@ -9,12 +9,15 @@ import com.gmail.higginson555.adam.view.EmailFilterer;
 import com.sun.mail.imap.IMAPFolder;
 import com.sun.mail.pop3.POP3Folder;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.security.GeneralSecurityException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Properties;
 import java.util.logging.Level;
@@ -28,6 +31,7 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.Store;
 import javax.mail.UIDFolder;
+import javax.mail.URLName;
 
 /**
  * A class which connects and gets all the messages for a particular account,
@@ -36,11 +40,26 @@ import javax.mail.UIDFolder;
  */
 public class AccountMessageDownloader 
 {
+    private static HashMap<Account, AccountMessageDownloader> instances = new HashMap<Account, AccountMessageDownloader>();
     private Account account;
     private Store store;
     private ArrayList<PropertyListener> listeners;
     
-    public AccountMessageDownloader(Account account)
+    public static synchronized AccountMessageDownloader getInstance(Account account)
+    {
+        if (instances.containsKey(account))
+        {
+            return instances.get(account);
+        }
+        else
+        {
+            AccountMessageDownloader newInstance = new AccountMessageDownloader(account);
+            instances.put(account, newInstance);
+            return newInstance;
+        }
+    }
+    
+    private AccountMessageDownloader(Account account)
     {
         this.account = account;
         this.listeners = new ArrayList<PropertyListener>();
@@ -59,13 +78,50 @@ public class AccountMessageDownloader
         }
     }
     
+    /**
+     * Gets the messages and begins adding them to the database.
+     * Note, adding messages to the database is done on a seperate thread.
+     */
+    public void getMessages() throws MessagingException, SQLException, MalformedURLException
+    {
+        connectToServer();
+        
+        //Try to insert all folders into the database, as well as messages!
+        Folder root = store.getDefaultFolder();
+        insertFolderIntoDatabase(-1, root);
+    }      
+    
+    public Message getMessageWithID(int folderID, int messageUID) throws MessagingException, SQLException, MalformedURLException
+    {
+        //Get folder url
+        ArrayList<Object[]> result = UserDatabase.getInstance().selectFromTableWhere("Folders", "urlname", "folderID=" + Integer.toString(folderID));
+        
+        if (result.isEmpty()) {
+            throw new SQLException("Folder not found in database! FolderID given: " + folderID);
+        }
+        
+        String folderName = (String) result.get(0)[0];
+        //Access folder
+        Folder foundFolder = store.getFolder(folderName);
+        
+        if (!foundFolder.isOpen()) {
+            foundFolder.open(Folder.READ_ONLY);
+        }
+        
+        Message foundMessage = foundFolder.getMessage(messageUID);
+        
+        return foundMessage;
+    }
+    
+    
     /*
-     * Recrusive function to insert folders into the database.
+     * Recursive function to insert folders into the database.
      * parentID - The ID of the current folder's parent, -1 if no parent
      * folder - The current folder
      */
     private void insertFolderIntoDatabase(int parentID, Folder folder) throws MessagingException,
-                                                    SQLException
+                                                    SQLException,
+                                                    MalformedURLException
     {
         //Insert this node into the database, with the parentID
         Database user = UserDatabase.getInstance();
@@ -93,18 +149,18 @@ public class AccountMessageDownloader
             if (parentID == -1)
             {
                 
-                String[] fieldNames = {"name", "accountUsername"};
-                Object[] fieldValues = {folder.getName(), account.getUsername()};
+                String[] fieldNames = {"name", "accountUsername", "urlname"};
+                Object[] fieldValues = {folder.getName(), account.getUsername(), folder.getFullName()};
                 user.insertRecord("Folders", fieldNames, fieldValues);
             }
             else //parent found
             {
-                String[] fieldNames = {"name", "accountUsername", "parentFolder"};
-                Object[] fieldValues = {folder.getName(), account.getUsername(), parentID};
+                String[] fieldNames = {"name", "accountUsername", "parentFolder", "urlname"};
+                Object[] fieldValues = {folder.getName(), account.getUsername(), parentID, folder.getFullName()};
                 user.insertRecord("Folders", fieldNames, fieldValues);
             }
         }
-        
+                
         System.out.println("Now on folder: " + folder.getFullName());
         
         //Find this folder ID
@@ -194,17 +250,19 @@ public class AccountMessageDownloader
             if (account.getAccountType().equalsIgnoreCase("IMAP") || account.getAccountType().equalsIgnoreCase("IMAPS"))
             {
                 IMAPFolder imapFolder = (IMAPFolder) folder;
-                UID = Long.toString(imapFolder.getUID(allMessages[i]));
+                UID += allMessages[i].getMessageNumber();
+                //UID = Long.toString(imapFolder.getUID(allMessages[i]));
             }
             else if (account.getAccountType().equalsIgnoreCase("POP3"))
             {
                 POP3Folder pop3Folder = (POP3Folder) folder;
-                UID = pop3Folder.getUID(allMessages[i]);
+                UID += allMessages[i].getMessageNumber();
+                //UID = pop3Folder.getUID(allMessages[i]);
             }    
 
             Date dateSent = allMessages[i].getSentDate();
             Date dateReceived = allMessages[i].getReceivedDate();
-            Object[] line = {UID, subject, from, to, dateSent, dateReceived, folderID};
+            Object[] line = {UID, subject, from, to, dateSent, dateReceived, folderID, account.getUsername()};
             dbData.add(line);
         }
 
@@ -256,7 +314,7 @@ public class AccountMessageDownloader
             System.out.println("\n----UPDATING DATABASE WITH NEW MESSAGES!----\n");
             fm.setLastDate(folderID, (Date) dbDataToAdd.get(0)[5]);
             publishPropertyEvent("MessageManagerThreadStart", null);
-            MessageManager mm = new MessageManager(UserDatabase.getInstance());
+            MessageManager mm = new MessageManager(account, UserDatabase.getInstance());
             for (PropertyListener listener : listeners)
             {
                 mm.addListener(listener);
@@ -267,19 +325,6 @@ public class AccountMessageDownloader
         
         folder.close(false);
     }
-    
-    /**
-     * Gets the messages and begins adding them to the database.
-     * Note, adding messages to the database is done on a seperate thread.
-     */
-    public void getMessages() throws MessagingException, SQLException
-    {
-        connectToServer();
-        
-        //Try to insert all folders into the database, as well as messages!
-        Folder root = store.getDefaultFolder();
-        insertFolderIntoDatabase(-1, root);
-    }      
     
     private void connectToServer() throws MessagingException
     {

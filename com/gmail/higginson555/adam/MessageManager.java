@@ -18,13 +18,16 @@ import javax.mail.MessagingException;
  */
 public class MessageManager 
 {
+    //The account this is for
+    private Account account;
     //The database to use
     private Database database;
     //Property listeners
     private ArrayList<PropertyListener> listeners;
     
-    public MessageManager(Database database)
+    public MessageManager(Account account, Database database)
     {
+        this.account = account;
         this.database = database;
         listeners = new ArrayList<PropertyListener>();
     }
@@ -52,7 +55,7 @@ public class MessageManager
     public void addMessages(ArrayList<Object[]> dbData)
             throws SQLException, MessagingException
     {         
-        MessageAdderJob job = new MessageAdderJob(database, dbData);
+        MessageAdderJob job = new MessageAdderJob(account, database, dbData);
         for (PropertyListener listener : listeners) {
             job.addListener(listener);
         }

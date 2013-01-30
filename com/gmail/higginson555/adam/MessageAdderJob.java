@@ -13,6 +13,8 @@ import java.util.logging.Logger;
  */
 public class MessageAdderJob extends Thread
 {
+    //The account these messages belong to
+    private Account account;
     //The database to use
     private Database database;
     //The list of stuff to add to the db
@@ -20,7 +22,8 @@ public class MessageAdderJob extends Thread
     
     private ArrayList<PropertyListener> listeners;
 
-    public MessageAdderJob(Database database, ArrayList<Object[]> dbData) {
+    public MessageAdderJob(Account account, Database database, ArrayList<Object[]> dbData) {
+        this.account = account;           
         listeners = new ArrayList<PropertyListener>();
         try {
             //Create a new database connection
@@ -51,7 +54,7 @@ public class MessageAdderJob extends Thread
     public void run()
     {
         String[] fieldNames = {"messageUID", "subject", "messageFrom", 
-            "messageTo", "dateSent", "dateReceived", "folderID"};
+                               "messageTo", "dateSent", "dateReceived", "folderID", "accountUsername"};
         
         try
         {
@@ -65,7 +68,9 @@ public class MessageAdderJob extends Thread
             {
                 Object[] currentLine = dataIter.next();
                 //Get the id of the inserted message
-                ArrayList<Object[]> result = database.selectFromTableWhere("Messages", "messageID", "messageUID=" + (String)currentLine[0]);
+                ArrayList<Object[]> result = database.selectFromTableWhere("Messages", 
+                        "messageID", "messageUID=" + (String)currentLine[0] 
+                        + " AND folderID=" + (Integer.toString( (Integer)currentLine[6]) ));
                 int id = (Integer) result.get(0)[0];
                 //System.out.println("Found id: " + id);
                 //Parse the key words from the subject
@@ -131,6 +136,7 @@ public class MessageAdderJob extends Thread
             Logger.getLogger(MessageAdderJob.class.getName()).log(Level.SEVERE, null, ex);
         }
         
+        System.out.println("\n\n-------THREAD FINISHED------------");
         publishPropertyEvent("MessageManagerThreadFinished", null);
     }
     
