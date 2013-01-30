@@ -137,6 +137,7 @@ public class ViewPanel extends javax.swing.JPanel {
             } 
             catch (Exception ex)
             {
+                ex.printStackTrace();
                 JOptionPane.showMessageDialog(this, ex.toString(), ex.getClass().getName(), JOptionPane.ERROR_MESSAGE);
             }
         }

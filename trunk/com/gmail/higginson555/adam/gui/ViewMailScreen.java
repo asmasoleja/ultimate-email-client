@@ -4,7 +4,10 @@
  */
 package com.gmail.higginson555.adam.gui;
 
+import chrriis.dj.nativeswing.swtimpl.components.JWebBrowser;
 import com.gmail.higginson555.adam.Account;
+import com.gmail.higginson555.adam.view.View;
+import java.awt.BorderLayout;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -16,10 +19,10 @@ import javax.mail.internet.MimeBodyPart;
 import javax.swing.DefaultListModel;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
-import org.lobobrowser.html.UserAgentContext;
+/*import org.lobobrowser.html.UserAgentContext;
 import org.lobobrowser.html.parser.DocumentBuilderImpl;
 import org.lobobrowser.html.test.SimpleHtmlRendererContext;
-import org.lobobrowser.html.test.SimpleUserAgentContext;
+import org.lobobrowser.html.test.SimpleUserAgentContext;/*
 
 /**
  *
@@ -68,10 +71,15 @@ public class ViewMailScreen extends javax.swing.JFrame {
         body = "";
         initComponents();
         
+        final JWebBrowser browser = new JWebBrowser();
+        browser.setBarsVisible(false);
+        browserPanel.add(browser, BorderLayout.CENTER);
+ 
         
-        UserAgentContext ucontext = new SimpleUserAgentContext();
+        
+        /*UserAgentContext ucontext = new SimpleUserAgentContext();
         SimpleHtmlRendererContext rContext = new SimpleHtmlRendererContext(panel, ucontext);
-        DocumentBuilderImpl dbi = new DocumentBuilderImpl(ucontext, rContext);
+        DocumentBuilderImpl dbi = new DocumentBuilderImpl(ucontext, rContext);*/
                 
 
         //bodyTextPane.getDocument().putProperty("IgnoreCharsetDirective", Boolean.TRUE);
@@ -79,7 +87,8 @@ public class ViewMailScreen extends javax.swing.JFrame {
         {
             System.out.println("\nWriting message...\n");
             writeMessage(message);
-            panel.setHtml(body, body, rContext);
+            //panel.setHtml(body, body, rContext);
+            browser.setHTMLContent(body);
             System.out.println("\n---------------DONE-------------------\n");            
             //bodyTextPane.setText(body);
         } 
@@ -267,10 +276,10 @@ public class ViewMailScreen extends javax.swing.JFrame {
         sentLabel = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
         replyToLabel = new javax.swing.JLabel();
-        panel = new org.lobobrowser.html.gui.HtmlPanel();
         jLabel2 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         attachmentList = new javax.swing.JList();
+        browserPanel = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("View Message");
@@ -350,6 +359,19 @@ public class ViewMailScreen extends javax.swing.JFrame {
         });
         jScrollPane1.setViewportView(attachmentList);
 
+        javax.swing.GroupLayout browserPanelLayout = new javax.swing.GroupLayout(browserPanel);
+        browserPanel.setLayout(browserPanelLayout);
+        browserPanelLayout.setHorizontalGroup(
+            browserPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 0, Short.MAX_VALUE)
+        );
+        browserPanelLayout.setVerticalGroup(
+            browserPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 430, Short.MAX_VALUE)
+        );
+
+        browserPanel.setLayout(new BorderLayout());
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -369,9 +391,10 @@ public class ViewMailScreen extends javax.swing.JFrame {
                                 .addComponent(forwardButton)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(deleteButton)))
-                        .addGap(392, 392, 392))
+                        .addGap(392, 572, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(browserPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jLabel1)
@@ -382,15 +405,14 @@ public class ViewMailScreen extends javax.swing.JFrame {
                                     .addComponent(fromLabel)
                                     .addComponent(replyToLabel)
                                     .addComponent(toLabel))
-                                .addGap(0, 235, Short.MAX_VALUE)
+                                .addGap(0, 299, Short.MAX_VALUE)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jLabel2)
                                     .addComponent(sentLabelStatic))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 281, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(sentLabel)))
-                            .addComponent(panel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 769, Short.MAX_VALUE))
+                                    .addComponent(sentLabel))))
                         .addContainerGap())))
         );
         layout.setVerticalGroup(
@@ -427,9 +449,9 @@ public class ViewMailScreen extends javax.swing.JFrame {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel2))))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(panel, javax.swing.GroupLayout.PREFERRED_SIZE, 416, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(20, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(browserPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         pack();
@@ -440,6 +462,10 @@ public class ViewMailScreen extends javax.swing.JFrame {
         if (evt.getClickCount() == 2)
         {
             int index = attachmentList.getSelectedIndex();
+            if (index < 0) {
+                return;
+            }
+            
             String filename = (String)attachmentList.getSelectedValue();
             MimeBodyPart attachment = (MimeBodyPart)attachments.get(index);
             
@@ -447,7 +473,7 @@ public class ViewMailScreen extends javax.swing.JFrame {
             
             fileChooser.setSelectedFile(new File(filename));
             
-            int returnVal = fileChooser.showSaveDialog(panel);
+            int returnVal = fileChooser.showSaveDialog(this);
             if (returnVal == JFileChooser.APPROVE_OPTION)
             {
                 File file = fileChooser.getSelectedFile();
@@ -516,6 +542,7 @@ public class ViewMailScreen extends javax.swing.JFrame {
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JList attachmentList;
+    private javax.swing.JPanel browserPanel;
     private javax.swing.JButton deleteButton;
     private javax.swing.JButton forwardButton;
     private javax.swing.JLabel fromLabel;
@@ -523,7 +550,6 @@ public class ViewMailScreen extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JScrollPane jScrollPane1;
-    private org.lobobrowser.html.gui.HtmlPanel panel;
     private javax.swing.JButton replyButton;
     private javax.swing.JLabel replyToLabel;
     private javax.swing.JLabel sentLabel;

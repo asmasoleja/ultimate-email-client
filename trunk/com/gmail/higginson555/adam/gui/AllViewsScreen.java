@@ -4,6 +4,8 @@
  */
 package com.gmail.higginson555.adam.gui;
 
+import chrriis.common.UIUtils;
+import chrriis.dj.nativeswing.swtimpl.NativeInterface;
 import com.gmail.higginson555.adam.Account;
 import com.gmail.higginson555.adam.AccountManager;
 import com.gmail.higginson555.adam.AccountMessageDownloader;
@@ -225,6 +227,9 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
      * @param args the command line arguments
      */
     public static void main(String args[]) {
+        
+        UIUtils.setPreferredLookAndFeel();
+        NativeInterface.open();
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception ex)
@@ -262,6 +267,8 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
                 new AllViewsScreen().setVisible(true);
             }
         });
+        
+        NativeInterface.runEventPump();
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenu accountMenu;
