@@ -4,6 +4,7 @@
  */
 package com.gmail.higginson555.adam.gui;
 
+import com.gmail.higginson555.adam.Account;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,9 +39,6 @@ public class ViewMailScreen extends javax.swing.JFrame {
     private int listLevel;
     //The ArrayList of all attachments of the message
     private ArrayList<Part> attachments;
-    //The config and session for sending messages
-    private Properties config;
-    private Session session;
     //The part of the message which holds the body
     private Part messageBody;
     //The string body representation
@@ -60,11 +58,9 @@ public class ViewMailScreen extends javax.swing.JFrame {
      * @param message The message object which represents the
      *                received e-mail
      */
-    public ViewMailScreen(Message message, Properties config, Session session)
+    public ViewMailScreen(Message message, Account account)
     {
         this.message = message;
-        this.config = config;
-        this.session = session;
         this.level = 0;
         
         this.attachments = new ArrayList<Part>();
@@ -99,8 +95,9 @@ public class ViewMailScreen extends javax.swing.JFrame {
     private void writeMessage(Part part) throws Exception 
     {
         //Write the envelope if the message
-        if (part instanceof Message)
+        if (part instanceof Message) {
             writeEnvelope((Message) part);
+        }
             
         String filename = part.getFileName();
         
@@ -472,8 +469,8 @@ public class ViewMailScreen extends javax.swing.JFrame {
 
     private void replyButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_replyButtonActionPerformed
 
-        ComposeMailScreen replyScreen = new ComposeMailScreen(config, session, messageBody, replyTo, recipient, subject);
-        replyScreen.setVisible(true);
+        //ComposeMailScreen replyScreen = new ComposeMailScreen(config, session, messageBody, replyTo, recipient, subject);
+        //replyScreen.setVisible(true);
     }//GEN-LAST:event_replyButtonActionPerformed
 
     /**

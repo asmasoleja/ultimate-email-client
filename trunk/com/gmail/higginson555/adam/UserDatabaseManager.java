@@ -62,6 +62,7 @@ public class UserDatabaseManager
                                   + "accountUsername varchar(255) NOT NULL,"
                                   + "parentFolder int,"
                                   + "lastMessage TIMESTAMP NULL DEFAULT NULL,"
+                                  + "urlname varchar(70),"
                                   + "PRIMARY KEY(folderID),"
                                   + "FOREIGN KEY(accountUsername) REFERENCES accounts(username),"
                                   + "FOREIGN KEY(parentFolder) REFERENCES folders(folderID)";
@@ -75,8 +76,10 @@ public class UserDatabaseManager
                                    + "dateSent TIMESTAMP,"
                                    + "dateReceived TIMESTAMP,"
                                    + "folderID int NOT NULL,"
+                                   + "accountUsername varchar(255) NOT NULL,"
                                    + "PRIMARY KEY(messageID),"
-                                   + "FOREIGN KEY(folderID) REFERENCES folders(folderID)";
+                                   + "FOREIGN KEY(folderID) REFERENCES folders(folderID),"
+                                   + "FOREIGN KEY(accountUsername) REFERENCES accounts(username)";
             database.createTable("Messages", messageTableSQL);
             //Tags table
             String tagsTableSQL = "tagID int NOT NULL AUTO_INCREMENT,"

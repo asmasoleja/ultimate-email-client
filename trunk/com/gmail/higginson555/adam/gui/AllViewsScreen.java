@@ -9,6 +9,7 @@ import com.gmail.higginson555.adam.AccountManager;
 import com.gmail.higginson555.adam.AccountMessageDownloader;
 import com.gmail.higginson555.adam.UserDatabase;
 import com.gmail.higginson555.adam.view.View;
+import java.net.MalformedURLException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -302,7 +303,7 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
                 
                 try
                 {
-                    AccountMessageDownloader amd = new AccountMessageDownloader(account);
+                    AccountMessageDownloader amd = AccountMessageDownloader.getInstance(account);
                     amd.addListener(this);
                     amd.getMessages();
                 }
@@ -316,6 +317,11 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
                     JOptionPane.showMessageDialog(this, "Error, cannot connect to User Server", "SQLException", JOptionPane.ERROR_MESSAGE);
                     Logger.getLogger("EmailClient").log(Level.SEVERE, "Could not connect to SQL server", ex);
                 }
+                catch (MalformedURLException ex)
+                {
+                    JOptionPane.showMessageDialog(this, "Error, cannot parse folder URL", "MalformedURLException", JOptionPane.ERROR_MESSAGE);
+                    Logger.getLogger("EmailClient").log(Level.SEVERE, "Could not parse URL", ex);
+                }
             }
         }
         else if (name.equalsIgnoreCase("MessageManagerThreadStart"))
@@ -327,6 +333,7 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
         else if (name.equalsIgnoreCase("MessageManagerThreadFinished"))
         {
             messageManagerThreads--;
+            System.out.println("------------Thread finished! Thread count is now: " + messageManagerThreads + "\n\n");
             if (messageManagerThreads == 0)
             {
                 warningLabel.setText("State: OK");
