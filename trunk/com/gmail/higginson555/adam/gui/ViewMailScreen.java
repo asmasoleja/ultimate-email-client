@@ -6,6 +6,8 @@ package com.gmail.higginson555.adam.gui;
 
 import chrriis.dj.nativeswing.swtimpl.components.JWebBrowser;
 import com.gmail.higginson555.adam.Account;
+import com.gmail.higginson555.adam.TagParser;
+import com.gmail.higginson555.adam.UserDatabase;
 import com.gmail.higginson555.adam.view.View;
 import java.awt.BorderLayout;
 import java.io.File;
@@ -19,6 +21,7 @@ import javax.mail.internet.MimeBodyPart;
 import javax.swing.DefaultListModel;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import org.jsoup.Jsoup;
 /*import org.lobobrowser.html.UserAgentContext;
 import org.lobobrowser.html.parser.DocumentBuilderImpl;
 import org.lobobrowser.html.test.SimpleHtmlRendererContext;
@@ -36,6 +39,8 @@ public class ViewMailScreen extends javax.swing.JFrame {
     
     //The message object which holds the sent e-mail
     private Message message;
+    //The ID of the message in the database
+    private int messageID;
     //The level we're currently in on reading the message
     private int level;
     //The level of the attachment list we're at
@@ -61,8 +66,9 @@ public class ViewMailScreen extends javax.swing.JFrame {
      * @param message The message object which represents the
      *                received e-mail
      */
-    public ViewMailScreen(Message message, Account account)
+    public ViewMailScreen(Message message, Account account, int messageID, boolean extractTags)
     {
+        this.messageID = messageID;
         this.message = message;
         this.level = 0;
         
@@ -89,6 +95,15 @@ public class ViewMailScreen extends javax.swing.JFrame {
             writeMessage(message);
             //panel.setHtml(body, body, rContext);
             browser.setHTMLContent(body);
+            //Remove HTML from the string, for inserting tags into the database
+            String withoutHTML = Jsoup.parse(body).text();
+            //Get tags and insert into local user database
+            if (extractTags)
+            {
+                System.out.println("Inserting tags!");
+                ArrayList<String> tags = TagParser.getInstance().getTags(withoutHTML);
+                TagParser.getInstance().insertTags(UserDatabase.getInstance(), tags, messageID);
+            }
             System.out.println("\n---------------DONE-------------------\n");            
             //bodyTextPane.setText(body);
         } 

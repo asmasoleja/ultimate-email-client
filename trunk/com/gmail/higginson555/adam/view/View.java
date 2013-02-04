@@ -202,13 +202,13 @@ public class View
             String viewName = (String) line[1];
             
             //Select all key words mapped to this view
-            result = database.selectFromTableWhere("viewtoviewtags", "viewTagID", "viewID = " + Integer.toString(viewID));
+            result = database.selectFromTableWhere("ViewToViewTags", "viewTagID", "viewID = " + Integer.toString(viewID));
             //Go through each found id, adding it to the keywords list
             ArrayList<String> keyWords = new ArrayList<String>(result.size());
             for (Object[] dbLine : result)
             {
                 String foundID = Integer.toString((Integer) dbLine[0]);
-                result = database.selectFromTableWhere("viewtags", "viewTagValue", "viewTagID = " + foundID);
+                result = database.selectFromTableWhere("ViewTags", "viewTagValue", "viewTagID = " + foundID);
                 keyWords.add((String) result.get(0)[0]);
             }
             

@@ -67,14 +67,14 @@ public class EmailFilterer
         {
             System.out.println("Key word: " + keyWord);
             //Get id of key word from tag table
-            ArrayList<Object[]> result = user.selectFromTableWhere("tags", "tagID", "tagValue = '" + keyWord + "'");
+            ArrayList<Object[]> result = user.selectFromTableWhere("Tags", "tagID", "tagValue = '" + keyWord + "'");
             
             if (!result.isEmpty())
             {
                 String tagID = Integer.toString((Integer) result.get(0)[0]);
                 //Tag exists, so message for that tag should also exist (if not deleted by mistake)
                 //Select message ids from message to tags
-                result = user.selectFromTableWhere("messagestotags", "messageID", "tagID = " + tagID);
+                result = user.selectFromTableWhere("MessagesToTags", "messageID", "tagID = " + tagID);
                 //Go through, selecting messages where id = this
                 for (Object[] line : result)
                 {
@@ -82,9 +82,15 @@ public class EmailFilterer
                     //Only continue if message not already added
                     if (!foundIDs.contains(messageID))
                     {
-                        foundIDs.add(messageID);
-                        result = user.selectFromTableWhere("messages", "*", "messageID = " + Integer.toString(messageID));
-                        returnList.add(result.get(0));
+                        result = user.selectFromTableWhere("Messages", "*", "messageID = " + Integer.toString(messageID));
+                        //Get the account username of the message
+                        String accountUsername = (String) result.get(0)[8];
+                        //Check if it is the same username!
+                        if (accountUsername.equalsIgnoreCase(account.getUsername()))
+                        {
+                            returnList.add(result.get(0));
+                            foundIDs.add(messageID);
+                        }
                     }
                 }   
             }        
