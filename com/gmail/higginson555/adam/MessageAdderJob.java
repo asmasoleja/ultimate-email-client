@@ -122,7 +122,7 @@ public class MessageAdderJob extends Thread
                 }
 
                 String[] messagesToTagsFieldNames = {"messageID", "tagID"};
-                database.insertRecords("messagestotags", messagesToTagsFieldNames, newData);
+                database.insertRecords("MessagesToTags", messagesToTagsFieldNames, newData);
             }
         } //try
         catch (SQLException ex)
