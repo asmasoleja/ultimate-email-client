@@ -19,6 +19,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
+import javax.swing.SwingWorker;
 
 /**
  *
@@ -279,7 +280,6 @@ public class AddAccountScreen extends javax.swing.JFrame {
 
     private void addButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addButtonActionPerformed
         
-        progressBar.setIndeterminate(true);
         //Validation
         int port = -1;
         try
@@ -305,52 +305,25 @@ public class AddAccountScreen extends javax.swing.JFrame {
             System.exit(-1);
         }
 
-        Account account = new Account(usernameField.getText(), 
+        final Account account = new Account(usernameField.getText(), 
                                 encryptedPassword, 
                                 (String) serverCombo.getSelectedItem(), 
                                 incomingField.getText(), 
                                 outgoingField.getText(), 
                                 port);
 
-        try 
+        //TODO NEED to do this after account can conect to server!
+        SwingWorker worker = new SwingWorker<Void, Void>() 
         {
-            //TODO NEED to do this after account can conect to server!
-            AccountManager.getSingleton().addAccount(account);
-        } catch (SQLException ex) {
-            Logger.getLogger(AddAccountScreen.class.getName()).log(Level.SEVERE, null, ex);
-            System.exit(-1);
-        }
-        
-        /*props.setProperty("incoming_server", this.incomingField.getText());
-        props.setProperty("outgoing_server", this.outgoingField.getText());
-        props.setProperty("username", this.usernameField.getText());
-        props.setProperty("smtp_port", this.portField.getText());
-        
-
-        
-        props.setProperty("password", encryptedPassword);
-        
-        Arrays.fill(inputPassword, '0');
-        
-        if (this.serverCombo.getSelectedIndex() == 0)
-            props.setProperty("server_type", "POP3");
-        else
-            props.setProperty("server_type", "IMAP");
-        try 
-        {
-            props.store(new FileOutputStream("email.cfg"), null);
-        } 
-        catch (IOException ex) 
-        {
-            ex.printStackTrace();
-        }
-        
-        if (firstTime)
-        {
-            HomeScreen home = new HomeScreen(props);
-            home.setVisible(true);
-        }*/
-        
+            @Override
+            public Void doInBackground() throws Exception {
+                AccountManager.getSingleton().addAccount(account);
+                return null;
+            }  
+        };
+            
+        progressBar.setIndeterminate(true);
+        worker.execute();        
         listener.onPropertyEvent(this.getClass(), "AddAccount", account);
         this.dispose();
         

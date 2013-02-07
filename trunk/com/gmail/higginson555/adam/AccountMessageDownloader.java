@@ -13,6 +13,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.GeneralSecurityException;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -236,7 +237,9 @@ public class AccountMessageDownloader
             String from = "";
             subject += allMessages[i].getSubject();
             Address[] addresses = allMessages[i].getFrom();
-            from += addresses[0].toString();
+            if (addresses.length != 0) {
+                from += addresses[0].toString();
+            }
             String to = "";
             //This bit here is slow for some reason?
             /*addresses = allMessages[i].getAllRecipients();
@@ -263,8 +266,11 @@ public class AccountMessageDownloader
                 //UID = pop3Folder.getUID(allMessages[i]);
             }    
 
+            //Check to see if message already exists in database
+
             Date dateSent = allMessages[i].getSentDate();
             Date dateReceived = allMessages[i].getReceivedDate();
+            
             Object[] line = {UID, subject, from, to, dateSent, dateReceived, folderID, account.getUsername()};
             dbData.add(line);
         }

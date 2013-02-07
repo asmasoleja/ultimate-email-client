@@ -35,14 +35,14 @@ public class UserDatabaseManager
     {
         Database database = new Database(databaseURL, username, password);
         
-        /*try
+        try
         {
             database.selectDatabase("User");
         }
         catch (SQLException ex)
-        {*/
-        try
         {
+        //try
+        //{
             //LoadingScreen ls = new LoadingScreen("Please wait, creating database...");
             //ls.setVisible(true);
             //Create the User database
@@ -140,11 +140,11 @@ public class UserDatabaseManager
             //ls.dispose();
         //}
         }
-        catch (SQLException ex)
+        /*catch (SQLException ex)
         {
             //Already created tables and stuff, just skip
             System.out.println("Tables already created, skipping...");
-        }
+        }*/
         
         return database;
     }
