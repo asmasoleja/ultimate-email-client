@@ -79,6 +79,7 @@ public class EmailFilterer
                 for (Object[] line : result)
                 {
                     int messageID = (Integer) line[0];
+                    System.out.println("Message iD found: " + messageID);
                     //Only continue if message not already added
                     if (!foundIDs.contains(messageID))
                     {
