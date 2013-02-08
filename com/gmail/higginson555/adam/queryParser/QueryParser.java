@@ -35,12 +35,16 @@ public class QueryParser
     private Stack<QueryNode> stack;
     //The database to use
     private Database database;
+    //Whether an operator has previously been found, if true, a tag 
+    //cannot be on its own
+    private boolean operatorPrevFound;
     
     private QueryParser(String query, Database database)
     {
         this.query = query;
         this.database = database;
         this.stack = new Stack<QueryNode>();
+        this.operatorPrevFound = false;
     }
 
     public String getQuery() {
@@ -49,16 +53,21 @@ public class QueryParser
     
     public ArrayList<Integer> parseExpression() throws QueryParseException, SQLException
     {
+        operatorPrevFound = false;
         //Split query by space
         String[] tokens = query.split("\\s+");
         
+        int openBracketCount = 0;
+        int closeBracketCount = 0;
         for (int i = 0; i < tokens.length; i++)
         {
             String token = tokens[i].trim();
             //Read each character until we find no open brackets
+
             char currentChar = token.charAt(0);
             while (currentChar == OPEN_BRACKET)
             {
+                openBracketCount++;
                 //push bracket onto stack
                 stack.push(new QueryNode(QueryNodeType.NODE_OPEN_BRACKET, OPEN_BRACKET));
                 System.out.println("Adding: " + OPEN_BRACKET + " to stack");
@@ -68,6 +77,7 @@ public class QueryParser
                 currentChar = token.charAt(0);            
             }
             
+            System.out.println("Found: " + openBracketCount + " open brackets!");
             //Get word/operator on its own
             String withoutBrackets = removeBrackets(token);
             //push onto stack
@@ -94,9 +104,16 @@ public class QueryParser
                 //System.out.println("Token: " + token + " index: " + index);
                 currentChar = token.charAt(index);
 
+
                 //System.out.println("Current char: " + currentChar);
                 while (currentChar == CLOSE_BRACKET)
                 {
+                    closeBracketCount++;
+                    if (closeBracketCount > openBracketCount) 
+                    {
+                        throw new QueryParseException("Found mismatching brackets!");
+                    }
+                    
                     if (!wasOperator)
                     {
                         evaluate();
@@ -118,14 +135,18 @@ public class QueryParser
                         break;
                     }
                 }
+                
+                System.out.println("Found: " + closeBracketCount + " close brackets!");
+                
+                if (openBracketCount != closeBracketCount)
+                {
+                    throw new QueryParseException("Found mismatching brackets!");
+                }
             }
         } //for each token
         
         //Only remaining item on the stack should be the evaulated message id list
-        //return (ArrayList<Integer>) stack.pop().getData();  
-        
-        //TODO
-        return null;
+        return (ArrayList<Integer>) stack.pop().getData();  
     }
     
     /*
@@ -190,10 +211,51 @@ public class QueryParser
         System.out.println("With operator: " + operator);
         
         //////////////////
+        //No Operator found
+        //////////////////
+        if (operator == null)
+        {
+            if (!operatorPrevFound)
+            {
+                //Get id of tag
+                if (!selectList.isEmpty())
+                {
+                    if (selectList.size() > 1) {
+                        throw new QueryParseException("Must use an operator between tags!");
+                    }
+                    String tag = selectList.get(0);
+                    //Select from database
+                    ArrayList<Object[]> result = database.selectFromTableWhere("Tags", "tagID", "tagValue='" + tag + "'");
+                    //Get tag ID
+                    if (!result.isEmpty())
+                    {
+                        int tagID = (Integer)result.get(0)[0];
+                        ArrayList<Object[]> messageResults = database.selectFromTableWhere("MessagesToTags", "messageID", "tagID=" + Integer.toString(tagID));
+                        selectedIDs = new ArrayList<Integer>(messageResults.size());
+                        for (Object[] messageResult : messageResults)
+                        {
+                            int messageID = (Integer) messageResult[0];
+                            selectedIDs.add(messageID);
+                            System.out.println("Adding message: " + messageID);
+                        }
+                        
+                        stack.push(new QueryNode(QueryNodeType.NODE_MESSAGE_LIST, selectedIDs));
+                    }
+                }
+                stack.push(new QueryNode(QueryNodeType.NODE_MESSAGE_LIST, new ArrayList<Integer>()));
+            }
+            //No operator found, throw exception
+            else
+            {
+                throw new QueryParseException("Syntax error");
+            }
+        }
+        //////////////////
         //OR Operator
         /////////////////
-        if (operator.equalsIgnoreCase(OPERATOR_OR))
+        else if (operator.equalsIgnoreCase(OPERATOR_OR))
         {
+            operatorPrevFound = true;
             ArrayList<Integer> messageIDs = new ArrayList<Integer>();
             //Select values from database
             for (String tag : selectList)
@@ -230,10 +292,104 @@ public class QueryParser
         //////////////
         //AND operator
         /////////////
-        if (operator.equalsIgnoreCase(OPERATOR_AND))
+        else if (operator.equalsIgnoreCase(OPERATOR_AND))
         {
-            
-        }
+            operatorPrevFound = true;
+            //Get tag ids
+            ArrayList<Integer> tagIDs = new ArrayList<Integer>(selectList.size());
+            for (String tag : selectList)
+            {
+                ArrayList<Object[]> result = database.selectFromTableWhere("Tags", "tagID", "tagValue='" + tag + "'");
+                if (!result.isEmpty())
+                {
+                    int tagID = (Integer) result.get(0)[0];
+                    tagIDs.add(tagID);
+                }
+                else
+                {
+                    //Just add empty list and return
+                    stack.push(new QueryNode(QueryNodeType.NODE_MESSAGE_LIST, selectedIDs));
+                    return;
+                }
+            }
+            //Easier case
+            if (selectedIDs == null)
+            {
+                selectedIDs = new ArrayList<Integer>();
+                if (!tagIDs.isEmpty())
+                {
+                    //Get id of message which contains at least one tag
+                    ArrayList<Object[]> result;
+                    String tagString = Integer.toString(tagIDs.get(0));
+                    result = database.selectFromTableWhere("MessagesToTags", "messageID", "tagID=" + tagString);
+                    
+                    
+                    if (result.isEmpty())
+                    {
+                        //Just add empty list and return
+                        stack.push(new QueryNode(QueryNodeType.NODE_MESSAGE_LIST, selectedIDs));
+                        return;
+                    }
+                    
+                    //Build up WHERE clause of SQL query
+                    for (Object[] line : result)
+                    {
+                        int messageID = (Integer) line[0];
+                        String messageString = Integer.toString(messageID);
+
+                        String whereSQL = "messageID=" + messageString + " AND (tagID=" + Integer.toString(tagIDs.get(0));
+                        for (int i = 1; i < tagIDs.size(); i++)
+                        {
+                            whereSQL += " OR tagID=" + Integer.toString(tagIDs.get(i));
+                        }
+                        
+                        whereSQL += ")";
+
+                        //System.out.println("Where SQL: " + whereSQL);
+                        result = database.selectFromTableWhere("MessagesToTags", "messageID", whereSQL);
+                        //if messagesToTags found is equal to the number of tags,
+                        //we have found a message
+                        if (result.size() == tagIDs.size())
+                        {
+                            selectedIDs.add(messageID);
+                            //System.out.println("Found message: " + messageID);
+                        }
+                    }
+                }
+                
+                //Push onto stack, even if empty
+                stack.push(new QueryNode(QueryNodeType.NODE_MESSAGE_LIST, selectedIDs));
+            } //if selectedIDs == null
+            else
+            {
+                ArrayList<Integer> newData = new ArrayList<Integer>();
+                //For each message in the list
+                for (int i = 0; i < selectedIDs.size(); i++)
+                {
+                    int messageID = selectedIDs.get(i);
+                    String messageString = Integer.toString(messageID);
+                    
+                    String whereSQL = "messageID=" + messageString + " AND (tagID=" + Integer.toString(tagIDs.get(0));
+                    for (int j = 1; j < tagIDs.size(); j++)
+                    {
+                        whereSQL += " OR tagID=" + Integer.toString(tagIDs.get(j));
+                    }
+                    whereSQL += ")";
+                    
+                    //System.out.println("Where SQL: " + whereSQL);
+                    ArrayList<Object[]> result = database.selectFromTableWhere("MessagesToTags", "messageID", whereSQL);
+                    //System.out.println("Message id: " + messageID + " result size: " + result.size() + " tags size: " + tagIDs.size());
+                    //if messagesToTags found is equal to the number of tags,
+                    //we have found a message
+                    if (result.size() == tagIDs.size())
+                    {
+                        newData.add(messageID);
+                        //System.out.println("Found message: " + messageID);
+                    }
+                }
+                stack.push(new QueryNode(QueryNodeType.NODE_MESSAGE_LIST, newData));
+            }
+        } //operator AND
     }
     
     private void printStack()
@@ -267,9 +423,10 @@ public class QueryParser
     
     public static void main(String[] args)
     {
-        QueryParser parser = new QueryParser("(Test AND (Naomi OR Adam))", UserDatabase.getInstance());
+        QueryParser parser = new QueryParser("Test OR (Computer AND Science)", UserDatabase.getInstance());
         try {
-            parser.parseExpression();
+            ArrayList<Integer> result = parser.parseExpression();
+            System.out.println("Result:\n" + result);
         } catch (QueryParseException ex) {
             System.err.println(ex.getMessage());
             System.exit(-1);
