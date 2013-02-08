@@ -35,8 +35,15 @@ public class View
     //Any listeners wanting to be updated
     private ArrayList<PropertyListener> listeners;
     
+    //TODO, inherit new class
+    private String query = null;
     
-    
+    public View(String viewName, Account account, String query)
+    {
+        this(viewName, account);
+        this.query = query;
+    }
+       
     /**
      * Creates an empty view with no key words, relationships or events
      * @param viewName The name the view should be given

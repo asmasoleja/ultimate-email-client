@@ -18,6 +18,7 @@ import javax.mail.MessagingException;
  */
 public class MessageManager 
 {
+    private static final int MESSAGE_LINE_LENGTH = 8;
     //The account this is for
     private Account account;
     //The database to use
@@ -83,5 +84,20 @@ public class MessageManager
         
         fm.
     }*/
+    
+    public Object[] getMessageTableData(ArrayList<Integer> ids) throws SQLException
+    {
+        Object[][] messageList = new Object[ids.size()][MESSAGE_LINE_LENGTH];
+        for (int i = 0; i < ids.size(); i++)
+        {
+            int id = ids.get(i);
+            ArrayList<Object[]> result = database.selectFromTableWhere("Messages", "*", "messageID=" + id);
+            //Get the message from the server
+            Object[] line = result.get(id);
+            messageList[i] = line; 
+        }
+        
+        return messageList;
+    }
     
 }
