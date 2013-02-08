@@ -39,7 +39,7 @@ public class QueryParser
     //cannot be on its own
     private boolean operatorPrevFound;
     
-    private QueryParser(String query, Database database)
+    public QueryParser(String query, Database database)
     {
         this.query = query;
         this.database = database;
@@ -138,15 +138,25 @@ public class QueryParser
                 
                 System.out.println("Found: " + closeBracketCount + " close brackets!");
                 
-                if (openBracketCount != closeBracketCount)
-                {
-                    throw new QueryParseException("Found mismatching brackets!");
-                }
+
             }
+            
         } //for each token
         
-        //Only remaining item on the stack should be the evaulated message id list
-        return (ArrayList<Integer>) stack.pop().getData();  
+        if (openBracketCount != closeBracketCount)
+        {
+            throw new QueryParseException("Found mismatching brackets!");
+        }
+        
+        if (stack.peek().getData() instanceof ArrayList)
+        {
+            return (ArrayList<Integer>) stack.pop().getData();
+        }
+        else
+        {
+            throw new QueryParseException("Error, last remaining item on the stack was not a list!");
+        }
+        
     }
     
     /*

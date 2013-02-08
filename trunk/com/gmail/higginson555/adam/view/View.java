@@ -2,7 +2,11 @@ package com.gmail.higginson555.adam.view;
 
 import com.gmail.higginson555.adam.Account;
 import com.gmail.higginson555.adam.Database;
+import com.gmail.higginson555.adam.MessageManager;
+import com.gmail.higginson555.adam.UserDatabase;
 import com.gmail.higginson555.adam.gui.PropertyListener;
+import com.gmail.higginson555.adam.queryParser.QueryParseException;
+import com.gmail.higginson555.adam.queryParser.QueryParser;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -79,17 +83,28 @@ public class View
      * @throws SQLException If anything goes wrong in writing to a database
      */
     public boolean writeToDatabase(Database database) throws SQLException
-    {
-        String[] fieldNames = {"viewName", "accountUsername"};
-        Object[] fieldValues = {viewName, account.getUsername()};
-        
+    {    
+       
         //Return false if row already exists!
         if (!database.selectFromTableWhere("Views", "viewID", "viewName = '" + viewName + "' AND accountUsername = '" + account.getUsername() + "'").isEmpty())
         {
             return false;
         }
       
-        database.insertRecord("Views", fieldNames, fieldValues);
+        if (query == null)
+
+        {
+            String[] fieldNames = {"viewName", "accountUsername"};
+            Object[] fieldValues = {viewName, account.getUsername()};
+            database.insertRecord("Views", fieldNames, fieldValues);
+        }
+        else
+        {
+            String[] fieldNames = {"viewName", "accountUsername", "query"};
+            Object[] fieldValues = {viewName, account.getUsername(), query};
+            database.insertRecord("Views", fieldNames, fieldValues);
+        }
+
         //Get ID of inserted record
         ArrayList<Object[]> result = database.selectFromTableWhere("Views", "ViewID", 
                 "viewName = '" + viewName + "' AND accountUsername = '" + account.getUsername() + "'");
@@ -183,11 +198,19 @@ public class View
     public static View getView(Database database, 
                                String viewName, Account account) throws SQLException
     {
-        ArrayList<Object[]> result = database.selectFromTableWhere("Views", "viewID", "viewName = '" 
+        ArrayList<Object[]> result = database.selectFromTableWhere("Views", "viewID, query", "viewName = '" 
                 + viewName + "' AND accountUsername='" + account.getUsername() + "'");
         int id = (Integer) result.get(0)[0];
-        
-        View view = new View(viewName, account);
+        View view;
+        if (result.get(0)[1] != null)
+        {
+            String foundQuery = (String) result.get(0)[1];
+            view = new View(viewName, account, foundQuery);
+        }
+        else
+        {
+            view = new View(viewName, account);
+        }
         view.id = id;
         
         return view;
@@ -197,7 +220,7 @@ public class View
             throws SQLException
     {  
         ArrayList<Object[]> result = database.selectFromTableWhere("Views", 
-                "viewID, viewName", 
+                "viewID, viewName, query", 
                 "accountUsername='" + account.getUsername() + "'");
         ArrayList<View> returnList = new ArrayList<View>(result.size());
         
@@ -207,6 +230,11 @@ public class View
             Object[] line = resultIter.next();
             int viewID = (Integer) line[0];
             String viewName = (String) line[1];
+            String viewQuery = null;
+            if (line[2] != null)
+            {
+                viewQuery = (String) line[2];
+            }
             
             //Select all key words mapped to this view
             result = database.selectFromTableWhere("ViewToViewTags", "viewTagID", "viewID = " + Integer.toString(viewID));
@@ -219,14 +247,40 @@ public class View
                 keyWords.add((String) result.get(0)[0]);
             }
             
-            View view = new View(viewName, account, keyWords);
+            View view;
+            if (viewQuery != null)
+            {
+                view = new View(viewName, account, viewQuery);
+            }
+            else
+            {
+                view = new View(viewName, account, keyWords);
+            }
             view.id = viewID;
             
             returnList.add(view);
         }
         
         return returnList;
-    }   
+    }
+    
+    public String getQuery()
+    {
+        return query;
+    }
+    
+    public Object[][] getQueryResults() throws QueryParseException, SQLException
+    {
+        if (query != null)
+        {
+            QueryParser parser = new QueryParser(query, UserDatabase.getInstance());
+            ArrayList<Integer> ids = parser.parseExpression();
+            MessageManager man = new MessageManager(account, UserDatabase.getInstance());
+            return man.getMessageTableData(ids);
+        }
+        
+        return null;
+    }
     
     @Override
     public String toString()
