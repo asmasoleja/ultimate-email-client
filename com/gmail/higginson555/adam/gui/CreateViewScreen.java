@@ -231,7 +231,18 @@ public class CreateViewScreen extends javax.swing.JFrame {
         Account selectedAccount = (Account) accountsComboBox.getSelectedItem();
         ArrayList<String> viewWords = new ArrayList<String>(keyWords.size());
         viewWords.addAll(keyWords);
-        View view = new View(title, selectedAccount, viewWords);
+        
+        String query = queryField.getText();
+        View view;
+        if (query != null && !query.isEmpty())
+        {
+            view = new View(title, selectedAccount, query);
+        }
+        else
+        {
+            view = new View(title, selectedAccount, viewWords);
+        }
+        
         view.addListener(listener);
         try 
         {

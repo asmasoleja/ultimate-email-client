@@ -3,13 +3,6 @@ package com.gmail.higginson555.adam;
 import com.gmail.higginson555.adam.gui.PropertyListener;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.Stack;
-import javax.mail.Address;
-import javax.mail.Folder;
-import javax.mail.Message;
 import javax.mail.MessagingException;
 
 /**
@@ -18,7 +11,7 @@ import javax.mail.MessagingException;
  */
 public class MessageManager 
 {
-    private static final int MESSAGE_LINE_LENGTH = 8;
+    private static final int MESSAGE_LINE_LENGTH = 9;
     //The account this is for
     private Account account;
     //The database to use
@@ -85,7 +78,7 @@ public class MessageManager
         fm.
     }*/
     
-    public Object[] getMessageTableData(ArrayList<Integer> ids) throws SQLException
+    public Object[][] getMessageTableData(ArrayList<Integer> ids) throws SQLException
     {
         Object[][] messageList = new Object[ids.size()][MESSAGE_LINE_LENGTH];
         for (int i = 0; i < ids.size(); i++)
@@ -93,7 +86,7 @@ public class MessageManager
             int id = ids.get(i);
             ArrayList<Object[]> result = database.selectFromTableWhere("Messages", "*", "messageID=" + id);
             //Get the message from the server
-            Object[] line = result.get(id);
+            Object[] line = result.get(0);
             messageList[i] = line; 
         }
         

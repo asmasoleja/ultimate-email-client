@@ -46,8 +46,9 @@ public class UserDatabaseManager
             //LoadingScreen ls = new LoadingScreen("Please wait, creating database...");
             //ls.setVisible(true);
             //Create the User database
-            //database.createDatabase("User");
-            database.selectDatabase("S10_higgina0");
+            database.createDatabase("User");
+            database.selectDatabase("User");
+            //database.selectDatabase("S10_higgina0");
             //ACCOUNT TABLE
             String accountTableSQL = 
                           "username varchar(255) NOT NULL,"
@@ -79,7 +80,7 @@ public class UserDatabaseManager
                                    + "dateReceived TIMESTAMP,"
                                    + "folderID int NOT NULL,"
                                    + "accountUsername varchar(255) NOT NULL,"
-                                   + "areTagsExtracted BOOLEAN DEFAULT 0"
+                                   + "areTagsExtracted BOOLEAN DEFAULT 0,"
                                    + "PRIMARY KEY(messageID),"
                                    + "FOREIGN KEY(folderID) REFERENCES folders(folderID),"
                                    + "FOREIGN KEY(accountUsername) REFERENCES accounts(username)";
@@ -118,6 +119,7 @@ public class UserDatabaseManager
             String viewTableSQL = "viewID int NOT NULL AUTO_INCREMENT,"
                                 + "viewName varchar(50),"
                                 + "accountUsername varchar(255),"
+                                + "query varchar(1000) DEFAULT NULL,"
                                 + "PRIMARY KEY(viewID),"
                                 + "FOREIGN KEY(accountUsername) REFERENCES accounts(username)";
             

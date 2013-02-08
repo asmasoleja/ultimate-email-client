@@ -5,6 +5,7 @@
 package com.gmail.higginson555.adam.gui;
 
 import com.gmail.higginson555.adam.AccountMessageDownloader;
+import com.gmail.higginson555.adam.queryParser.QueryParseException;
 import com.gmail.higginson555.adam.view.EmailFilterer;
 import com.gmail.higginson555.adam.view.View;
 import java.net.MalformedURLException;
@@ -31,6 +32,8 @@ public class ViewPanel extends javax.swing.JPanel {
      * Creates new form ViewPanel
      */
     public ViewPanel(View view) {
+        if (view == null)
+            System.out.println("View null!");
         this.view = view;
         this.setName(view.getViewName());
         initComponents();
@@ -112,25 +115,53 @@ public class ViewPanel extends javax.swing.JPanel {
 
     private void updateTableWithNewData()
     {
-        EmailFilterer filterer = EmailFilterer.getInstance(view.getAccount());
-        try
+        if (view.getQuery() != null && !view.getQuery().isEmpty())
         {
-            filterData = filterer.getTableData(view);
-            Object[][] newTableData = new Object[filterData.size()][4]; 
-            EmailTableModel model = (EmailTableModel) messageTable.getModel();
-            int row = 0;
-            for (Object[] line : filterData)
-            {
-                Object[] tableLine = {line[2], line[3], line[6], Boolean.TRUE};
-                newTableData[row] = tableLine;
-                row++;
+            try {
+                Object[][] tableData = view.getQueryResults();
+                Object[][] newTableData = new Object[tableData.length][4];
+                filterData = new ArrayList<Object[]>(tableData.length);
+                EmailTableModel model = (EmailTableModel) messageTable.getModel();
+                int row = 0;
+                for (Object[] line : tableData)
+                {
+                    filterData.add(line);
+                    Object[] tableLine = {line[2], line[3], line[6], Boolean.TRUE};
+                    newTableData[row] = tableLine;
+                    row++;
+                }
+
+                model.setData(newTableData);
+                
+            } catch (QueryParseException ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage(), "QueryException!", JOptionPane.ERROR_MESSAGE);
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage(), "SQLException!", JOptionPane.ERROR_MESSAGE);
             }
             
-            model.setData(newTableData);
-        } 
-        catch (SQLException ex)
+        }
+        else
         {
-            JOptionPane.showMessageDialog(this, ex.getMessage(), "SQLException", JOptionPane.ERROR_MESSAGE);
+            EmailFilterer filterer = EmailFilterer.getInstance(view.getAccount());
+            try
+            {
+                filterData = filterer.getTableData(view);
+                Object[][] newTableData = new Object[filterData.size()][4]; 
+                EmailTableModel model = (EmailTableModel) messageTable.getModel();
+                int row = 0;
+                for (Object[] line : filterData)
+                {
+                    Object[] tableLine = {line[2], line[3], line[6], Boolean.TRUE};
+                    newTableData[row] = tableLine;
+                    row++;
+                }
+
+                model.setData(newTableData);
+            } 
+            catch (SQLException ex)
+            {
+                JOptionPane.showMessageDialog(this, ex.getMessage(), "SQLException", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
     
@@ -146,10 +177,7 @@ public class ViewPanel extends javax.swing.JPanel {
             int folderID = (Integer) line[7];
             int messageUID = (Integer) line[1];
             int messageID = (Integer) line[0];
-            int extractTags = (Integer) line[9];
-            boolean shouldExtractTags = false;
-            if (extractTags == 1)
-                shouldExtractTags = true;
+            boolean shouldExtractTags = (Boolean) line[9];
             try 
             {
                 //Find message with this data
