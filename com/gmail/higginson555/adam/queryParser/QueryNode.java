@@ -7,7 +7,14 @@ package com.gmail.higginson555.adam.queryParser;
 public class QueryNode
 {
     
-    public static enum QueryNodeType { NODE_MESSAGE_LIST, NODE_OPERATOR, NODE_TAG, NODE_OPEN_BRACKET };
+    public static enum QueryNodeType
+    {
+        NODE_MESSAGE_LIST,
+        NODE_OPERATOR,
+        NODE_TAG,
+        NODE_OPEN_BRACKET,
+        NODE_EXTENSION
+    };
     
     private QueryNodeType type;
     private Object data;
