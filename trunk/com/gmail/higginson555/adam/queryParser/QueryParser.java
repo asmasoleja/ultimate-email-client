@@ -28,6 +28,14 @@ public class QueryParser
     private static final char CLOSE_BRACKET = ')';
     private static final String OPERATOR_OR = "OR";
     private static final String OPERATOR_AND = "AND";
+
+    //Extensions
+    private static final String DATE_AFTER = "DATE_AFTER";
+    private static final String DATE_BEFORE = "DATE_BEFORE";
+    private static final String DATE_IS = "DATE_IS";
+    
+    private static final String MESSAGE_FROM = "MESSAGE_FROM";
+    private static final String MESSAGE_TO = "MESSAGE_TO";
     
     //The string query
     private String query;
@@ -50,7 +58,13 @@ public class QueryParser
     public String getQuery() {
         return query;
     }
-    
+
+    /**
+     * Parses the expression held by this QueryParser object
+     * @return A list of integers, each representing the ID of a message in the db which matches this query
+     * @throws QueryParseException If query cannot be executed
+     * @throws SQLException If database error
+     */
     public ArrayList<Integer> parseExpression() throws QueryParseException, SQLException
     {
         operatorPrevFound = false;
