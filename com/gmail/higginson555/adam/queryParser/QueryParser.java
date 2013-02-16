@@ -120,7 +120,9 @@ public class QueryParser
 
 
                 //System.out.println("Current char: " + currentChar);
-                while (currentChar == CLOSE_BRACKET)
+                //While we find a last bracket or are on the last word of all tokens
+                System.out.println("is is: " + i + " length -1 is: " + (tokens.length - 1));
+                while (currentChar == CLOSE_BRACKET || i == tokens.length - 1)
                 {
                     closeBracketCount++;
                     if (closeBracketCount > openBracketCount) 
@@ -311,6 +313,7 @@ public class QueryParser
             
             //Now push to stack
             stack.push(new QueryNode(QueryNodeType.NODE_MESSAGE_LIST, selectedIDs));
+            printStack();
         }//OR operator
         
         //////////////

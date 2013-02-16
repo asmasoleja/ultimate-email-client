@@ -54,7 +54,7 @@ public class MessageAdderJob extends Thread
     public void run()
     {
         String[] fieldNames = {"messageUID", "subject", "messageFrom", 
-                               "messageTo", "dateSent", "dateReceived", "folderID", "accountUsername"};
+                               "messageTo", "dateSent", "dateReceived", "folderID", "accountUsername", "messageNo"};
         
         try
         {
@@ -69,8 +69,8 @@ public class MessageAdderJob extends Thread
                 Object[] currentLine = dataIter.next();
                 //Get the id of the inserted message
                 ArrayList<Object[]> result = database.selectFromTableWhere("Messages", 
-                        "messageID", "messageUID=" + (String)currentLine[0] 
-                        + " AND folderID=" + (Integer.toString( (Integer)currentLine[6]) ));
+                        "messageID", "messageUID='" + (String)currentLine[0] 
+                        + "' AND folderID=" + (Integer.toString( (Integer)currentLine[6]) ));
                 int id = (Integer) result.get(0)[0];
                 //System.out.println("Found id: " + id);
                 //Parse the key words from the subject

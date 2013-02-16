@@ -9,6 +9,7 @@ import chrriis.dj.nativeswing.swtimpl.NativeInterface;
 import com.gmail.higginson555.adam.Account;
 import com.gmail.higginson555.adam.AccountManager;
 import com.gmail.higginson555.adam.AccountMessageDownloader;
+import com.gmail.higginson555.adam.ClientThreadPool;
 import com.gmail.higginson555.adam.UserDatabase;
 import com.gmail.higginson555.adam.view.View;
 import java.net.MalformedURLException;
@@ -42,6 +43,14 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
         initComponents();
         try {
             accounts = AccountManager.getSingleton().getAllAccounts();
+            if (!accounts.isEmpty())
+            {
+                for (Account account : accounts)
+                {
+                    AccountMessageDownloader amd = AccountMessageDownloader.getInstance(account);
+                    ClientThreadPool.executorService.submit(amd);
+                }
+            }
         } catch (SQLException ex) {
             Logger.getLogger(AllViewsScreen.class.getName()).log(Level.SEVERE, null, ex);
             System.exit(-1);
@@ -77,7 +86,7 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
 
         jMenu3.setText("jMenu3");
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Ultimate E-mail Client");
 
         viewsLabel.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
@@ -243,6 +252,28 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
         tabbedPane.remove(tabbedPane.getSelectedIndex());
     }//GEN-LAST:event_closeTabButtonActionPerformed
 
+    @Override
+    public void dispose()
+    {
+        ClientThreadPool.shouldStop = true;
+        ClientThreadPool.executorService.shutdown();
+        try {
+            while (!ClientThreadPool.executorService.isTerminated())
+            {
+                    Thread.sleep(200);
+            }
+            UserDatabase.getInstance().close();
+        } catch (SQLException ex) {
+            Logger.getLogger(AllViewsScreen.class.getName()).log(Level.SEVERE, null, ex);
+            System.exit(-1);
+        } catch (Exception ex) {
+            Logger.getLogger(AllViewsScreen.class.getName()).log(Level.SEVERE, null, ex);
+            System.exit(-1);
+        }
+        super.dispose();
+        System.exit(0);
+    }
+    
     /**
      * @param args the command line arguments
      */
@@ -329,27 +360,15 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
                 DefaultMutableTreeNode child = new DefaultMutableTreeNode(account);
                 root.add(child);
                 
-                try
-                {
-                    AccountMessageDownloader amd = AccountMessageDownloader.getInstance(account);
-                    amd.addListener(this);
-                    amd.getMessages();
+                AccountMessageDownloader amd = null;
+                try {
+                    amd = AccountMessageDownloader.getInstance(account);
+                } catch (SQLException ex) {
+                    Logger.getLogger(AllViewsScreen.class.getName()).log(Level.SEVERE, null, ex);
+                    System.exit(-1);
                 }
-                catch (MessagingException ex)
-                {
-                    JOptionPane.showMessageDialog(this, "Error, cannot connect to E-mail Server", "MessagingException", JOptionPane.ERROR_MESSAGE);
-                    Logger.getLogger("EmailClient").log(Level.SEVERE, "Could not connect to e-mail server", ex);
-                }
-                catch (SQLException ex)
-                {
-                    JOptionPane.showMessageDialog(this, "Error, cannot connect to User Server", "SQLException", JOptionPane.ERROR_MESSAGE);
-                    Logger.getLogger("EmailClient").log(Level.SEVERE, "Could not connect to SQL server", ex);
-                }
-                catch (MalformedURLException ex)
-                {
-                    JOptionPane.showMessageDialog(this, "Error, cannot parse folder URL", "MalformedURLException", JOptionPane.ERROR_MESSAGE);
-                    Logger.getLogger("EmailClient").log(Level.SEVERE, "Could not parse URL", ex);
-                }
+                amd.addListener(this);
+                ClientThreadPool.executorService.submit(amd);
             }
         }
         else if (name.equalsIgnoreCase("MessageManagerThreadStart"))

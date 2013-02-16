@@ -116,8 +116,6 @@ public class TagParser
         String[] messagesToTagsFieldNames = {"messageID", "tagID"};
         database.insertRecords("MessagesToTags", messagesToTagsFieldNames, newData);
 
-        //Set tags to be extracted
-        database.updateRecord("Messages", "areTagsExtracted=0", "messageID=" + Integer.toString(messageID));
     }
 
     private static boolean isNumeric(String str)
