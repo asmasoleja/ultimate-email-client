@@ -35,20 +35,20 @@ public class UserDatabaseManager
     {
         Database database = new Database(databaseURL, username, password);
         
-        /*try
-        {
-            database.selectDatabase("User");
-        }*/
-        //catch (SQLException ex)
-        //{
         try
         {
+            database.selectDatabase("User");
+        }
+        catch (SQLException ex)
+        {
+        //try
+        //{
             //LoadingScreen ls = new LoadingScreen("Please wait, creating database...");
             //ls.setVisible(true);
             //Create the User database
-            //database.createDatabase("User");
-            //database.selectDatabase("User");
-            database.selectDatabase("S10_higgina0");
+            database.createDatabase("User");
+            database.selectDatabase("User");
+            //database.selectDatabase("S10_higgina0");
             //ACCOUNT TABLE
             String accountTableSQL = 
                           "username varchar(255) NOT NULL,"
@@ -72,7 +72,7 @@ public class UserDatabaseManager
             database.createTable("Folders", folderTableSQL);
             //MESSAGE TABLE
             String messageTableSQL = "messageID int NOT NULL AUTO_INCREMENT,"
-                                   + "messageUID int NOT NULL,"
+                                   + "messageUID varchar(255) NOT NULL,"
                                    + "subject varchar(255),"
                                    + "messageFrom varchar(255),"
                                    + "messageTo varchar(255),"
@@ -81,6 +81,7 @@ public class UserDatabaseManager
                                    + "folderID int NOT NULL,"
                                    + "accountUsername varchar(255) NOT NULL,"
                                    + "areTagsExtracted BOOLEAN DEFAULT 0,"
+                                   + "messageNo int,"
                                    + "PRIMARY KEY(messageID),"
                                    + "FOREIGN KEY(folderID) REFERENCES folders(folderID),"
                                    + "FOREIGN KEY(accountUsername) REFERENCES accounts(username)";
@@ -130,23 +131,33 @@ public class UserDatabaseManager
                                + "PRIMARY KEY(viewTagID)";
             database.createTable("ViewTags", viewTagsSQL);
             
-            String viewToTagsSQL = "viewID int NOT NULL,"
+            String viewToTagsSQL = "viewID int NOT NULL AUTO_INCREMENT,"
                                + "viewTagID int NOT NULL,"
                                + "PRIMARY KEY(viewTagID, viewID),"
                                + "FOREIGN KEY(viewTagID) REFERENCES viewtags(viewTagID),"
                                + "FOREIGN KEY(viewID) REFERENCES views(viewID)";
             database.createTable("ViewToViewTags", viewToTagsSQL);
             
+            String accountMessageDownloaderSQL = "accountDownloaderID int UNIQUE NOT NULL AUTO_INCREMENT,"
+                                                + "accountUsername varchar(255) NOT NULL,"
+                                                + "lastFolder int DEFAULT NULL,"
+                                                + "lastMessageID int DEFAULT NULL,"
+                                                + "PRIMARY KEY(accountDownloaderID),"
+                                                + "FOREIGN KEY(accountUsername) REFERENCES accounts(username),"
+                                                + "FOREIGN KEY(lastFolder) REFERENCES folders(folderID),"
+                                                + "FOREIGN KEY(lastMessageID) REFERENCES messages(messageID)";
+            database.createTable("AccountMessageDownloaders", accountMessageDownloaderSQL);
+            
             //database = createNewDatabase(database);
             
             //ls.dispose();
-        }
         //}
-        catch (SQLException ex)
+        }
+        /*catch (SQLException ex)
         {
             //Already created tables and stuff, just skip
             System.out.println("Tables already created, skipping...");
-        }
+        }*/
         
         return database;
     }
