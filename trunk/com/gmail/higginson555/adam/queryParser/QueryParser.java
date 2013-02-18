@@ -478,10 +478,9 @@ public class QueryParser
                     }
                     String extensionOp = split[0];
                     String extensionTag = split[1];
-                    ArrayList<Integer> finalData = new ArrayList<Integer>(selectedIDs.size());
                     for (int i = 0; i < selectedIDs.size(); i++)
                     {
-                        int id = selectedIDs.get(0);
+                        Integer id = selectedIDs.get(0);
                         String whereSQL = ""; 
                         if (extensionOp.equalsIgnoreCase(MESSAGE_FROM))
                         {
@@ -494,13 +493,12 @@ public class QueryParser
                         
                         ArrayList<Object[]> result = database.selectFromTableWhere("Messages", "messageID", whereSQL);
                         
-                        for (Object[] line : result)
+                        if (result.isEmpty())
                         {
-                            finalData.add((Integer) line[0]);
+                            selectedIDs.remove(id);
                         }
                     }
                     
-                    selectedIDs = finalData;
                 }
                 
                 
@@ -545,10 +543,9 @@ public class QueryParser
                     }
                     String extensionOp = split[0];
                     String extensionTag = split[1];
-                    ArrayList<Integer> finalData = new ArrayList<Integer>(newData.size());
                     for (int i = 0; i < newData.size(); i++)
                     {
-                        int id = newData.get(0);
+                        Integer id = newData.get(0);
                         String whereSQL = ""; 
                         if (extensionOp.equalsIgnoreCase(MESSAGE_FROM))
                         {
@@ -561,13 +558,12 @@ public class QueryParser
                         
                         ArrayList<Object[]> result = database.selectFromTableWhere("Messages", "messageID", whereSQL);
                         
-                        for (Object[] line : result)
+                        if (result.isEmpty())
                         {
-                            finalData.add((Integer) line[0]);
+                            newData.remove(id);
                         }
                     }
                     
-                    newData = finalData;
                 }
                 
                 stack.push(new QueryNode(QueryNodeType.NODE_MESSAGE_LIST, newData));
