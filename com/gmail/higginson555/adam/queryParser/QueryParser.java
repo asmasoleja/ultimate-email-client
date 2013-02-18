@@ -73,6 +73,7 @@ public class QueryParser
         
         int openBracketCount = 0;
         int closeBracketCount = 0;
+        String foundExtension = null;
         for (int i = 0; i < tokens.length; i++)
         {
             String token = tokens[i].trim();
@@ -101,9 +102,27 @@ public class QueryParser
                 stack.push(new QueryNode(QueryNodeType.NODE_OPERATOR, withoutBrackets));
                 wasOperator = true;
             }
+            else if (isExtensionWord(withoutBrackets))
+            {
+                //stack.push(new QueryNode(QueryNodeType.NODE_EXTENSION, withoutBrackets));
+                foundExtension = withoutBrackets;
+                wasOperator = false;
+            }
             else
             {
-                stack.push(new QueryNode(QueryNodeType.NODE_TAG, withoutBrackets));
+                //Tag is the second part of the found extension, 
+                //e.g MESSAGE_FROM adam.higginson@gmail.com
+                //the tag would be the e-mail address
+                if (foundExtension != null)
+                {
+                    foundExtension += (" " + withoutBrackets);
+                    stack.push(new QueryNode(QueryNodeType.NODE_EXTENSION, foundExtension));
+                    foundExtension = null;
+                }
+                else
+                {
+                    stack.push(new QueryNode(QueryNodeType.NODE_TAG, withoutBrackets));
+                }
                 wasOperator = false;
             }
             
@@ -191,6 +210,8 @@ public class QueryParser
         //The list of tags to select from the database
         ArrayList<String> selectList = new ArrayList<String>();
         String operator = null;
+        //Extension words, so far MESSAGE_FROM and MESSAGE_TO
+        String extension = null;
         
         //While the stack still has values, and the currentStackValue is not an
         //open bracket
@@ -211,6 +232,10 @@ public class QueryParser
                     throw new QueryParseException("Within brackets, operators must be the same!");
                 }
                 operator = foundOperator;
+            }
+            else if (currentStackValue.getType() == QueryNodeType.NODE_EXTENSION)
+            {
+                extension = (String)currentStackValue.getData();
             }
             else if (currentStackValue.getType() == QueryNodeType.NODE_MESSAGE_LIST)
             {
@@ -243,8 +268,25 @@ public class QueryParser
         {
             if (!operatorPrevFound)
             {
+                if (extension != null)
+                {
+                    String[] split = extension.split("\\s+");
+                    if (split.length != 2)
+                    {
+                        throw new QueryParseException("Should have EXTENSION_OP Tag!");
+                    }
+                    String extensionOp = split[0];
+                    String extensionTag = split[1];
+                    
+                    //Select from database all messages from such a person
+                    if (extensionOp.equalsIgnoreCase(MESSAGE_FROM))
+                    {
+                        ArrayList<Object[]> result = database.selectFromTableWhere("Messages", "messageID", "messageFrom LIKE '%" + extensionTag + "%'");
+                        stack.push(new QueryNode(QueryNodeType.NODE_MESSAGE_LIST, new ArrayList<Integer>()));
+                    }
+                }
                 //Get id of tag
-                if (!selectList.isEmpty())
+                else if (!selectList.isEmpty())
                 {
                     if (selectList.size() > 1) {
                         throw new QueryParseException("Must use an operator between tags!");
@@ -434,6 +476,12 @@ public class QueryParser
         {
             stack.add(poppedValues.get(i));
         }
+    }
+    
+    private boolean isExtensionWord(String word)
+    {
+        return word.equalsIgnoreCase(MESSAGE_FROM) 
+                || word.equalsIgnoreCase(MESSAGE_TO);
     }
     
     private boolean isOperatorWord(String word)
