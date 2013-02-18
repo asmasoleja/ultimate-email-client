@@ -6,8 +6,6 @@ import com.gmail.higginson555.adam.queryParser.QueryNode.QueryNodeType;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Stack;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Parses a query by contacting a database and retrieving the 
@@ -400,7 +398,7 @@ public class QueryParser
             
             //Now push to stack
             stack.push(new QueryNode(QueryNodeType.NODE_MESSAGE_LIST, selectedIDs));
-            printStack();
+            //printStack();
         }//OR operator
         
         //////////////
@@ -471,6 +469,42 @@ public class QueryParser
                     }
                 }
                 
+                if (extension != null)
+                {
+                    String[] split = extension.split("\\s+");
+                    if (split.length != 2)
+                    {
+                        throw new QueryParseException("Should have EXTENSION_OP Tag!");
+                    }
+                    String extensionOp = split[0];
+                    String extensionTag = split[1];
+                    ArrayList<Integer> finalData = new ArrayList<Integer>(selectedIDs.size());
+                    for (int i = 0; i < selectedIDs.size(); i++)
+                    {
+                        int id = selectedIDs.get(0);
+                        String whereSQL = ""; 
+                        if (extensionOp.equalsIgnoreCase(MESSAGE_FROM))
+                        {
+                            whereSQL += "messageID=" + Integer.toString(id) + " AND messageFrom LIKE '%" + extensionTag + "%'";
+                        }
+                        else if (extensionOp.equalsIgnoreCase(MESSAGE_TO))
+                        {
+                            whereSQL += "messageID=" + Integer.toString(id) + " AND messageTo LIKE '%" + extensionTag + "%'";
+                        }
+                        
+                        ArrayList<Object[]> result = database.selectFromTableWhere("Messages", "messageID", whereSQL);
+                        
+                        for (Object[] line : result)
+                        {
+                            finalData.add((Integer) line[0]);
+                        }
+                    }
+                    
+                    selectedIDs = finalData;
+                }
+                
+                
+                
                 //Push onto stack, even if empty
                 stack.push(new QueryNode(QueryNodeType.NODE_MESSAGE_LIST, selectedIDs));
             } //if selectedIDs == null
@@ -501,6 +535,41 @@ public class QueryParser
                         //System.out.println("Found message: " + messageID);
                     }
                 }
+                
+                if (extension != null)
+                {
+                    String[] split = extension.split("\\s+");
+                    if (split.length != 2)
+                    {
+                        throw new QueryParseException("Should have EXTENSION_OP Tag!");
+                    }
+                    String extensionOp = split[0];
+                    String extensionTag = split[1];
+                    ArrayList<Integer> finalData = new ArrayList<Integer>(newData.size());
+                    for (int i = 0; i < newData.size(); i++)
+                    {
+                        int id = newData.get(0);
+                        String whereSQL = ""; 
+                        if (extensionOp.equalsIgnoreCase(MESSAGE_FROM))
+                        {
+                            whereSQL += "messageID=" + Integer.toString(id) + " AND messageFrom LIKE '%" + extensionTag + "%'";
+                        }
+                        else if (extensionOp.equalsIgnoreCase(MESSAGE_TO))
+                        {
+                            whereSQL += "messageID=" + Integer.toString(id) + " AND messageTo LIKE '%" + extensionTag + "%'";
+                        }
+                        
+                        ArrayList<Object[]> result = database.selectFromTableWhere("Messages", "messageID", whereSQL);
+                        
+                        for (Object[] line : result)
+                        {
+                            finalData.add((Integer) line[0]);
+                        }
+                    }
+                    
+                    newData = finalData;
+                }
+                
                 stack.push(new QueryNode(QueryNodeType.NODE_MESSAGE_LIST, newData));
             }
         } //operator AND
@@ -526,7 +595,10 @@ public class QueryParser
     private boolean isExtensionWord(String word)
     {
         return word.equalsIgnoreCase(MESSAGE_FROM) 
-                || word.equalsIgnoreCase(MESSAGE_TO);
+                || word.equalsIgnoreCase(MESSAGE_TO)
+                || word.equalsIgnoreCase(DATE_AFTER)
+                || word.equalsIgnoreCase(DATE_BEFORE)
+                || word.equalsIgnoreCase(DATE_IS);
     }
     
     private boolean isOperatorWord(String word)
