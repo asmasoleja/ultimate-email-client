@@ -185,6 +185,8 @@ public class QueryParser
         
         if (stack.peek().getData() instanceof ArrayList)
         {
+            ArrayList<Integer> top = (ArrayList<Integer>) stack.peek().getData();
+            System.out.println("Returning list of size: " + top.size());
             return (ArrayList<Integer>) stack.pop().getData();
         }
         else
@@ -268,6 +270,7 @@ public class QueryParser
         {
             if (!operatorPrevFound)
             {
+                //E.G MESSAGE_FROM MESSAGE_TO
                 if (extension != null)
                 {
                     String[] split = extension.split("\\s+");
@@ -282,7 +285,25 @@ public class QueryParser
                     if (extensionOp.equalsIgnoreCase(MESSAGE_FROM))
                     {
                         ArrayList<Object[]> result = database.selectFromTableWhere("Messages", "messageID", "messageFrom LIKE '%" + extensionTag + "%'");
-                        stack.push(new QueryNode(QueryNodeType.NODE_MESSAGE_LIST, new ArrayList<Integer>()));
+                        ArrayList<Integer> messageIDs = new ArrayList<Integer>(result.size());
+                        for (Object[] line : result)
+                        {
+                            int id = (Integer) line[0];
+                            messageIDs.add(id);
+                        }
+                        System.out.println("Message IDs size: " + messageIDs.size());
+                        stack.push(new QueryNode(QueryNodeType.NODE_MESSAGE_LIST, messageIDs));
+                    }
+                    else if (extensionOp.equalsIgnoreCase(MESSAGE_TO))
+                    {
+                        ArrayList<Object[]> result = database.selectFromTableWhere("Messages", "messageID", "messageTo LIKE '%" + extensionTag + "%'");
+                        ArrayList<Integer> messageIDs = new ArrayList<Integer>(result.size());
+                        for (Object[] line : result)
+                        {
+                            int id = (Integer) line[0];
+                            messageIDs.add(id);
+                        }
+                        stack.push(new QueryNode(QueryNodeType.NODE_MESSAGE_LIST, messageIDs));
                     }
                 }
                 //Get id of tag
@@ -310,7 +331,7 @@ public class QueryParser
                         stack.push(new QueryNode(QueryNodeType.NODE_MESSAGE_LIST, selectedIDs));
                     }
                 }
-                stack.push(new QueryNode(QueryNodeType.NODE_MESSAGE_LIST, new ArrayList<Integer>()));
+                //stack.push(new QueryNode(QueryNodeType.NODE_MESSAGE_LIST, new ArrayList<Integer>()));
             }
             //No operator found, throw exception
             else
@@ -351,6 +372,30 @@ public class QueryParser
             else
             {
                 selectedIDs.addAll(messageIDs);
+            }
+            
+            if (extension != null)
+            {
+                String[] split = extension.split("\\s+");
+                if (split.length != 2)
+                {
+                    throw new QueryParseException("Should have EXTENSION_OP Tag!");
+                }
+                String extensionOp = split[0];
+                String extensionTag = split[1];
+                
+                if (extensionOp.equalsIgnoreCase(MESSAGE_FROM))
+                {
+                    ArrayList<Object[]> result 
+                        = database.selectFromTableWhere("Messages", 
+                        "messageID", "messageFrom LIKE '%" + extensionTag + "%'");
+                    
+                    for (Object[] line : result)
+                    {
+                        int id = (Integer) line[0];
+                        selectedIDs.add(id);
+                    }
+                }
             }
             
             //Now push to stack
