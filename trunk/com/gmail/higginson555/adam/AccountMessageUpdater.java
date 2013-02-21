@@ -116,7 +116,6 @@ public class AccountMessageUpdater implements Runnable
         for (int i = 0; i < messages.length; i++)
         {
             Message message = messages[i];
-            message.getFlags().contains(Flag.);
             //Get UID
             String[] UIDheader = message.getHeader("Message-Id");
             String UID = UIDheader[0];
