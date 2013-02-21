@@ -325,6 +325,15 @@ public class Database
         update.execute(sql);
         update.close();
     }
+
+    public void deleteRecord(String tableName, String whereSQL)
+            throws SQLException
+    {
+        Statement update = connection.createStatement();
+        String sql = "DELETE FROM " + tableName + " WHERE " + whereSQL;
+        update.execute(sql);
+        update.close();
+    }
         
     private ResultSet execute(String sqlCommand) throws SQLException
     {
