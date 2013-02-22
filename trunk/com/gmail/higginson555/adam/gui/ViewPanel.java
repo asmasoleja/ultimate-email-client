@@ -175,13 +175,14 @@ public class ViewPanel extends javax.swing.JPanel {
             Object[] line = filterData.get(index);
             //Get the message UID and folder ID
             int folderID = (Integer) line[7];
-            int messageUID = (Integer) line[1];
+            String messageUID = (String) line[1];
             int messageID = (Integer) line[0];
+            int seqNo = (Integer) line[10];
             boolean shouldExtractTags = (Boolean) line[9];
             try 
             {
                 //Find message with this data
-                Message foundMessage = AccountMessageDownloader.getInstance(view.getAccount()).getMessageWithID(folderID, messageUID);
+                Message foundMessage = AccountMessageDownloader.getInstance(view.getAccount()).getMessageWithID(folderID, seqNo);
                 System.out.println("Found message titled: " + foundMessage.getSubject());
                 ViewMailScreen vms = new ViewMailScreen(foundMessage, view.getAccount(), messageID, shouldExtractTags);
                 vms.setVisible(true);

@@ -189,7 +189,8 @@ public class QueryParser
         }
         else
         {
-            throw new QueryParseException("Error, last remaining item on the stack was not a list!");
+            return new ArrayList<Integer>();
+            //throw new QueryParseException("Error, last remaining item on the stack was not a list!");
         }
         
     }
