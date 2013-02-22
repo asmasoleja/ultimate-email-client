@@ -96,6 +96,11 @@ public class AccountManager
         return accountsList;       
     }
     
+    public void removeAccount(Account account) throws SQLException
+    {
+        database.deleteRecord("Accounts", "accountID=" + Integer.toString(account.getAccountID()));
+    }
+    
     /**
      * DEPRECEATED! Use getAccount instead!
      * Gets the account ID of a given account name

@@ -212,7 +212,7 @@ public class Database
         }
         query += "?)";
         
-        //System.out.println("Query is: " + query);
+        System.out.println("Query is: " + query);
         
         Iterator<Object[]> lineIter = fieldValues.iterator();
         
@@ -230,6 +230,9 @@ public class Database
                 }
                 else if (line[i] instanceof Double) {
                     ps.setDouble(i + 1, (Double)line[i]);
+                }
+                else if (line[i] instanceof Long) {
+                    ps.setLong(i + 1, (Long)line[i]);
                 }
                 else if (line[i] instanceof java.util.Date)
                 {
@@ -287,6 +290,9 @@ public class Database
             }
             else if (fieldValues[i] instanceof Double) {
                 ps.setDouble(i + 1, (Double)fieldValues[i]);
+            }
+            else if (fieldValues[i] instanceof Long) {
+                    ps.setLong(i + 1, (Long)fieldValues[i]);
             }
             else if (fieldValues[i] instanceof java.util.Date)
             {

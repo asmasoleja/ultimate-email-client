@@ -1,7 +1,13 @@
 package com.gmail.higginson555.adam;
 
+import com.sun.mail.imap.IMAPFolder;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Iterator;
+import javax.mail.Address;
 import javax.mail.FetchProfile;
 import javax.mail.Flags.Flag;
 import javax.mail.Folder;
@@ -9,6 +15,7 @@ import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Store;
 import javax.swing.JOptionPane;
+import org.apache.commons.collections.ListUtils;
 
 /**
  * A class to check whether the e-mail messages of an account are in
@@ -36,106 +43,300 @@ public class AccountMessageUpdater implements Runnable
         this.database = database;
         this.store = store;
     }
-
-
-
-    public boolean checkAllMessages()
+    
+    
+    private void resolveQueue()
     {
-        boolean wasOK = true;
-        try
-            {
-            //Go through each folder in the database for this account
-            ArrayList<Object[]> result = database.selectFromTableWhere("Folders",
-                    "folderID, urlName",
-                    "accountUsername='" + account.getUsername() + "'");
-
-            //No folders found
-            if (result.isEmpty())
-            {
-                return true;
-            }
-
-            for (Object[] line : result)
-            {
-                int folderID = (Integer) line[0];
-                String url = (String) line[1];
-                boolean areMessagesOK = checkMessagesInFolder(folderID, url);
-                if (!areMessagesOK)
-                {
-                    wasOK = false;
-                    rebuildFolder(folderID);
-                }
-            }
-        }
-        catch (Exception ex)
+        //While queue isn't empty
+        while (!ClientThreadPool.findMessageQueue.isEmpty())
         {
-            wasOK = false;
-            JOptionPane.showMessageDialog(null, ex.getMessage(), "Error!", JOptionPane.ERROR_MESSAGE);
+            //TODO find messages here
+            Object[] messageData = ClientThreadPool.findMessageQueue.remove();
         }
-
-        return wasOK;
     }
-
-    private boolean checkMessagesInFolder(int folderID, String url) throws MessagingException, SQLException
+    
+    private void fixFolder(int folderID, IMAPFolder folder) 
+            throws SQLException, MessagingException
     {
-        //Get folder
-        Folder folder = store.getFolder(url);
-        ArrayList<Object[]> result
-                = database.selectFromTableWhere("Messages",
-                "messageNo, messageUID", "folderID=" + Integer.toString(folderID));
-
-        //No messages found in folder, just return
-        if (result.isEmpty())
-        {
-            return true;
-        }
-
-        int[] messageNos = new int[result.size()];
-        String[] UIDs = new String[result.size()];
-        for (int i = 0; i < messageNos.length; i++)
-        {
-            Object[] line = result.get(i);
-
-            int messageNo = (Integer) line[0];
-            String UID = (String) line[1];
-            messageNos[i] = messageNo;
-            UIDs[i] = UID;
-        }
-
-
         if (!folder.isOpen())
         {
             folder.open(Folder.READ_ONLY);
         }
-
-        Message[] messages = folder.getMessages(messageNos);
+        ArrayList<Object[]> result = database.selectFromTableWhere("Folders", 
+                "lastSeqNo", "folderID=" + Integer.toString(folderID));
+        long lastSeqNo = (Long) result.get(0)[0];
+        
         FetchProfile fp = new FetchProfile();
-        fp.add("Message-Id");
-        folder.fetch(messages, fp);
+        fp.add(FetchProfile.Item.ENVELOPE);
+        fp.add(FetchProfile.Item.FLAGS);
+        fp.add("Message-ID");
+        //fp.add(FetchProfile.Item.CONTENT_INFO);
+        fp.add("X-mailer");
+        
+        Message[] messages = null;
+        try
+        {
+            messages = folder.getMessagesByUID(lastSeqNo, IMAPFolder.LASTUID);
+        } catch (Exception ex)
+        {
+            ex.printStackTrace();
+            System.exit(-1);
+        }
+        
+        //Scan through folder for deleted messages
+        //Our data
+        result = database.selectFromTableWhere("Messages", 
+          "messageUID", "accountUsername='" + account.getUsername() + "' AND isValidMessage=1");
 
+        ArrayList<String> allUIDs = new ArrayList<String>(result.size());
+        HashSet<String> deletedUIDs = new HashSet<String>(result.size());
+        for (Object[] line : result)
+        {
+            String UID = (String) line[0];
+            deletedUIDs.add(UID);
+            allUIDs.add(UID);
+        }
+
+        //Get all messages now
+        messages = folder.getMessages();
+        FetchProfile idFP = new FetchProfile();
+        fp.add(FetchProfile.Item.ENVELOPE);
+        fp.add(FetchProfile.Item.FLAGS);
+        fp.add("Message-Id");
+        folder.fetch(messages, idFP);
+        //Need to find the difference in two lists 
+        //(things in first not in 2nd) i.e deleted messages
+        ArrayList<String> serverUIDs = new ArrayList<String>(messages.length);
         for (int i = 0; i < messages.length; i++)
         {
             Message message = messages[i];
-            //Get UID
-            String[] UIDheader = message.getHeader("Message-Id");
+            String[] UIDarray = message.getHeader("Message-Id");
+            String UID = UIDarray[0];
+            serverUIDs.add(UID);
+            //Remove the UID if it's already there
+            deletedUIDs.remove(UID);
+        }
+        
+        //Things in second list not in first
+        Collection<String> newMessages = ListUtils.subtract(serverUIDs, allUIDs);
+
+        //UIDs should now just contain messages that wern't found on server
+        Iterator<String> UIDsIter = deletedUIDs.iterator();
+        while (UIDsIter.hasNext())
+        {
+            //"Delete" record
+            database.updateRecord("Messages", "isValidMessage=0", "messageUID='" + UIDsIter.next() + "'");
+        }           
+        
+        HashSet<String> newMessageSet = new HashSet<String>(newMessages);
+        System.out.println("New message set size: " + newMessageSet.size());
+        ArrayList<Object[]> dbData = new ArrayList<Object[]>(messages.length); 
+
+        for (int i = 0; i < messages.length; i++)
+        {
+            //Get UID header
+            String[] UIDheader = messages[i].getHeader("Message-Id");
             String UID = UIDheader[0];
-            //If UID not equal, some message has changed in this folder
-            if (!UID.equalsIgnoreCase(UIDs[i]))
+            
+            if (newMessageSet.contains(UID))
             {
-                System.out.println("Warning: found conflicting UIDs! Found: " + UID + " Current: " + UIDs[i]);
-                return false;
+                String subject = "";
+                String from = "";
+                subject += messages[i].getSubject();
+                Address[] addresses = messages[i].getFrom();
+                if (addresses.length != 0) {
+                    from += addresses[0].toString();
+                }
+                String to = "";
+                //This bit here is slow for some reason?
+                /*addresses = messages[i].getAllRecipients();
+                if (addresses != null)
+                {
+                    for (int j = 0; j < addresses.length - 1; j++)
+                    {
+                        to += addresses[j].toString() + ",";
+                    }
+                    //So we don't add a comma at the end
+                    to += addresses[addresses.length - 1];
+                }*/            
+
+                int messageNo = messages[i].getMessageNumber();
+
+
+                //Check to see if message already exists in database
+
+                Date dateSent = messages[i].getSentDate();
+                Date dateReceived = messages[i].getReceivedDate();
+
+                Object[] line = {UID, subject, from, to, dateSent, dateReceived, folderID, account.getUsername(), messageNo};
+                dbData.add(line);
             }
         }
-
-        return true;
-    }
-
-    private void rebuildFolder(int folderID)
-    {
+        
+        long uid = folder.getUIDNext();
+        UserDatabase.getInstance().updateRecord("Folders", 
+                "lastSeqNo=" + Long.toString(uid), 
+                "folderID=" + Integer.toString(folderID));
+        
+        insertMessagesWithTags(dbData);
+        
         
     }
+    
+    private void insertMessagesWithTags(ArrayList<Object[]> dbData)
+    {   
+        System.out.println("Inserting data: " + dbData.size());
+        String[] fieldNames = {"messageUID", "subject", "messageFrom", 
+                               "messageTo", "dateSent", "dateReceived", "folderID", "accountUsername", "messageNo"};
+        
+        try
+        {
+            database.insertRecords("Messages", fieldNames, dbData);
 
-    public void run() {
-        throw new UnsupportedOperationException("Not supported yet.");
+
+
+            //Get subject data for each message, and extract out key words, while we should keep going
+            Iterator<Object[]> dataIter = dbData.iterator();
+            while (dataIter.hasNext())
+            {
+                if (!ClientThreadPool.shouldStop)
+                {
+                    Object[] currentLine = dataIter.next();
+                    //Get the id of the inserted message
+                    ArrayList<Object[]> result = database.selectFromTableWhere("Messages", 
+                            "messageID, folderID", "messageUID='" + (String)currentLine[0] + "'");
+                    int id = (Integer) result.get(0)[0];
+                    int folderID = (Integer) result.get(0)[1];
+
+                    //System.out.println("Found id: " + id);
+                    //Parse the key words from the subject
+                    String subject = (String)currentLine[1];
+                    ArrayList<String> keyWords = TagParser.getInstance().getTags(subject);
+                    //If no key words were found, continue
+                    if (keyWords == null) {
+                        continue;
+                    }
+
+                    Iterator<String> keyWordsIter = keyWords.iterator();
+
+                    ArrayList<Object[]> tagDBLines = new ArrayList<Object[]>(keyWords.size());
+                    //Create array of key words for this message
+                    while (keyWordsIter.hasNext())
+                    {
+                        String keyWord = keyWordsIter.next();
+                        //Only add if it doesn't already exist!
+                        if (database.selectFromTableWhere("Tags", "tagID", "tagValue='" + keyWord + "'").isEmpty())
+                        {
+                            Object[] tagFieldValues = {keyWord};
+                            tagDBLines.add(tagFieldValues);     
+                            //System.out.println("Added: " + keyWord + " as it doesn't already exist in the table!");
+                        }
+
+                    }
+
+                    String[] tagFieldNames = {"tagValue"};
+                    database.insertRecords("Tags", tagFieldNames, tagDBLines);
+
+                    //get the ids of each key word
+                    int[] tagIDs = new int[keyWords.size()];
+                    for (int i = 0; i < keyWords.size(); i++)
+                    {
+                        result = database.selectFromTableWhere("Tags", "tagID" , "tagValue='" + keyWords.get(i) + "'");
+
+                        tagIDs[i] = (Integer) result.get(0)[0];
+
+                    }
+
+                    //Now update message to tags table
+                    ArrayList<Object[]> newData = new ArrayList<Object[]>(tagIDs.length);
+                    for (int i = 0; i < tagIDs.length; i++)
+                    {
+                        Object[] line = {id, tagIDs[i]};
+                        newData.add(line);
+                    }
+
+                    String[] messagesToTagsFieldNames = {"messageID", "tagID"};
+                    database.insertRecords("MessagesToTags", messagesToTagsFieldNames, newData);
+
+                    //Update last set message
+                    //System.out.println("Setting new data!");
+                }
+                else
+                {
+                    return;
+                }
+            }
+        } //try
+        catch (SQLException ex)
+        {
+            ex.printStackTrace();
+            System.exit(-1);
+        }
+    }
+    
+    @Override
+    public void run() 
+    {
+        System.out.println("Started update thread");
+        try
+        {
+            while (true)
+            {
+                if (ClientThreadPool.shouldStop)
+                {
+                    return;
+                }
+                
+                Thread.sleep(500);
+
+                resolveQueue();
+                //Check all folders to see if any changes
+                ArrayList<Object[]> result = database.selectFromTableWhere("Folders", 
+                        "*", "accountUsername='" + account.getUsername() + "'");
+                
+                for (Object[] folderLine : result)
+                {
+                    long lastSeqNo;
+                    if (folderLine[7] == null)
+                    {
+                        continue;
+                    }
+                    
+                    lastSeqNo = (Long) folderLine[7];
+                    //Get folder on server
+                    String longName = (String) folderLine[5];
+                    IMAPFolder folder = (IMAPFolder) store.getFolder(longName);
+                    long newSeqNo = folder.getUIDNext();
+                    
+                    if (newSeqNo != lastSeqNo)
+                    {
+                        System.out.println("Found difference in validities for folder: "
+                                + longName 
+                                + " old: " + newSeqNo
+                                + " new: " + lastSeqNo);
+                        
+                        int folderID = (Integer) folderLine[0];
+                        fixFolder(folderID, folder);
+                        System.out.println("Sorted...");
+                    }                                          
+                }
+            } //while true
+        } 
+        catch (SQLException ex)
+        {
+            JOptionPane.showMessageDialog(null, "Could not connect to sql server!", "SQL Error", JOptionPane.ERROR_MESSAGE);
+        }
+        catch (MessagingException ex)
+        {
+            JOptionPane.showMessageDialog(null, "Could not connect to IMAP server! " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
+        }
+        catch (InterruptedException ex)
+        {
+            JOptionPane.showMessageDialog(null, "Thread Exception! " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
+        }
+                
+                
     }
 }

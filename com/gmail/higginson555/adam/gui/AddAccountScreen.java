@@ -6,6 +6,8 @@ package com.gmail.higginson555.adam.gui;
 
 import com.gmail.higginson555.adam.Account;
 import com.gmail.higginson555.adam.AccountManager;
+import com.gmail.higginson555.adam.AccountMessageDownloader;
+import com.gmail.higginson555.adam.ClientThreadPool;
 import com.gmail.higginson555.adam.Database;
 import com.gmail.higginson555.adam.ProtectedPassword;
 import com.gmail.higginson555.adam.UserDatabase;
@@ -18,6 +20,7 @@ import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.mail.MessagingException;
 import javax.swing.JOptionPane;
 import javax.swing.SwingWorker;
 
@@ -311,21 +314,36 @@ public class AddAccountScreen extends javax.swing.JFrame {
                                 incomingField.getText(), 
                                 outgoingField.getText(), 
                                 port);
-
-        //TODO NEED to do this after account can conect to server!
-        SwingWorker worker = new SwingWorker<Void, Void>() 
+        try 
         {
-            @Override
-            public Void doInBackground() throws Exception {
-                AccountManager.getSingleton().addAccount(account);
-                return null;
-            }  
-        };
+            AccountManager.getSingleton().addAccount(account);
+            AccountMessageDownloader amd = AccountMessageDownloader.getInstance(account);
+            listener.onPropertyEvent(this.getClass(), "AddAccount", account);
+            this.dispose();
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(rootPane, "Could not connect to SQL server!", "Error!", JOptionPane.ERROR_MESSAGE);
+            Logger.getLogger(AddAccountScreen.class.getName()).log(Level.SEVERE, null, ex);
             
-        progressBar.setIndeterminate(true);
-        worker.execute();        
-        listener.onPropertyEvent(this.getClass(), "AddAccount", account);
-        this.dispose();
+            try
+            {
+                AccountManager.getSingleton().addAccount(account);
+            } catch (SQLException ex2)
+            {
+                JOptionPane.showMessageDialog(rootPane, "Error, account could not be removed!", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (MessagingException ex) {
+            JOptionPane.showMessageDialog(rootPane, "Could not connect to server!", "Error!", JOptionPane.ERROR_MESSAGE);
+            Logger.getLogger(AddAccountScreen.class.getName()).log(Level.SEVERE, null, ex);
+            
+            try
+            {
+                AccountManager.getSingleton().addAccount(account);
+            } catch (SQLException ex2)
+            {
+                JOptionPane.showMessageDialog(rootPane, "Error, account could not be removed!", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+             
         
     }//GEN-LAST:event_addButtonActionPerformed
 
