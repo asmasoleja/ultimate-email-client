@@ -54,6 +54,9 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
         } catch (SQLException ex) {
             Logger.getLogger(AllViewsScreen.class.getName()).log(Level.SEVERE, null, ex);
             System.exit(-1);
+        } catch (MessagingException ex)
+        {
+            JOptionPane.showMessageDialog(rootPane, "Could not connect to account!", "Error", JOptionPane.ERROR_MESSAGE);
         }
         //Build the tree, each account has a list of views
         buildTree();  
@@ -314,6 +317,7 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
+            @Override
             public void run() {
                 new AllViewsScreen().setVisible(true);
             }
@@ -353,22 +357,22 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
         {
             if (name.equalsIgnoreCase("AddAccount"))
             {
-                Account account = (Account) value;
-                accounts.add(account);
-                DefaultTreeModel model = (DefaultTreeModel) viewTree.getModel();
-                DefaultMutableTreeNode root = (DefaultMutableTreeNode) model.getRoot();
-                DefaultMutableTreeNode child = new DefaultMutableTreeNode(account);
-                root.add(child);
-                
-                AccountMessageDownloader amd = null;
                 try {
-                    amd = AccountMessageDownloader.getInstance(account);
+                    Account account = (Account) value;
+                    accounts.add(account);
+                    DefaultTreeModel model = (DefaultTreeModel) viewTree.getModel();
+                    DefaultMutableTreeNode root = (DefaultMutableTreeNode) model.getRoot();
+                    DefaultMutableTreeNode child = new DefaultMutableTreeNode(account);
+                    root.add(child);               
+                    
+                    AccountMessageDownloader amd = AccountMessageDownloader.getInstance(account);
+                    amd.addListener(this);
+                    ClientThreadPool.executorService.submit(amd);
                 } catch (SQLException ex) {
                     Logger.getLogger(AllViewsScreen.class.getName()).log(Level.SEVERE, null, ex);
-                    System.exit(-1);
+                } catch (MessagingException ex) {
+                    Logger.getLogger(AllViewsScreen.class.getName()).log(Level.SEVERE, null, ex);
                 }
-                amd.addListener(this);
-                ClientThreadPool.executorService.submit(amd);
             }
         }
         else if (name.equalsIgnoreCase("MessageManagerThreadStart"))

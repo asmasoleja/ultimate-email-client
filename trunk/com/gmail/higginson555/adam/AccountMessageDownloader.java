@@ -6,6 +6,8 @@ package com.gmail.higginson555.adam;
 
 import com.gmail.higginson555.adam.gui.PropertyListener;
 import com.gmail.higginson555.adam.view.EmailFilterer;
+import com.sun.mail.imap.DefaultFolder;
+import com.sun.mail.imap.IMAPFolder;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.security.GeneralSecurityException;
@@ -43,7 +45,8 @@ public class AccountMessageDownloader extends Thread
     private int lastFolderID;
     private int lastMessageID;
     
-    public static synchronized AccountMessageDownloader getInstance(Account account) throws SQLException
+    public static synchronized AccountMessageDownloader getInstance(Account account) 
+            throws SQLException, MessagingException
     {
         if (instances.containsKey(account))
         {
@@ -57,12 +60,12 @@ public class AccountMessageDownloader extends Thread
         }
     }
     
-    private AccountMessageDownloader(Account account) throws SQLException
+    private AccountMessageDownloader(Account account) throws SQLException, MessagingException
     {
         this.account = account;
+        connectToServer();
         ArrayList<Object[]> result = UserDatabase.getInstance().
-                selectFromTableWhere("AccountMessageDownloaders", 
-                "lastFolder, lastMessageID", 
+                selectFromTableWhere("AccountMessageDownloaders", "accountDownloaderID",
                 "accountUsername='" + account.getUsername() + "'");
         
         //Insert empty data to db 
@@ -74,28 +77,8 @@ public class AccountMessageDownloader extends Thread
             this.lastFolderID = -1;
             this.lastMessageID = -1;
         }
-        else
-        {
-            Object[] line = result.get(0);
-            if (line[0] != null && line[1] != null)
-            {
-                this.lastFolderID = (Integer) line[0];
-                this.lastMessageID = (Integer) line[1];
-            }
-            else
-            {
-                this.lastFolderID = -1;
-                this.lastMessageID = -1;
-            }
-        }
-        
         
         this.listeners = new ArrayList<PropertyListener>();
-        try {
-            connectToServer();
-        } catch (MessagingException ex) {
-            Logger.getLogger(AccountMessageDownloader.class.getName()).log(Level.SEVERE, null, ex);
-        }
     }
     
     public void addListener(PropertyListener listener)
@@ -132,21 +115,31 @@ public class AccountMessageDownloader extends Thread
      */
     private void getMessages() throws MessagingException, SQLException, MalformedURLException
     {
-        //Try to insert all folders into the database, as well as messages!
-        Folder folder = null;
-        int parent;
-        if (lastFolderID == -1) {
+        ArrayList<Object[]> result = UserDatabase.getInstance().selectFromTableWhere
+                ("AccountMessageDownloaders", 
+                "isDone", "accountUsername='" + account.getUsername() + "'");
+        
+        boolean isDone = (Boolean) result.get(0)[0];
+        System.out.println("IS DONEa: " + isDone);
+        if (!isDone)
+        {
+
+            System.out.println("After if!");
+            //Try to insert all folders into the database, as well as messages!
+            Folder folder = null;
+            int parent;
+            System.out.println("Getting default folder! Is store connected: " + store.isConnected());
             folder = store.getDefaultFolder();
             parent = -1;
+            System.out.println("About to insert folders");
+            insertFolderIntoDatabase(parent, folder);
+            //Done?
+            UserDatabase.getInstance().updateRecord("AccountMessageDownloaders", 
+                    "isDone=1", "accountUsername='" + account.getUsername() + "'");
         }
-        else
-        {
-            ArrayList<Object[]> result = UserDatabase.getInstance().selectFromTableWhere("Folders", "urlname, parentFolder", "folderID=" + Integer.toString(lastFolderID));
-            String url = (String) result.get(0)[0];
-            parent = (Integer) result.get(0)[1];
-            folder = store.getFolder(url);
-        }
-        insertFolderIntoDatabase(parent, folder);
+        //Start the account updater thread
+        AccountMessageUpdater updater = new AccountMessageUpdater(store, account, UserDatabase.getInstance());
+        ClientThreadPool.executorService.submit(updater);
     }      
     
     public Message getMessageWithID(int folderID, int messageUID) throws MessagingException, SQLException, MalformedURLException
@@ -185,24 +178,14 @@ public class AccountMessageDownloader extends Thread
         {
             return;
         }
+        
+        System.out.println("Inserting folder!");
+        
         //Insert this node into the database, with the parentID
         Database user = UserDatabase.getInstance();
         ArrayList<Object[]> result;
-        //ParentID -1 when no parent
-        if (parentID == -1)
-        {
-            result = user.selectFromTableWhere("Folders", "folderID", 
-                    "name='" + folder.getName() 
-                    + "' AND parentFolder IS NULL "
-                    + "AND accountUsername='" + account.getUsername() + "'");
-        }
-        else
-        {
-            result = user.selectFromTableWhere("Folders", "folderID", 
-                "name='" + folder.getName() + 
-                "' AND parentFolder=" + Integer.toString(parentID) + 
-                " AND accountUsername='" + account.getUsername() + "'");
-        }
+        result = user.selectFromTableWhere("Folders", "folderID", 
+                "urlName='" + folder.getFullName() + "'");
             
         //If result it empty, folder does not already exist in database, insert it
         if (result.isEmpty())
@@ -210,36 +193,68 @@ public class AccountMessageDownloader extends Thread
             //ParentID is -1 when no parent
             if (parentID == -1)
             {
-                
-                String[] fieldNames = {"name", "accountUsername", "urlname"};
-                Object[] fieldValues = {folder.getName(), account.getUsername(), folder.getFullName()};
-                user.insertRecord("Folders", fieldNames, fieldValues);
+                if (folder instanceof IMAPFolder && !(folder instanceof DefaultFolder))
+                {
+                    System.out.println("Folder class: " + folder.getClass().getName());
+                    IMAPFolder imapFolder = (IMAPFolder) folder;
+                    String[] fieldNames = {"name", 
+                                           "accountUsername", 
+                                           "urlName", 
+                                           "uidValidity"};
+                    Object[] fieldValues = {imapFolder.getName(), 
+                                            account.getUsername(), 
+                                            imapFolder.getFullName(), 
+                                            imapFolder.getUIDValidity()};
+                    user.insertRecord("Folders", fieldNames, fieldValues);
+                }
+                else
+                {
+                    String[] fieldNames = {"name",
+                                           "accountUsername",
+                                           "urlName"};
+                    Object[] fieldValues = {folder.getName(),
+                                            account.getUsername(),
+                                            folder.getFullName()};
+                    user.insertRecord("Folders", fieldNames, fieldValues);
+                }
             }
             else //parent found
             {
-                String[] fieldNames = {"name", "accountUsername", "parentFolder", "urlname"};
-                Object[] fieldValues = {folder.getName(), account.getUsername(), parentID, folder.getFullName()};
-                user.insertRecord("Folders", fieldNames, fieldValues);
+                if (folder instanceof IMAPFolder && ((folder.getType() & javax.mail.Folder.HOLDS_MESSAGES) != 0))
+                {
+                    IMAPFolder imapFolder = (IMAPFolder) folder;
+                    String[] fieldNames = {"name", 
+                                           "accountUsername", 
+                                           "parentFolder", 
+                                           "urlname", 
+                                           "uidValidity"};
+                    Object[] fieldValues = {imapFolder.getName(),
+                                            account.getUsername(), 
+                                            parentID, 
+                                            imapFolder.getFullName(), 
+                                            imapFolder.getUIDValidity()};
+                    user.insertRecord("Folders", fieldNames, fieldValues);
+                }
+                else
+                {
+                    String[] fieldNames = {"name", 
+                                           "accountUsername", 
+                                           "parentFolder", 
+                                           "urlname"};
+                    Object[] fieldValues = {folder.getName(),
+                                            account.getUsername(), 
+                                            parentID, 
+                                            folder.getFullName()};
+                    user.insertRecord("Folders", fieldNames, fieldValues);
+                }
             }
         }
                 
         System.out.println("Now on folder: " + folder.getFullName());
         
         //Find this folder ID
-        if (parentID == -1)
-        {
-            result = user.selectFromTableWhere("Folders", "folderID", 
-                "name='" + folder.getName() + 
-                "' AND parentFolder IS NULL" +
-                " AND accountUsername='" + account.getUsername() + "'");
-        }
-        else
-        {
-            result = user.selectFromTableWhere("Folders", "folderID", 
-                "name='" + folder.getName() + 
-                "' AND parentFolder=" + Integer.toString(parentID) + 
-                " AND accountUsername='" + account.getUsername() + "'");
-        }
+        result = user.selectFromTableWhere("Folders", "folderID", 
+                "urlName='" + folder.getFullName() + "'");
         
         //Should always be full, if not an error has occurred
         //And should only be one result
@@ -249,7 +264,7 @@ public class AccountMessageDownloader extends Thread
         if (folder.getType() == Folder.HOLDS_FOLDERS)
         {
             //Recurse for each child
-            Folder[] children = folder.list();
+            Folder[] children = folder.list("*");
             for (Folder child : children)
             {
                 insertFolderIntoDatabase(id, child);
@@ -301,6 +316,7 @@ public class AccountMessageDownloader extends Thread
         folder.fetch(allMessages, fp);
 
         System.out.append("Inserting messages");
+        int maxMessageNo = -1;
         ArrayList<Object[]> dbData = new ArrayList<Object[]>(allMessages.length); 
         for (int i = allMessages.length - 1; i >= 0; i--)
         {
@@ -329,7 +345,9 @@ public class AccountMessageDownloader extends Thread
             String UID = UIDheader[0];
             System.out.println("Found UID: " + UID);
             
+            
             int messageNo = allMessages[i].getMessageNumber();
+            
 
             //Check to see if message already exists in database
 
@@ -339,6 +357,13 @@ public class AccountMessageDownloader extends Thread
             Object[] line = {UID, subject, from, to, dateSent, dateReceived, folderID, account.getUsername(), messageNo};
             dbData.add(line);
         }
+        
+        IMAPFolder imapFolder = (IMAPFolder) folder;
+        long uid = imapFolder.getUIDNext();
+        UserDatabase.getInstance().updateRecord("Folders", 
+                "lastSeqNo=" + Long.toString(uid), 
+                "folderID=" + Integer.toString(folderID));
+        
 
         Comparator<Object[]> messageDataComp = new Comparator<Object[]>()
         {
@@ -400,7 +425,7 @@ public class AccountMessageDownloader extends Thread
             //Now insert all headers
             if (!ClientThreadPool.shouldStop)
             {
-                ClientThreadPool.executorService.submit(new MessageBodyTagDownloader(folder, folderID));
+                //ClientThreadPool.executorService.submit(new MessageBodyTagDownloader(folder, folderID));
             }
             else
             {
@@ -488,11 +513,6 @@ public class AccountMessageDownloader extends Thread
 
                     String[] messagesToTagsFieldNames = {"messageID", "tagID"};
                     database.insertRecords("MessagesToTags", messagesToTagsFieldNames, newData);
-
-                    //Update last set message
-                    //System.out.println("Setting new data!");
-                    String setSQL = "lastFolder=" + Integer.toString(folderID) + ", lastMessageID=" + Integer.toString(id);
-                    database.updateRecord("AccountMessageDownloaders", setSQL, "accountUsername='" + account.getUsername() + "'");
                 }
                 else
                 {

@@ -66,7 +66,8 @@ public class UserDatabaseManager
                                   + "parentFolder int,"
                                   + "lastMessage TIMESTAMP NULL DEFAULT NULL,"
                                   + "urlName varchar(70),"
-                                  + "uidValidity BIGINT(19)"
+                                  + "uidValidity BIGINT(19),"
+                                  + "lastSeqNo BIGINT(19),"
                                   + "PRIMARY KEY(folderID),"
                                   + "FOREIGN KEY(accountUsername) REFERENCES accounts(username),"
                                   + "FOREIGN KEY(parentFolder) REFERENCES folders(folderID)";
@@ -83,6 +84,7 @@ public class UserDatabaseManager
                                    + "accountUsername varchar(255) NOT NULL,"
                                    + "areTagsExtracted BOOLEAN DEFAULT 0,"
                                    + "messageNo int,"
+                                   + "isValidMessage BOOLEAN DEFAULT 1,"
                                    + "PRIMARY KEY(messageID),"
                                    + "FOREIGN KEY(folderID) REFERENCES folders(folderID),"
                                    + "FOREIGN KEY(accountUsername) REFERENCES accounts(username)";
@@ -141,12 +143,9 @@ public class UserDatabaseManager
             
             String accountMessageDownloaderSQL = "accountDownloaderID int UNIQUE NOT NULL AUTO_INCREMENT,"
                                                 + "accountUsername varchar(255) NOT NULL,"
-                                                + "lastFolder int DEFAULT NULL,"
-                                                + "lastMessageID int DEFAULT NULL,"
+                                                + "isDone BOOLEAN DEFAULT 0,"
                                                 + "PRIMARY KEY(accountDownloaderID),"
-                                                + "FOREIGN KEY(accountUsername) REFERENCES accounts(username),"
-                                                + "FOREIGN KEY(lastFolder) REFERENCES folders(folderID),"
-                                                + "FOREIGN KEY(lastMessageID) REFERENCES messages(messageID)";
+                                                + "FOREIGN KEY(accountUsername) REFERENCES accounts(username)";
             database.createTable("AccountMessageDownloaders", accountMessageDownloaderSQL);
             
             //database = createNewDatabase(database);
