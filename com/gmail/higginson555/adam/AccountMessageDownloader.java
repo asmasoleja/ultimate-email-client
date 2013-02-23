@@ -507,8 +507,16 @@ public class AccountMessageDownloader extends Thread
                     ArrayList<Object[]> newData = new ArrayList<Object[]>(tagIDs.length);
                     for (int i = 0; i < tagIDs.length; i++)
                     {
-                        Object[] line = {id, tagIDs[i]};
-                        newData.add(line);
+                        result = database.selectFromTableWhere("MessagesToTags", 
+                                "messageID", 
+                                "messageID=" + Integer.toString(id) 
+                                + " AND tagID=" + Integer.toString(tagIDs[i]));
+                        if (result.isEmpty())
+                        {
+                            Object[] line = {id, tagIDs[i]};
+                            System.out.println("Adding message: " + id + " and tag: " + tagIDs[i]);
+                            newData.add(line);
+                        }
                     }
 
                     String[] messagesToTagsFieldNames = {"messageID", "tagID"};
