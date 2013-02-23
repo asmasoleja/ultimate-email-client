@@ -1,10 +1,13 @@
 package com.gmail.higginson555.adam.queryParser;
 
 import com.gmail.higginson555.adam.Database;
+import com.gmail.higginson555.adam.MessageFolderInfo;
 import com.gmail.higginson555.adam.UserDatabase;
 import com.gmail.higginson555.adam.queryParser.QueryNode.QueryNodeType;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Stack;
 
 /**
@@ -44,6 +47,8 @@ public class QueryParser
     //Whether an operator has previously been found, if true, a tag 
     //cannot be on its own
     private boolean operatorPrevFound;
+    //The map mapping UIDs to a message's folder info
+    private HashMap<String, MessageFolderInfo> uidToMessageInfo;
     
     public QueryParser(String query, Database database)
     {
@@ -51,6 +56,7 @@ public class QueryParser
         this.database = database;
         this.stack = new Stack<QueryNode>();
         this.operatorPrevFound = false;
+        this.uidToMessageInfo = new HashMap<String, MessageFolderInfo>();
     }
 
     public String getQuery() {
@@ -283,24 +289,50 @@ public class QueryParser
                     //Select from database all messages from such a person
                     if (extensionOp.equalsIgnoreCase(MESSAGE_FROM))
                     {
-                        ArrayList<Object[]> result = database.selectFromTableWhere("Messages", "messageID", "messageFrom LIKE '%" + extensionTag + "%'");
+                        ArrayList<Object[]> result = database.selectFromTableWhere("Messages", "messageID, messageUID, folderID, seqNo", "messageFrom LIKE '%" + extensionTag + "%'");
                         ArrayList<Integer> messageIDs = new ArrayList<Integer>(result.size());
                         for (Object[] line : result)
                         {
                             int id = (Integer) line[0];
-                            messageIDs.add(id);
+                            String UID = (String) line[1];
+                            int folderID = (Integer) line[2];
+                            int seqNo = (Integer) line[3];
+                            if (uidToMessageInfo.containsKey(UID))
+                            {
+                                MessageFolderInfo msgInfo = uidToMessageInfo.get(UID);
+                                msgInfo.addFolder(folderID);
+                            }
+                            else
+                            {
+                                messageIDs.add(id);
+                                MessageFolderInfo msgInfo = new MessageFolderInfo(id, seqNo);
+                                uidToMessageInfo.put(UID, msgInfo);
+                            }
                         }
                         System.out.println("Message IDs size: " + messageIDs.size());
                         stack.push(new QueryNode(QueryNodeType.NODE_MESSAGE_LIST, messageIDs));
                     }
                     else if (extensionOp.equalsIgnoreCase(MESSAGE_TO))
                     {
-                        ArrayList<Object[]> result = database.selectFromTableWhere("Messages", "messageID", "messageTo LIKE '%" + extensionTag + "%'");
+                        ArrayList<Object[]> result = database.selectFromTableWhere("Messages", "messageID, messageUID, folderID, seqNo", "messageTo LIKE '%" + extensionTag + "%'");
                         ArrayList<Integer> messageIDs = new ArrayList<Integer>(result.size());
                         for (Object[] line : result)
                         {
                             int id = (Integer) line[0];
-                            messageIDs.add(id);
+                            String UID = (String) line[1];
+                            int folderID = (Integer) line[2];
+                            int seqNo = (Integer) line[3];
+                            if (uidToMessageInfo.containsKey(UID))
+                            {
+                                MessageFolderInfo msgInfo = uidToMessageInfo.get(UID);
+                                msgInfo.addFolder(folderID);
+                            }
+                            else
+                            {
+                                messageIDs.add(id);
+                                MessageFolderInfo msgInfo = new MessageFolderInfo(id, seqNo);
+                                uidToMessageInfo.put(UID, msgInfo);
+                            }
                         }
                         stack.push(new QueryNode(QueryNodeType.NODE_MESSAGE_LIST, messageIDs));
                     }
@@ -415,11 +447,13 @@ public class QueryParser
                 ArrayList<Object[]> result = database.selectFromTableWhere("Tags", "tagID", "tagValue='" + tag + "'");
                 if (!result.isEmpty())
                 {
+                    System.out.println("Found tagID: " + result.get(0)[0] + " for tag: " + tag);
                     int tagID = (Integer) result.get(0)[0];
                     tagIDs.add(tagID);
                 }
                 else
                 {
+                    System.out.println("No tagID found for tag: " + tag);
                     //Just add empty list and return
                     stack.push(new QueryNode(QueryNodeType.NODE_MESSAGE_LIST, selectedIDs));
                     return;
@@ -460,6 +494,7 @@ public class QueryParser
 
                         //System.out.println("Where SQL: " + whereSQL);
                         result = database.selectFromTableWhere("MessagesToTags", "messageID", whereSQL);
+                        System.out.println("Where sql: " + whereSQL + " result size: " + result.size() + " tagID size: " + tagIDs.size());
                         //if messagesToTags found is equal to the number of tags,
                         //we have found a message
                         if (result.size() == tagIDs.size())
@@ -501,9 +536,7 @@ public class QueryParser
                     }
                     
                 }
-                
-                
-                
+                                
                 //Push onto stack, even if empty
                 stack.push(new QueryNode(QueryNodeType.NODE_MESSAGE_LIST, selectedIDs));
             } //if selectedIDs == null
