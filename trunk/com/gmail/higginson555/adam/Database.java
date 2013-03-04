@@ -212,7 +212,7 @@ public class Database
         }
         query += "?)";
         
-        System.out.println("Query is: " + query);
+        //System.out.println("Query is: " + query);
         
         Iterator<Object[]> lineIter = fieldValues.iterator();
         

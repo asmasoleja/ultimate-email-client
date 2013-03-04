@@ -79,6 +79,10 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
         openViewsLabel = new javax.swing.JLabel();
         warningLabel = new javax.swing.JLabel();
         closeTabButton = new javax.swing.JButton();
+        newAccountButton = new javax.swing.JButton();
+        newMessageButton = new javax.swing.JButton();
+        jSeparator1 = new javax.swing.JSeparator();
+        newViewButton1 = new javax.swing.JButton();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenu2 = new javax.swing.JMenu();
@@ -111,6 +115,36 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
         closeTabButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 closeTabButtonActionPerformed(evt);
+            }
+        });
+
+        newAccountButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/gmail/higginson555/adam/gui/Images/NewAccountIcon.png"))); // NOI18N
+        newAccountButton.setToolTipText("Create a new account");
+        newAccountButton.setBorder(null);
+        newAccountButton.setBorderPainted(false);
+        newAccountButton.setIconTextGap(0);
+        newAccountButton.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        newAccountButton.setName(""); // NOI18N
+        newAccountButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                newAccountButtonActionPerformed(evt);
+            }
+        });
+
+        newMessageButton.setIcon(new javax.swing.ImageIcon("C:\\Users\\Adam\\Documents\\NetBeansProjects\\Ultimate E-mail Client\\Images\\NewMessageIcon.png")); // NOI18N
+        newMessageButton.setToolTipText("");
+        newMessageButton.setMargin(new java.awt.Insets(0, 0, 0, 0));
+
+        newViewButton1.setIcon(new javax.swing.ImageIcon("C:\\Users\\Adam\\Documents\\NetBeansProjects\\Ultimate E-mail Client\\Images\\NewViewIcon.png")); // NOI18N
+        newViewButton1.setToolTipText("Create a new view");
+        newViewButton1.setBorder(null);
+        newViewButton1.setBorderPainted(false);
+        newViewButton1.setIconTextGap(0);
+        newViewButton1.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        newViewButton1.setName(""); // NOI18N
+        newViewButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                newViewButton1ActionPerformed(evt);
             }
         });
 
@@ -162,31 +196,45 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
                             .addComponent(tabbedPane)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(openViewsLabel)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 420, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 451, Short.MAX_VALUE)
                                 .addComponent(closeTabButton)
-                                .addGap(12, 12, 12))))
+                                .addGap(14, 14, 14))))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(warningLabel)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(warningLabel)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(newMessageButton, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(newViewButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(newAccountButton)))
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
+            .addComponent(jSeparator1)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
+                    .addComponent(newMessageButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(newViewButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(newAccountButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addComponent(warningLabel)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(viewsLabel)
-                            .addComponent(openViewsLabel)))
-                    .addGroup(layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(closeTabButton)))
+                            .addComponent(openViewsLabel)
+                            .addComponent(viewsLabel)))
+                    .addComponent(closeTabButton, javax.swing.GroupLayout.Alignment.TRAILING))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(tabbedPane)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 585, Short.MAX_VALUE))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 565, Short.MAX_VALUE))
                 .addContainerGap())
         );
 
@@ -254,6 +302,15 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
     private void closeTabButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeTabButtonActionPerformed
         tabbedPane.remove(tabbedPane.getSelectedIndex());
     }//GEN-LAST:event_closeTabButtonActionPerformed
+
+    private void newAccountButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newAccountButtonActionPerformed
+        CreateViewScreen cvs = new CreateViewScreen(this, accounts);
+        cvs.setVisible(true);
+    }//GEN-LAST:event_newAccountButtonActionPerformed
+
+    private void newViewButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newViewButton1ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_newViewButton1ActionPerformed
 
     @Override
     public void dispose()
@@ -334,7 +391,11 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
     private javax.swing.JMenu jMenu3;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JSeparator jSeparator1;
+    private javax.swing.JButton newAccountButton;
     private javax.swing.JMenuItem newAccountMenuItem;
+    private javax.swing.JButton newMessageButton;
+    private javax.swing.JButton newViewButton1;
     private javax.swing.JLabel openViewsLabel;
     private javax.swing.JTabbedPane tabbedPane;
     private javax.swing.JTree viewTree;

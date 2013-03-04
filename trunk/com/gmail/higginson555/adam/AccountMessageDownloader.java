@@ -159,7 +159,16 @@ public class AccountMessageDownloader extends Thread
             foundFolder.open(Folder.READ_ONLY);
         }
         
-        Message foundMessage = foundFolder.getMessage(messageUID);
+        Message foundMessage = null;
+        
+        try
+        {
+            foundMessage = foundFolder.getMessage(messageUID);
+        }
+        catch (IndexOutOfBoundsException ex)
+        {
+            System.out.println("Can't find message...");
+        }
         
         return foundMessage;
     }
@@ -381,37 +390,37 @@ public class AccountMessageDownloader extends Thread
 
         Collections.sort(dbData, messageDataComp);
 
-        FolderManager fm = new FolderManager(UserDatabase.getInstance());
-        Date lastSetDate = fm.getLastDate(folderID);
+        //FolderManager fm = new FolderManager(UserDatabase.getInstance());
+        //Date lastSetDate = fm.getLastDate(folderID);
         //System.out.println("\nLast set date: " + lastSetDate);
 
-        Iterator<Object[]> dataIter = dbData.iterator();
+        /*Iterator<Object[]> dataIter = dbData.iterator();
         ArrayList<Object[]> dbDataToAdd = new ArrayList<Object[]>();
         boolean isUpdatingDB = true;
         while (dataIter.hasNext())
         {
             Object[] currentLine = dataIter.next();
-            Date foundDate = (Date) currentLine[5];
+            //Date foundDate = (Date) currentLine[5];
             //System.out.println("Found date: " + foundDate);
 
             //If we've found a message which was sent after the last set
             //date, we need to update the database with the latest message data
             //if (lastSetDate == null || foundDate.after(lastSetDate))
             //{
-                dbDataToAdd.add(currentLine);
-                isUpdatingDB = true;
+                //dbDataToAdd.add(currentLine);
+                //isUpdatingDB = true;
             //}
             /*else
             {
                 break;
             }*/
-        }
+        //}
         
-        System.out.println(isUpdatingDB + " updating DB?");
+        //System.out.println(isUpdatingDB + " updating DB?");
 
 
-        if (isUpdatingDB)
-        {
+        //if (isUpdatingDB)
+        //{
             System.out.println("\n----UPDATING DATABASE WITH NEW MESSAGES!----\n");
             //fm.setLastDate(folderID, (Date) dbDataToAdd.get(0)[5]);
             publishPropertyEvent("MessageManagerThreadStart", null);
@@ -421,7 +430,7 @@ public class AccountMessageDownloader extends Thread
                 mm.addListener(listener);
             }
             mm.addMessages(dbDataToAdd);*/
-            insertMessageWithTags(dbDataToAdd);
+            insertMessageWithTags(dbData);
             //Now insert all headers
             if (!ClientThreadPool.shouldStop)
             {
@@ -432,7 +441,7 @@ public class AccountMessageDownloader extends Thread
                 return;
             }
             //System.out.println("\n\n\n\n -------------- RETURNED, THREAD WORKED?! ------------------\n\n\n\n");
-        }
+        //}
         
         folder.close(false);
     }
@@ -467,6 +476,7 @@ public class AccountMessageDownloader extends Thread
                     //System.out.println("Found id: " + id);
                     //Parse the key words from the subject
                     String subject = (String)currentLine[1];
+                    //System.out.println("Parsing for: " + subject);
                     ArrayList<String> keyWords = TagParser.getInstance().getTags(subject);
                     //If no key words were found, continue
                     if (keyWords == null) {
@@ -514,7 +524,7 @@ public class AccountMessageDownloader extends Thread
                         if (result.isEmpty())
                         {
                             Object[] line = {id, tagIDs[i]};
-                            System.out.println("Adding message: " + id + " and tag: " + tagIDs[i]);
+                            //System.out.println("Adding message: " + id + " and tag: " + tagIDs[i]);
                             newData.add(line);
                         }
                     }

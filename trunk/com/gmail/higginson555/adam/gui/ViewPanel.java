@@ -5,6 +5,7 @@
 package com.gmail.higginson555.adam.gui;
 
 import com.gmail.higginson555.adam.AccountMessageDownloader;
+import com.gmail.higginson555.adam.ClientThreadPool;
 import com.gmail.higginson555.adam.queryParser.QueryParseException;
 import com.gmail.higginson555.adam.view.EmailFilterer;
 import com.gmail.higginson555.adam.view.View;
@@ -183,9 +184,23 @@ public class ViewPanel extends javax.swing.JPanel {
             {
                 //Find message with this data
                 Message foundMessage = AccountMessageDownloader.getInstance(view.getAccount()).getMessageWithID(folderID, seqNo);
-                System.out.println("Found message titled: " + foundMessage.getSubject());
-                ViewMailScreen vms = new ViewMailScreen(foundMessage, view.getAccount(), messageID, shouldExtractTags);
-                vms.setVisible(true);
+                if (foundMessage == null)
+                {
+                    int result = JOptionPane.showConfirmDialog(this, "Can't find message, click ok to begin searching", "Information", JOptionPane.OK_CANCEL_OPTION);
+                    if (result == JOptionPane.OK_OPTION)
+                    {
+                        ClientThreadPool.findMessageQueue.add(line);
+                        return;
+                    }
+                    
+                    return;
+                }
+                else
+                {
+                    System.out.println("Found message titled: " + foundMessage.getSubject());
+                    ViewMailScreen vms = new ViewMailScreen(foundMessage, view.getAccount(), messageID, shouldExtractTags);
+                    vms.setVisible(true);
+                }
             } 
             catch (Exception ex)
             {

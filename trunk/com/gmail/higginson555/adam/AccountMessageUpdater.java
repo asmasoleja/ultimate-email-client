@@ -14,6 +14,8 @@ import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Store;
+import javax.mail.search.MessageIDTerm;
+import javax.mail.search.SearchTerm;
 import javax.swing.JOptionPane;
 import org.apache.commons.collections.ListUtils;
 
@@ -52,6 +54,42 @@ public class AccountMessageUpdater implements Runnable
         {
             //TODO find messages here
             Object[] messageData = ClientThreadPool.findMessageQueue.remove();
+            String messageID = (String) messageData[1];
+            try
+            {
+                Folder[] folders = store.getDefaultFolder().list("*");
+                SearchTerm searchTerm = new MessageIDTerm(messageID);
+                for (Folder folder : folders)
+                {
+                    boolean wasOpenedByUs = false;
+                    if (!folder.isOpen())
+                    {
+                        wasOpenedByUs = true;
+                        folder.open(Folder.READ_ONLY);
+                    }
+                    String folderName = folder.getFullName();
+                    //TODO check if folder doesn't already exist
+
+                    Message[] message = folder.search(searchTerm);
+                    if (message.length != 0)
+                    {
+                        
+                    }
+                    
+                    if (wasOpenedByUs)
+                    {
+                        folder.close(false);
+                    }
+                }
+                int folderID = (Integer) messageData[7];
+            }
+            catch (MessagingException ex)
+            {
+                JOptionPane.showMessageDialog(null, "Can't find message!", "MessagingException", JOptionPane.ERROR_MESSAGE);
+                ex.printStackTrace();
+            }
+            
+            //Need to find message
         }
     }
     
