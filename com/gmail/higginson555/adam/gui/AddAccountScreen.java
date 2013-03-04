@@ -46,8 +46,8 @@ public class AddAccountScreen extends javax.swing.JFrame {
         initComponents();
         setLocationRelativeTo(null);
         
-        this.usernameField.setText("adam.higginson555@gmail.com");
-        this.passwordField.setText("Oak55housE");
+        this.usernameField.setText("ultimateemailtest@gmail.com");
+        this.passwordField.setText("oak19house");
         this.incomingField.setText("imap.gmail.com");
         this.outgoingField.setText("smtp.gmail.com");
         this.portField.setText("997");

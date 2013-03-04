@@ -4,11 +4,13 @@
  */
 package com.gmail.higginson555.adam;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import javax.mail.Message;
 
 /**
  *
@@ -27,4 +29,10 @@ public class ClientThreadPool
      */
     public static final ConcurrentLinkedQueue<Object[]> findMessageQueue 
             = new ConcurrentLinkedQueue<Object[]>();
+    
+    /**
+     * Maps messages ids to message objects found
+     */
+    public static final HashMap<String, Message> foundMessages
+            = new HashMap<String, Message>();
 }
