@@ -107,6 +107,8 @@ public class AccountMessageDownloader extends Thread
         } catch (MalformedURLException ex) {
             Logger.getLogger(AccountMessageDownloader.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+        publishPropertyEvent("MessageInsertDone", null);
     }
     
     /**
@@ -142,10 +144,10 @@ public class AccountMessageDownloader extends Thread
         ClientThreadPool.executorService.submit(updater);
     }      
     
-    public Message getMessageWithID(int folderID, int messageUID) throws MessagingException, SQLException, MalformedURLException
+    public Message getMessageWithID(int folderID, long messageUID) throws MessagingException, SQLException, MalformedURLException
     {
         //Get folder url
-        ArrayList<Object[]> result = UserDatabase.getInstance().selectFromTableWhere("Folders", "urlname", "folderID=" + Integer.toString(folderID));
+        ArrayList<Object[]> result = UserDatabase.getInstance().selectFromTableWhere("Folders", "urlName", "folderID=" + Integer.toString(folderID));
         
         if (result.isEmpty()) {
             throw new SQLException("Folder not found in database! FolderID given: " + folderID);
@@ -153,21 +155,27 @@ public class AccountMessageDownloader extends Thread
         
         String folderName = (String) result.get(0)[0];
         //Access folder
-        Folder foundFolder = store.getFolder(folderName);
+        IMAPFolder foundFolder = (IMAPFolder) store.getFolder(folderName);
         
         if (!foundFolder.isOpen()) {
             foundFolder.open(Folder.READ_ONLY);
         }
         
+        System.out.println("Trying to find message: " + messageUID + " in folder: " + folderName);
+        
         Message foundMessage = null;
         
         try
         {
-            foundMessage = foundFolder.getMessage(messageUID);
+            foundMessage = foundFolder.getMessageByUID(messageUID);
         }
         catch (IndexOutOfBoundsException ex)
         {
             System.out.println("Can't find message...");
+        }
+        catch (Exception ex)
+        {
+            ex.printStackTrace();
         }
         
         return foundMessage;
@@ -327,6 +335,7 @@ public class AccountMessageDownloader extends Thread
         System.out.append("Inserting messages");
         int maxMessageNo = -1;
         ArrayList<Object[]> dbData = new ArrayList<Object[]>(allMessages.length); 
+        IMAPFolder imapFolder = (IMAPFolder) folder;
         for (int i = allMessages.length - 1; i >= 0; i--)
         {
             String subject = "";
@@ -355,7 +364,7 @@ public class AccountMessageDownloader extends Thread
             System.out.println("Found UID: " + UID);
             
             
-            int messageNo = allMessages[i].getMessageNumber();
+            long messageNo = imapFolder.getUID(allMessages[i]);
             
 
             //Check to see if message already exists in database
@@ -367,7 +376,7 @@ public class AccountMessageDownloader extends Thread
             dbData.add(line);
         }
         
-        IMAPFolder imapFolder = (IMAPFolder) folder;
+
         long uid = imapFolder.getUIDNext();
         UserDatabase.getInstance().updateRecord("Folders", 
                 "lastSeqNo=" + Long.toString(uid), 

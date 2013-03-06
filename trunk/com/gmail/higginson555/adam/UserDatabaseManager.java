@@ -83,7 +83,7 @@ public class UserDatabaseManager
                                    + "folderID int NOT NULL,"
                                    + "accountUsername varchar(255) NOT NULL,"
                                    + "areTagsExtracted BOOLEAN DEFAULT 0,"
-                                   + "messageNo int,"
+                                   + "messageNo BIGINT,"
                                    + "isValidMessage BOOLEAN DEFAULT 1,"
                                    + "PRIMARY KEY(messageID),"
                                    + "FOREIGN KEY(folderID) REFERENCES folders(folderID),"

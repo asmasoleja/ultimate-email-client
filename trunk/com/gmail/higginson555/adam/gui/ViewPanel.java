@@ -6,12 +6,17 @@ package com.gmail.higginson555.adam.gui;
 
 import com.gmail.higginson555.adam.AccountMessageDownloader;
 import com.gmail.higginson555.adam.ClientThreadPool;
+import com.gmail.higginson555.adam.FindMessageQueueItem;
 import com.gmail.higginson555.adam.queryParser.QueryParseException;
 import com.gmail.higginson555.adam.view.EmailFilterer;
 import com.gmail.higginson555.adam.view.View;
 import java.net.MalformedURLException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.mail.Message;
@@ -22,12 +27,17 @@ import javax.swing.JOptionPane;
  *
  * @author Adam
  */
-public class ViewPanel extends javax.swing.JPanel {
+public class ViewPanel extends javax.swing.JPanel implements PropertyListener
+{
 
     //The view this panel represents
     private View view;
-    //All the data this view holds after being filtered
+    //All the data this view holds after being filtered, messageID mapped to data
     private ArrayList<Object[]> filterData;
+    //Messages being searched
+    private HashMap<String, Object[]> currentSearchList;
+    
+    private EmailTableCellRenderer cellRenderer;
     
     /**
      * Creates new form ViewPanel
@@ -36,9 +46,12 @@ public class ViewPanel extends javax.swing.JPanel {
         if (view == null)
             System.out.println("View null!");
         this.view = view;
+        this.currentSearchList = new HashMap<String, Object[]>();
         this.setName(view.getViewName());
         initComponents();
         updateTableWithNewData();
+        this.cellRenderer = new EmailTableCellRenderer(filterData);
+        this.messageTable.setDefaultRenderer(Object.class, cellRenderer);
     }
 
     /**
@@ -118,7 +131,8 @@ public class ViewPanel extends javax.swing.JPanel {
     {
         if (view.getQuery() != null && !view.getQuery().isEmpty())
         {
-            try {
+            try 
+            {
                 Object[][] tableData = view.getQueryResults();
                 Object[][] newTableData = new Object[tableData.length][4];
                 filterData = new ArrayList<Object[]>(tableData.length);
@@ -138,6 +152,7 @@ public class ViewPanel extends javax.swing.JPanel {
                 JOptionPane.showMessageDialog(this, ex.getMessage(), "QueryException!", JOptionPane.ERROR_MESSAGE);
             } catch (SQLException ex) {
                 JOptionPane.showMessageDialog(this, ex.getMessage(), "SQLException!", JOptionPane.ERROR_MESSAGE);
+                ex.printStackTrace();
             }
             
         }
@@ -178,7 +193,7 @@ public class ViewPanel extends javax.swing.JPanel {
             int folderID = (Integer) line[7];
             String messageUID = (String) line[1];
             int messageID = (Integer) line[0];
-            int seqNo = (Integer) line[10];
+            long seqNo = (Long) line[10];
             boolean shouldExtractTags = (Boolean) line[9];
             try 
             {
@@ -189,8 +204,10 @@ public class ViewPanel extends javax.swing.JPanel {
                     int result = JOptionPane.showConfirmDialog(this, "Can't find message, click ok to begin searching", "Information", JOptionPane.OK_CANCEL_OPTION);
                     if (result == JOptionPane.OK_OPTION)
                     {
-                        ClientThreadPool.findMessageQueue.add(line);
-                        return;
+                        ClientThreadPool.findMessageQueue.add(new FindMessageQueueItem(this, line));
+                        line[11] = false;
+                        cellRenderer.updateTableDataEntry(index, line);
+                        currentSearchList.put(messageUID, line);
                     }
                     
                     return;
@@ -214,6 +231,20 @@ public class ViewPanel extends javax.swing.JPanel {
         updateTableWithNewData();
     }//GEN-LAST:event_refreshButtonActionPerformed
 
+    @Override
+    public void onPropertyEvent(Class source, String name, Object value) 
+    {
+        if (name.equalsIgnoreCase("foundMessage"))
+        {
+            System.out.println("Returned to GUI thread");
+            Object[] newMessageData = (Object[]) value;
+            System.out.println("New message data: " + newMessageData);
+            Object[] oldData = currentSearchList.remove((String) newMessageData[1]);
+            int index = filterData.indexOf(oldData);
+            System.out.println("Removed old data: " + filterData.remove(oldData));
+            filterData.add(index, newMessageData);
+        }
+    }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSeparator jSeparator1;
@@ -222,4 +253,6 @@ public class ViewPanel extends javax.swing.JPanel {
     private javax.swing.JButton refreshButton;
     private javax.swing.JLabel viewNameLabel;
     // End of variables declaration//GEN-END:variables
+
+
 }

@@ -1,5 +1,6 @@
 package com.gmail.higginson555.adam;
 
+import com.gmail.higginson555.adam.gui.PropertyListener;
 import com.sun.mail.imap.IMAPFolder;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -53,39 +54,125 @@ public class AccountMessageUpdater implements Runnable
         while (!ClientThreadPool.findMessageQueue.isEmpty())
         {
             //TODO find messages here
-            Object[] messageData = ClientThreadPool.findMessageQueue.remove();
+            FindMessageQueueItem queueItem = ClientThreadPool.findMessageQueue.remove();
+            Object[] messageData = queueItem.getOldMessageData();
+            PropertyListener listener = queueItem.getListener();
             String messageID = (String) messageData[1];
             try
             {
-                Folder[] folders = store.getDefaultFolder().list("*");
-                SearchTerm searchTerm = new MessageIDTerm(messageID);
-                for (Folder folder : folders)
+                database.updateRecord("Messages", "isValidMessage=0", "messageID='" + messageID + "'");
+                //Try and get message from each of the stored locations
+                ArrayList<Object[]> result = database.selectFromTableWhere("Messages",
+                        "folderID, messageNo", 
+                        "messageUID='" + messageID + "' AND isValidMessage=1");
+                if (!result.isEmpty())
                 {
-                    boolean wasOpenedByUs = false;
-                    if (!folder.isOpen())
+                    Object[] correctLine = null;
+                    Message message = null;
+                    int correctFolderID = -1;
+                    for (Object[] line : result)
                     {
-                        wasOpenedByUs = true;
-                        folder.open(Folder.READ_ONLY);
-                    }
-                    String folderName = folder.getFullName();
-                    //TODO check if folder doesn't already exist
+                        //Just get the first result, don't bother with the rest
+                        System.out.println("Result 0: " + result.get(0)[0]);
+                        int folderID = (Integer) line[0];
+                        long messageNo = (Long) line[1];
+                        ArrayList<Object[]> folderResult = database.
+                                selectFromTableWhere(
+                                "Folders", "urlName", 
+                                "folderID=" + Integer.toString(folderID) 
+                                + " AND accountUsername='" + account.getUsername() + "'");
+                        String folderName = (String) folderResult.get(0)[0];
 
-                    Message[] message = folder.search(searchTerm);
-                    if (message.length != 0)
-                    {
+
+                        IMAPFolder folder = (IMAPFolder) store.getFolder(folderName);
+                        if (!folder.isOpen())
+                        {
+                            folder.open(Folder.READ_ONLY);
+                        }
                         
+                        message = folder.getMessageByUID(messageNo);
+
+                        if (message != null)
+                        {
+                            System.out.println("Message subject: " + message.getSubject());
+                            correctLine = line;
+                            correctFolderID = folderID;
+                            break;
+                        }
                     }
                     
-                    if (wasOpenedByUs)
+                    if (correctLine != null)
                     {
-                        folder.close(false);
+                        System.out.println("Found correct line in DB Message-ID: " + messageID + " folderID: " + correctFolderID);
+                        ClientThreadPool.foundMessages.put(messageID, message);
+                        /*result = database.selectFromTableWhere("Messages", 
+                                "*", 
+                                "messageUID='" + messageID 
+                                + "' AND folderID=" + Integer.toString(correctFolderID));*/
+                        listener.onPropertyEvent(this.getClass(), "foundMessage", correctLine);
+                        continue;
                     }
                 }
-                int folderID = (Integer) messageData[7];
+                
+                Folder[] folders = store.getDefaultFolder().list("*");
+                SearchTerm searchTerm = new MessageIDTerm(messageID);
+                for (Folder currentFolder : folders)
+                {
+                    if (currentFolder instanceof IMAPFolder 
+                            && ((currentFolder.getType() & javax.mail.Folder.HOLDS_MESSAGES) != 0))
+                    {
+                        IMAPFolder folder = (IMAPFolder) currentFolder;
+                        boolean wasOpenedByUs = false;
+                        if (!folder.isOpen())
+                        {
+                            wasOpenedByUs = true;
+                            folder.open(Folder.READ_ONLY);
+                        }
+                        //TODO check if folder doesn't already exist
+
+                        Message[] messages = folder.search(searchTerm);
+                        System.out.println("Messages length: " + messages.length);
+                        if (messages.length != 0)
+                        {
+                            System.out.println("Found message in: " + folder.getFullName());
+                            //Should only be one message for search!
+                            Message foundMessage = messages[0];
+                            long newSeqNo = folder.getUID(foundMessage);
+                            ClientThreadPool.foundMessages.put(messageID, foundMessage);
+                            int folderID = (Integer) database.selectFromTableWhere
+                                    ("Folders", 
+                                    "folderID", 
+                                    "urlName='" + folder.getFullName() + "'")
+                                    .get(0)[0];
+                            database.updateRecord("Messages", 
+                                    "isValidMessage=1, folderID=" + Integer.toString(folderID) + ", messageNo=" + Long.toString(newSeqNo), 
+                                    "messageUID='" + messageID + "'");
+
+                            result = database.selectFromTableWhere("Messages", "*", "messageUID='" + messageID + "' AND folderID=" + Integer.toString(folderID));
+                            Object[] line = result.get(0);
+                            listener.onPropertyEvent(this.getClass(), "foundMessage", line);
+                            break;
+                        }
+
+                        if (wasOpenedByUs)
+                        {
+                            folder.close(false);
+                        }
+                    }
+                }
             }
             catch (MessagingException ex)
             {
                 JOptionPane.showMessageDialog(null, "Can't find message!", "MessagingException", JOptionPane.ERROR_MESSAGE);
+                ex.printStackTrace();
+            }
+            catch (SQLException ex)
+            {
+                JOptionPane.showMessageDialog(null, "Connection to SQL Server Lost!", "SQLException", JOptionPane.ERROR_MESSAGE);
+                ex.printStackTrace();
+            }
+            catch (Exception ex)
+            {
                 ex.printStackTrace();
             }
             
@@ -121,6 +208,8 @@ public class AccountMessageUpdater implements Runnable
             System.exit(-1);
         }
         
+        try
+        {
         //Scan through folder for deleted messages
         //Our data
         result = database.selectFromTableWhere("Messages", 
@@ -159,12 +248,13 @@ public class AccountMessageUpdater implements Runnable
         Collection<String> newMessages = ListUtils.subtract(serverUIDs, allUIDs);
 
         //UIDs should now just contain messages that wern't found on server
-        Iterator<String> UIDsIter = deletedUIDs.iterator();
+        /*Iterator<String> UIDsIter = deletedUIDs.iterator();
         while (UIDsIter.hasNext())
         {
             //"Delete" record
-            database.updateRecord("Messages", "isValidMessage=0", "messageUID='" + UIDsIter.next() + "'");
-        }           
+            System.out.println("Deleting valid message");
+            //database.updateRecord("Messages", "isValidMessage=0", "messageUID='" + UIDsIter.next() + "'");
+        }    */       
         
         HashSet<String> newMessageSet = new HashSet<String>(newMessages);
         System.out.println("New message set size: " + newMessageSet.size());
@@ -217,6 +307,11 @@ public class AccountMessageUpdater implements Runnable
                 "folderID=" + Integer.toString(folderID));
         
         insertMessagesWithTags(dbData);
+        }
+        catch (Exception ex)
+        {
+            ex.printStackTrace();
+        }
         
         
     }

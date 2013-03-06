@@ -327,7 +327,7 @@ public class Database
     {
         Statement update = connection.createStatement();
         String sql = "UPDATE " + tableName + " SET " + setSQL + " WHERE " + whereSQL;
-        //System.out.println("Query is: " + sql);
+        System.out.println("Query is: " + sql);
         update.execute(sql);
         update.close();
     }
