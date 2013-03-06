@@ -436,6 +436,10 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
                 }
             }
         }
+        else if (name.equalsIgnoreCase("MessageInsertDone"))
+        {
+            warningLabel.setText("State: OK");
+        }
         else if (name.equalsIgnoreCase("MessageManagerThreadStart"))
         {
             messageManagerThreads++;

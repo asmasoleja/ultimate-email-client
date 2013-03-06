@@ -27,8 +27,8 @@ public class ClientThreadPool
      * examined first. Causes the background thread to stop and try and 
      * find queue data.
      */
-    public static final ConcurrentLinkedQueue<Object[]> findMessageQueue 
-            = new ConcurrentLinkedQueue<Object[]>();
+    public static final ConcurrentLinkedQueue<FindMessageQueueItem> findMessageQueue 
+            = new ConcurrentLinkedQueue<FindMessageQueueItem>();
     
     /**
      * Maps messages ids to message objects found

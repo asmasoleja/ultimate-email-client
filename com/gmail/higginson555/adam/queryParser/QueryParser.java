@@ -289,7 +289,10 @@ public class QueryParser
                     //Select from database all messages from such a person
                     if (extensionOp.equalsIgnoreCase(MESSAGE_FROM))
                     {
-                        ArrayList<Object[]> result = database.selectFromTableWhere("Messages", "messageID, messageUID, folderID, seqNo", "messageFrom LIKE '%" + extensionTag + "%'");
+                        ArrayList<Object[]> result = database.selectFromTableWhere(
+                                "Messages", 
+                                "messageID, messageUID, folderID, seqNo", 
+                                "isValidMessage=1 AND messageFrom LIKE '%" + extensionTag + "%'");
                         ArrayList<Integer> messageIDs = new ArrayList<Integer>(result.size());
                         for (Object[] line : result)
                         {
@@ -314,7 +317,9 @@ public class QueryParser
                     }
                     else if (extensionOp.equalsIgnoreCase(MESSAGE_TO))
                     {
-                        ArrayList<Object[]> result = database.selectFromTableWhere("Messages", "messageID, messageUID, folderID, seqNo", "messageTo LIKE '%" + extensionTag + "%'");
+                        ArrayList<Object[]> result = database.selectFromTableWhere("Messages", 
+                                "messageID, messageUID, folderID, seqNo", 
+                                "isValidMessage=1 AND messageTo LIKE '%" + extensionTag + "%'");
                         ArrayList<Integer> messageIDs = new ArrayList<Integer>(result.size());
                         for (Object[] line : result)
                         {
@@ -329,6 +334,7 @@ public class QueryParser
                             }
                             else
                             {
+                                
                                 messageIDs.add(id);
                                 MessageFolderInfo msgInfo = new MessageFolderInfo(id, seqNo);
                                 uidToMessageInfo.put(UID, msgInfo);
@@ -355,7 +361,16 @@ public class QueryParser
                         for (Object[] messageResult : messageResults)
                         {
                             int messageID = (Integer) messageResult[0];
-                            selectedIDs.add(messageID);
+                                                    ArrayList<Object[]> checkValidResult 
+                                = database.selectFromTableWhere
+                                ("Messages", 
+                                "messageID", 
+                                "messageID=" + Integer.toString(messageID) 
+                                + " AND isValidMessage=1");
+                            if (!checkValidResult.isEmpty())
+                            {
+                                selectedIDs.add(messageID);
+                            }
                             System.out.println("Adding message: " + messageID);
                         }
                         
@@ -390,7 +405,16 @@ public class QueryParser
                     for (Object[] messageResult : messageResults)
                     {
                         int messageID = (Integer) messageResult[0];
-                        messageIDs.add(messageID);
+                        ArrayList<Object[]> checkValidResult 
+                                = database.selectFromTableWhere
+                                ("Messages", 
+                                "messageID", 
+                                "messageID=" + Integer.toString(messageID) 
+                                + " AND isValidMessage=1");
+                        if (!checkValidResult.isEmpty())
+                        {
+                            messageIDs.add(messageID);
+                        }
                     }
                 }
             }
@@ -419,7 +443,7 @@ public class QueryParser
                 {
                     ArrayList<Object[]> result 
                         = database.selectFromTableWhere("Messages", 
-                        "messageID", "messageFrom LIKE '%" + extensionTag + "%'");
+                        "messageID", "isValidMessage=1 AND messageFrom LIKE '%" + extensionTag + "%'");
                     
                     for (Object[] line : result)
                     {
@@ -499,7 +523,16 @@ public class QueryParser
                         //we have found a message
                         if (result.size() == tagIDs.size())
                         {
-                            selectedIDs.add(messageID);
+                            ArrayList<Object[]> checkValidResult 
+                                = database.selectFromTableWhere
+                                ("Messages", 
+                                "messageID", 
+                                "messageID=" + Integer.toString(messageID) 
+                                + " AND isValidMessage=1");
+                            if (!checkValidResult.isEmpty())
+                            {
+                                selectedIDs.add(messageID);
+                            }
                             //System.out.println("Found message: " + messageID);
                         }
                     }
@@ -520,11 +553,11 @@ public class QueryParser
                         String whereSQL = ""; 
                         if (extensionOp.equalsIgnoreCase(MESSAGE_FROM))
                         {
-                            whereSQL += "messageID=" + Integer.toString(id) + " AND messageFrom LIKE '%" + extensionTag + "%'";
+                            whereSQL += "isValidMessage=1 AND messageID=" + Integer.toString(id) + " AND messageFrom LIKE '%" + extensionTag + "%'";
                         }
                         else if (extensionOp.equalsIgnoreCase(MESSAGE_TO))
                         {
-                            whereSQL += "messageID=" + Integer.toString(id) + " AND messageTo LIKE '%" + extensionTag + "%'";
+                            whereSQL += "isValidMessage=1 AND messageID=" + Integer.toString(id) + " AND messageTo LIKE '%" + extensionTag + "%'";
                         }
                         
                         ArrayList<Object[]> result = database.selectFromTableWhere("Messages", "messageID", whereSQL);
@@ -549,7 +582,7 @@ public class QueryParser
                     int messageID = selectedIDs.get(i);
                     String messageString = Integer.toString(messageID);
                     
-                    String whereSQL = "messageID=" + messageString + " AND (tagID=" + Integer.toString(tagIDs.get(0));
+                    String whereSQL = "isValidMessage=1 AND messageID=" + messageString + " AND (tagID=" + Integer.toString(tagIDs.get(0));
                     for (int j = 1; j < tagIDs.size(); j++)
                     {
                         whereSQL += " OR tagID=" + Integer.toString(tagIDs.get(j));
@@ -583,11 +616,11 @@ public class QueryParser
                         String whereSQL = ""; 
                         if (extensionOp.equalsIgnoreCase(MESSAGE_FROM))
                         {
-                            whereSQL += "messageID=" + Integer.toString(id) + " AND messageFrom LIKE '%" + extensionTag + "%'";
+                            whereSQL += "isValidMessage=1 AND messageID=" + Integer.toString(id) + " AND messageFrom LIKE '%" + extensionTag + "%'";
                         }
                         else if (extensionOp.equalsIgnoreCase(MESSAGE_TO))
                         {
-                            whereSQL += "messageID=" + Integer.toString(id) + " AND messageTo LIKE '%" + extensionTag + "%'";
+                            whereSQL += "isValidMessage=1 AND messageID=" + Integer.toString(id) + " AND messageTo LIKE '%" + extensionTag + "%'";
                         }
                         
                         ArrayList<Object[]> result = database.selectFromTableWhere("Messages", "messageID", whereSQL);
