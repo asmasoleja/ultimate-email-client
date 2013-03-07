@@ -100,6 +100,7 @@ public class ViewMailScreen extends JPanel
             //Remove HTML from the string, for inserting tags into the database
             String withoutHTML = Jsoup.parse(body).text();
             //Get tags and insert into local user database
+            System.out.println("Should extract tags?" + extractTags);
             if (extractTags)
             {
                 System.out.println("Inserting tags!");
@@ -300,7 +301,6 @@ public class ViewMailScreen extends JPanel
         attachmentList = new javax.swing.JList();
         browserPanel = new javax.swing.JPanel();
 
-
         fromLabelStatic.setText("From:");
 
         toLabelStatic.setText("To:");
@@ -380,7 +380,7 @@ public class ViewMailScreen extends JPanel
         browserPanel.setLayout(browserPanelLayout);
         browserPanelLayout.setHorizontalGroup(
             browserPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
+            .addGap(0, 577, Short.MAX_VALUE)
         );
         browserPanelLayout.setVerticalGroup(
             browserPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -408,7 +408,7 @@ public class ViewMailScreen extends JPanel
                                 .addComponent(forwardButton)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(deleteButton)))
-                        .addGap(392, 572, Short.MAX_VALUE))
+                        .addGap(392, 411, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(browserPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -422,7 +422,7 @@ public class ViewMailScreen extends JPanel
                                     .addComponent(fromLabel)
                                     .addComponent(replyToLabel)
                                     .addComponent(toLabel))
-                                .addGap(0, 299, Short.MAX_VALUE)
+                                .addGap(0, 43, Short.MAX_VALUE)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jLabel2)
                                     .addComponent(sentLabelStatic))
