@@ -21,6 +21,7 @@ import javax.mail.internet.MimeBodyPart;
 import javax.swing.DefaultListModel;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import org.jsoup.Jsoup;
 /*import org.lobobrowser.html.UserAgentContext;
 import org.lobobrowser.html.parser.DocumentBuilderImpl;
@@ -31,7 +32,8 @@ import org.lobobrowser.html.test.SimpleUserAgentContext;/*
  *
  * @author Adam
  */
-public class ViewMailScreen extends javax.swing.JFrame {
+public class ViewMailScreen extends JPanel
+{
 
     //The attatchment number, used for saving attatchments without
     //a filename
@@ -109,8 +111,10 @@ public class ViewMailScreen extends javax.swing.JFrame {
         } 
         catch (Exception ex) 
         {
-            JOptionPane.showConfirmDialog(rootPane, "Error! Could not show message\n" + ex.getMessage(), "Error!", JOptionPane.OK_OPTION);
+            JOptionPane.showConfirmDialog(null, "Error! Could not show message\n" + ex.getMessage(), "Error!", JOptionPane.OK_OPTION);
         }
+
+        this.setName(subject);
     }
     
     /*
@@ -296,8 +300,6 @@ public class ViewMailScreen extends javax.swing.JFrame {
         attachmentList = new javax.swing.JList();
         browserPanel = new javax.swing.JPanel();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle("View Message");
 
         fromLabelStatic.setText("From:");
 
@@ -318,7 +320,7 @@ public class ViewMailScreen extends javax.swing.JFrame {
         }
         catch (MessagingException ex)
         {
-            JOptionPane.showConfirmDialog(rootPane, "Could not get from field!", "Error!", JOptionPane.OK_OPTION);
+            JOptionPane.showConfirmDialog(null, "Could not get from field!", "Error!", JOptionPane.OK_OPTION);
             ex.printStackTrace();
         }
 
@@ -338,7 +340,7 @@ public class ViewMailScreen extends javax.swing.JFrame {
         try { subject = message.getSubject(); }
         catch (MessagingException ex)
         {
-            JOptionPane.showConfirmDialog(rootPane, "Could not get subject field!", "Error!", JOptionPane.OK_OPTION);
+            JOptionPane.showConfirmDialog(null, "Could not get subject field!", "Error!", JOptionPane.OK_OPTION);
             ex.printStackTrace();
         }
 
@@ -387,8 +389,8 @@ public class ViewMailScreen extends javax.swing.JFrame {
 
         browserPanel.setLayout(new BorderLayout());
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
+        this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
@@ -468,8 +470,6 @@ public class ViewMailScreen extends javax.swing.JFrame {
                 .addComponent(browserPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
         );
-
-        pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void attachmentListMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_attachmentListMouseClicked
@@ -498,11 +498,11 @@ public class ViewMailScreen extends javax.swing.JFrame {
                 } 
                 catch (IOException ex) 
                 {
-                    JOptionPane.showMessageDialog(rootPane, ex.toString(), "IOException", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(null, ex.toString(), "IOException", JOptionPane.ERROR_MESSAGE);
                 } 
                 catch (MessagingException ex) 
                 {
-                    JOptionPane.showMessageDialog(rootPane, ex.toString(), "Messaging Exception", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(null, ex.toString(), "Messaging Exception", JOptionPane.ERROR_MESSAGE);
                 }
             }
         }

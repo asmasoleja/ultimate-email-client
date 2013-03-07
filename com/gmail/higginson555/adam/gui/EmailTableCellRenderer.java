@@ -55,11 +55,11 @@ public class EmailTableCellRenderer extends DefaultTableCellRenderer
         
         //TODO
         //System.out.println("Table data: " + tableData.get(row)[11]);
-        boolean isValidMessage = (Boolean) tableData.get(row)[11];
-        if (!isValidMessage)
+        //boolean isValidMessage = (Boolean) tableData.get(row)[11];
+        /*if (!isValidMessage)
         {
             c.setForeground(Color.red);
-        }
+        }*/
         
         return c;       
     }
