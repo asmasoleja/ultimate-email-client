@@ -23,6 +23,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.mail.Address;
 import javax.mail.FetchProfile;
+import javax.mail.Flags.Flag;
 import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -346,6 +347,7 @@ public class AccountMessageDownloader extends Thread
                 from += addresses[0].toString();
             }
             String to = "";
+            boolean isRead = allMessages[i].getFlags().contains(Flag.SEEN);
             //This bit here is slow for some reason?
             /*addresses = allMessages[i].getAllRecipients();
             if (addresses != null)
@@ -372,7 +374,7 @@ public class AccountMessageDownloader extends Thread
             Date dateSent = allMessages[i].getSentDate();
             Date dateReceived = allMessages[i].getReceivedDate();
             
-            Object[] line = {UID, subject, from, to, dateSent, dateReceived, folderID, account.getUsername(), messageNo};
+            Object[] line = {UID, subject, from, to, dateSent, dateReceived, folderID, account.getUsername(), messageNo, isRead};
             dbData.add(line);
         }
         
@@ -461,7 +463,7 @@ public class AccountMessageDownloader extends Thread
         
         System.out.println("Inserting data: " + dbData.size());
         String[] fieldNames = {"messageUID", "subject", "messageFrom", 
-                               "messageTo", "dateSent", "dateReceived", "folderID", "accountUsername", "messageNo"};
+                               "messageTo", "dateSent", "dateReceived", "folderID", "accountUsername", "messageNo", "isRead"};
         
         try
         {

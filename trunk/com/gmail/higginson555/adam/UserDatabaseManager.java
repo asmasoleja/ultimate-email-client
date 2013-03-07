@@ -85,6 +85,7 @@ public class UserDatabaseManager
                                    + "areTagsExtracted BOOLEAN DEFAULT 0,"
                                    + "messageNo BIGINT,"
                                    + "isValidMessage BOOLEAN DEFAULT 1,"
+                                   + "isRead BOOLEAN DEFAULT 0,"
                                    + "PRIMARY KEY(messageID),"
                                    + "FOREIGN KEY(folderID) REFERENCES folders(folderID),"
                                    + "FOREIGN KEY(accountUsername) REFERENCES accounts(username)";

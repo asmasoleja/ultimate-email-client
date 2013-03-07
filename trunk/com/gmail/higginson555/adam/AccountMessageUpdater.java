@@ -276,6 +276,7 @@ public class AccountMessageUpdater implements Runnable
                     from += addresses[0].toString();
                 }
                 String to = "";
+                boolean isRead = messages[i].getFlags().contains(Flag.SEEN);
                 //This bit here is slow for some reason?
                 /*addresses = messages[i].getAllRecipients();
                 if (addresses != null)
@@ -296,7 +297,7 @@ public class AccountMessageUpdater implements Runnable
                 Date dateSent = messages[i].getSentDate();
                 Date dateReceived = messages[i].getReceivedDate();
 
-                Object[] line = {UID, subject, from, to, dateSent, dateReceived, folderID, account.getUsername(), messageNo};
+                Object[] line = {UID, subject, from, to, dateSent, dateReceived, folderID, account.getUsername(), messageNo, isRead};
                 dbData.add(line);
             }
         }
@@ -320,7 +321,7 @@ public class AccountMessageUpdater implements Runnable
     {   
         System.out.println("Inserting data: " + dbData.size());
         String[] fieldNames = {"messageUID", "subject", "messageFrom", 
-                               "messageTo", "dateSent", "dateReceived", "folderID", "accountUsername", "messageNo"};
+                               "messageTo", "dateSent", "dateReceived", "folderID", "accountUsername", "messageNo", "isRead"};
         
         try
         {

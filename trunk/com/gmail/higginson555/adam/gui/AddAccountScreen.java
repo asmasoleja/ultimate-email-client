@@ -47,11 +47,11 @@ public class AddAccountScreen extends javax.swing.JFrame {
         setLocationRelativeTo(null);
         
         this.usernameField.setText("ultimateemailtest@gmail.com");
-        this.passwordField.setText("oak19house");
+        this.passwordField.setText("");
         this.incomingField.setText("imap.gmail.com");
         this.outgoingField.setText("smtp.gmail.com");
         this.portField.setText("997");
-        this.serverCombo.setSelectedIndex(2);
+        this.serverCombo.setSelectedIndex(1);
     }
     
     public AddAccountScreen(Properties props, boolean firstTime) 
@@ -75,7 +75,7 @@ public class AddAccountScreen extends javax.swing.JFrame {
         }
         catch (GeneralSecurityException ex)
         {
-            JOptionPane.showMessageDialog(rootPane, ex.toString(), "GeneralSecuritException", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(rootPane, ex.toString(), "GeneralSecurityException", JOptionPane.ERROR_MESSAGE);
         }
         catch (IOException ex)
         {
@@ -131,12 +131,12 @@ public class AddAccountScreen extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setResizable(false);
 
-        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 12));
         jLabel1.setText("Server Information");
 
         jLabel2.setText("Account Type:");
 
-        serverCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] {"POP3", "IMAP", "IMAPS"}));
+        serverCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] {"IMAP", "IMAPS"}));
         serverCombo.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 serverComboActionPerformed(evt);
@@ -147,14 +147,14 @@ public class AddAccountScreen extends javax.swing.JFrame {
 
         jLabel4.setText("Outgoing mail server (SMTP):");
 
-        jLabel5.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        jLabel5.setFont(new java.awt.Font("Tahoma", 1, 12));
         jLabel5.setText("Login Information");
 
         jLabel6.setText("Username:");
 
         jLabel7.setText("Password:");
 
-        jLabel8.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jLabel8.setFont(new java.awt.Font("Tahoma", 1, 14));
         jLabel8.setText("Add Account");
 
         jLabel9.setText("Add a new account");
@@ -185,7 +185,7 @@ public class AddAccountScreen extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jSeparator1, javax.swing.GroupLayout.DEFAULT_SIZE, 389, Short.MAX_VALUE)
+            .addComponent(jSeparator1, javax.swing.GroupLayout.DEFAULT_SIZE, 422, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
@@ -202,7 +202,7 @@ public class AddAccountScreen extends javax.swing.JFrame {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(jLabel5)
-                                .addGap(0, 236, Short.MAX_VALUE))
+                                .addGap(0, 269, Short.MAX_VALUE))
                             .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jLabel2)
@@ -216,16 +216,16 @@ public class AddAccountScreen extends javax.swing.JFrame {
                                 .addGap(21, 21, 21)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                        .addComponent(addButton, javax.swing.GroupLayout.DEFAULT_SIZE, 85, Short.MAX_VALUE)
+                                        .addComponent(addButton, javax.swing.GroupLayout.DEFAULT_SIZE, 124, Short.MAX_VALUE)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(cancelButton)
                                         .addGap(5, 5, 5))
-                                    .addComponent(incomingField, javax.swing.GroupLayout.DEFAULT_SIZE, 151, Short.MAX_VALUE)
-                                    .addComponent(serverCombo, 0, 151, Short.MAX_VALUE)
-                                    .addComponent(outgoingField, javax.swing.GroupLayout.DEFAULT_SIZE, 151, Short.MAX_VALUE)
-                                    .addComponent(usernameField, javax.swing.GroupLayout.DEFAULT_SIZE, 151, Short.MAX_VALUE)
-                                    .addComponent(passwordField, javax.swing.GroupLayout.DEFAULT_SIZE, 151, Short.MAX_VALUE)
-                                    .addComponent(portField, javax.swing.GroupLayout.DEFAULT_SIZE, 151, Short.MAX_VALUE))))))
+                                    .addComponent(incomingField, javax.swing.GroupLayout.DEFAULT_SIZE, 190, Short.MAX_VALUE)
+                                    .addComponent(serverCombo, 0, 190, Short.MAX_VALUE)
+                                    .addComponent(outgoingField, javax.swing.GroupLayout.DEFAULT_SIZE, 190, Short.MAX_VALUE)
+                                    .addComponent(usernameField, javax.swing.GroupLayout.DEFAULT_SIZE, 190, Short.MAX_VALUE)
+                                    .addComponent(passwordField, javax.swing.GroupLayout.DEFAULT_SIZE, 190, Short.MAX_VALUE)
+                                    .addComponent(portField, javax.swing.GroupLayout.DEFAULT_SIZE, 190, Short.MAX_VALUE))))))
                 .addContainerGap())
         );
         layout.setVerticalGroup(

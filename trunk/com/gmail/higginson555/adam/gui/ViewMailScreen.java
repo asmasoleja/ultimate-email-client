@@ -301,10 +301,13 @@ public class ViewMailScreen extends JPanel
         attachmentList = new javax.swing.JList();
         browserPanel = new javax.swing.JPanel();
 
+        fromLabelStatic.setFont(new java.awt.Font("DejaVu Sans", 1, 13)); // NOI18N
         fromLabelStatic.setText("From:");
 
+        toLabelStatic.setFont(new java.awt.Font("DejaVu Sans", 1, 13)); // NOI18N
         toLabelStatic.setText("To:");
 
+        sentLabelStatic.setFont(new java.awt.Font("DejaVu Sans", 1, 13)); // NOI18N
         sentLabelStatic.setText("Sent:");
 
         String messageFrom = null;
@@ -333,6 +336,7 @@ public class ViewMailScreen extends JPanel
 
         toLabel.setText("To Label");
 
+        subjectLabelStatic.setFont(new java.awt.Font("DejaVu Sans", 1, 13)); // NOI18N
         subjectLabelStatic.setText("Subject:");
 
         String subject = null;
@@ -362,10 +366,12 @@ public class ViewMailScreen extends JPanel
 
         sentLabel.setText("Sent Label");
 
+        jLabel1.setFont(new java.awt.Font("DejaVu Sans", 1, 13)); // NOI18N
         jLabel1.setText("Reply To:");
 
         replyToLabel.setText("Reply To");
 
+        jLabel2.setFont(new java.awt.Font("DejaVu Sans", 1, 13)); // NOI18N
         jLabel2.setText("Attachments:");
 
         attachmentList.setModel(new DefaultListModel());
@@ -384,7 +390,7 @@ public class ViewMailScreen extends JPanel
         );
         browserPanelLayout.setVerticalGroup(
             browserPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 430, Short.MAX_VALUE)
+            .addGap(0, 435, Short.MAX_VALUE)
         );
 
         browserPanel.setLayout(new BorderLayout());
@@ -400,7 +406,7 @@ public class ViewMailScreen extends JPanel
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(subjectLabelStatic)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addGap(12, 12, 12)
                                 .addComponent(subjectLabel))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(replyButton)
@@ -415,14 +421,14 @@ public class ViewMailScreen extends JPanel
                             .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jLabel1)
-                                    .addComponent(toLabelStatic, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(fromLabelStatic))
+                                    .addComponent(fromLabelStatic)
+                                    .addComponent(toLabelStatic, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(fromLabel)
                                     .addComponent(replyToLabel)
                                     .addComponent(toLabel))
-                                .addGap(0, 43, Short.MAX_VALUE)
+                                .addGap(0, 16, Short.MAX_VALUE)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jLabel2)
                                     .addComponent(sentLabelStatic))
@@ -442,19 +448,20 @@ public class ViewMailScreen extends JPanel
                     .addComponent(deleteButton))
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(fromLabelStatic)
-                            .addComponent(fromLabel))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel1)
-                            .addComponent(replyToLabel))
-                        .addGap(11, 11, 11)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(fromLabel)
+                            .addComponent(fromLabelStatic))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(replyToLabel)
+                            .addComponent(jLabel1))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addComponent(toLabel)
-                            .addComponent(toLabelStatic, javax.swing.GroupLayout.Alignment.TRAILING))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(toLabelStatic))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(subjectLabel)
                             .addComponent(subjectLabelStatic)))
                     .addGroup(layout.createSequentialGroup()

@@ -243,6 +243,9 @@ public class Database
                 else if (line[i] instanceof String) {
                     ps.setString(i + 1, (String)line[i]);
                 }
+                else if (line[i] instanceof Boolean) {
+                    ps.setBoolean(i + 1, (Boolean) line[i]);
+                }
                 else
                 {
                     System.out.println("Warning, not setting something! Value: " + line[i] + " fieldName " + fieldNames[i]);

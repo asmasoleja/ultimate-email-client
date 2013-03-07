@@ -6,6 +6,7 @@ package com.gmail.higginson555.adam.gui;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Font;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -52,6 +53,21 @@ public class EmailTableCellRenderer extends DefaultTableCellRenderer
     {
         Component c = super.getTableCellRendererComponent(table, value, 
                                     isSelected, hasFocus, row, column);
+
+        if (tableData != null && tableData.get(row) != null)
+        {
+            boolean isRead = (Boolean) tableData.get(row)[12];
+            if (!isRead)
+            {
+                c.setFont(c.getFont().deriveFont(Font.BOLD));
+            }
+            
+            boolean isValidMessage = (Boolean) tableData.get(row)[11];
+            if (!isValidMessage)
+            {
+                c.setForeground(Color.red);
+            }
+        }
         
         //TODO
         //System.out.println("Table data: " + tableData.get(row)[11]);
