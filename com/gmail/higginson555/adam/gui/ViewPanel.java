@@ -228,7 +228,7 @@ public class ViewPanel extends javax.swing.JPanel implements PropertyListener
             String messageUID = (String) line[1];
             int messageID = (Integer) line[0];
             long seqNo = (Long) line[10];
-            boolean shouldExtractTags = (Boolean) line[9];
+            boolean shouldExtractTags = !(Boolean) line[9];
             try 
             {
                 //Find message with this data
