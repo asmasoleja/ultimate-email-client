@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
@@ -96,7 +97,7 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Ultimate E-mail Client");
 
-        viewsLabel.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        viewsLabel.setFont(new java.awt.Font("Tahoma", 1, 12));
         viewsLabel.setText("Views");
 
         viewTree.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -106,7 +107,7 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
         });
         jScrollPane1.setViewportView(viewTree);
 
-        openViewsLabel.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        openViewsLabel.setFont(new java.awt.Font("Tahoma", 1, 12));
         openViewsLabel.setText("Opened Views");
 
         warningLabel.setText("State: OK");
@@ -123,7 +124,6 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
         newAccountButton.setBorder(null);
         newAccountButton.setBorderPainted(false);
         newAccountButton.setIconTextGap(0);
-        newAccountButton.setMargin(new java.awt.Insets(0, 0, 0, 0));
         newAccountButton.setName(""); // NOI18N
         newAccountButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -131,16 +131,12 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
             }
         });
 
-        newMessageButton.setIcon(new javax.swing.ImageIcon("C:\\Users\\Adam\\Documents\\NetBeansProjects\\Ultimate E-mail Client\\Images\\NewMessageIcon.png")); // NOI18N
         newMessageButton.setToolTipText("");
-        newMessageButton.setMargin(new java.awt.Insets(0, 0, 0, 0));
 
-        newViewButton1.setIcon(new javax.swing.ImageIcon("C:\\Users\\Adam\\Documents\\NetBeansProjects\\Ultimate E-mail Client\\Images\\NewViewIcon.png")); // NOI18N
         newViewButton1.setToolTipText("Create a new view");
         newViewButton1.setBorder(null);
         newViewButton1.setBorderPainted(false);
         newViewButton1.setIconTextGap(0);
-        newViewButton1.setMargin(new java.awt.Insets(0, 0, 0, 0));
         newViewButton1.setName(""); // NOI18N
         newViewButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -193,32 +189,30 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
                             .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 433, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(tabbedPane)
+                            .addComponent(tabbedPane, javax.swing.GroupLayout.DEFAULT_SIZE, 700, Short.MAX_VALUE)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(openViewsLabel)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 451, Short.MAX_VALUE)
                                 .addComponent(closeTabButton)
                                 .addGap(14, 14, 14))))
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(warningLabel)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(newMessageButton, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(newViewButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(newAccountButton)))
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                        .addComponent(newMessageButton, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(newViewButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(newAccountButton)
+                        .addGap(0, 991, Short.MAX_VALUE))
+                    .addComponent(warningLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 926, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
-            .addComponent(jSeparator1)
+            .addComponent(jSeparator1, javax.swing.GroupLayout.DEFAULT_SIZE, 1169, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(newMessageButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(newViewButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(newMessageButton, javax.swing.GroupLayout.DEFAULT_SIZE, 48, Short.MAX_VALUE)
+                    .addComponent(newViewButton1, javax.swing.GroupLayout.DEFAULT_SIZE, 48, Short.MAX_VALUE)
                     .addComponent(newAccountButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -292,7 +286,10 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
                 if (nodeObject instanceof View)
                 {
                     View view = (View) nodeObject;
-                    tabbedPane.add(new ViewPanel(view));
+                    System.out.println("Creating view panel with: " + view.getQuery());
+                    ViewPanel viewPanel = new ViewPanel(view);
+                    viewPanel.addListener(this);
+                    tabbedPane.add(viewPanel);
                 }
             }
         }
@@ -454,6 +451,18 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
             {
                 warningLabel.setText("State: OK");
             }
+        }
+        else if (name.equalsIgnoreCase("MessageOpened"))
+        {
+            Object[] data = (Object[]) value;
+            Message msg = (Message) data[0];
+            Account account = (Account) data[1];
+            int messageID = (Integer) data[2];
+            boolean shouldExtractTags = (Boolean) data[3];
+
+
+            tabbedPane.add(new ViewMailScreen(msg, account, messageID, shouldExtractTags));
+
         }
                 
     }

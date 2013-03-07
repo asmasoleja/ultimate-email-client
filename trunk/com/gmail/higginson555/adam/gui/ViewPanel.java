@@ -10,17 +10,10 @@ import com.gmail.higginson555.adam.FindMessageQueueItem;
 import com.gmail.higginson555.adam.queryParser.QueryParseException;
 import com.gmail.higginson555.adam.view.EmailFilterer;
 import com.gmail.higginson555.adam.view.View;
-import java.net.MalformedURLException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.mail.Message;
-import javax.mail.MessagingException;
 import javax.swing.JOptionPane;
 
 /**
@@ -36,6 +29,8 @@ public class ViewPanel extends javax.swing.JPanel implements PropertyListener
     private ArrayList<Object[]> filterData;
     //Messages being searched
     private HashMap<String, Object[]> currentSearchList;
+    //Listeners
+    private ArrayList<PropertyListener> listeners;
     
     private EmailTableCellRenderer cellRenderer;
     
@@ -49,9 +44,11 @@ public class ViewPanel extends javax.swing.JPanel implements PropertyListener
         this.currentSearchList = new HashMap<String, Object[]>();
         this.setName(view.getViewName());
         initComponents();
+        this.queryField.setText(this.view.getQuery());
         updateTableWithNewData();
         this.cellRenderer = new EmailTableCellRenderer(filterData);
         this.messageTable.setDefaultRenderer(Object.class, cellRenderer);
+        this.listeners = new ArrayList<PropertyListener>();
     }
 
     /**
@@ -69,11 +66,13 @@ public class ViewPanel extends javax.swing.JPanel implements PropertyListener
         jScrollPane1 = new javax.swing.JScrollPane();
         messageTable = new javax.swing.JTable();
         refreshButton = new javax.swing.JButton();
+        queryLabel = new javax.swing.JLabel();
+        queryField = new javax.swing.JTextField();
 
-        viewNameLabel.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
+        viewNameLabel.setFont(new java.awt.Font("Tahoma", 1, 18));
         viewNameLabel.setText(view.getViewName());
 
-        messagesLabel.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        messagesLabel.setFont(new java.awt.Font("Tahoma", 1, 11));
         messagesLabel.setText("Messages");
 
         messageTable.setModel(new EmailTableModel());
@@ -92,21 +91,28 @@ public class ViewPanel extends javax.swing.JPanel implements PropertyListener
             }
         });
 
+        queryLabel.setFont(new java.awt.Font("DejaVu Sans", 1, 13)); // NOI18N
+        queryLabel.setText("Query:");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jSeparator1, javax.swing.GroupLayout.Alignment.TRAILING)
+            .addComponent(jSeparator1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 741, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 717, Short.MAX_VALUE)
+                .addComponent(messagesLabel)
+                .addContainerGap(665, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 717, Short.MAX_VALUE)
+                    .addComponent(viewNameLabel, javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(viewNameLabel)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(messagesLabel)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(queryLabel)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(queryField, javax.swing.GroupLayout.DEFAULT_SIZE, 582, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(refreshButton)))
                 .addContainerGap())
         );
@@ -117,18 +123,46 @@ public class ViewPanel extends javax.swing.JPanel implements PropertyListener
                 .addComponent(viewNameLabel)
                 .addGap(4, 4, 4)
                 .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(4, 4, 4)
+                .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(messagesLabel)
+                    .addComponent(queryField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(queryLabel)
                     .addComponent(refreshButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 488, Short.MAX_VALUE)
+                .addComponent(messagesLabel)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 454, Short.MAX_VALUE)
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void publishPropertyEvent(String name, Object Value)
+    {
+        for (PropertyListener listener : listeners)
+        {
+            listener.onPropertyEvent(this.getClass(), name, Value);
+        }
+    }
+
+    public void addListener(PropertyListener listener)
+    {
+        listeners.add(listener);
+    }
+
     private void updateTableWithNewData()
     {
+        if (!queryField.getText().isEmpty())
+        {
+            try
+            {
+                view.setQuery(queryField.getText());
+            }
+            catch (SQLException ex)
+            {
+                JOptionPane.showMessageDialog(null, "Lost connection to the SQL Server!", "SQLException", JOptionPane.ERROR_MESSAGE);
+                ex.printStackTrace();
+            }
+        }
         if (view.getQuery() != null && !view.getQuery().isEmpty())
         {
             try 
@@ -215,8 +249,10 @@ public class ViewPanel extends javax.swing.JPanel implements PropertyListener
                 else
                 {
                     System.out.println("Found message titled: " + foundMessage.getSubject());
-                    ViewMailScreen vms = new ViewMailScreen(foundMessage, view.getAccount(), messageID, shouldExtractTags);
-                    vms.setVisible(true);
+                    //ViewMailScreen vms = new ViewMailScreen(foundMessage, view.getAccount(), messageID, shouldExtractTags);
+                    //vms.setVisible(true);
+                    Object[] data = {foundMessage, view.getAccount(), messageID, shouldExtractTags};
+                    publishPropertyEvent("MessageOpened", data);
                 }
             } 
             catch (Exception ex)
@@ -250,6 +286,8 @@ public class ViewPanel extends javax.swing.JPanel implements PropertyListener
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JTable messageTable;
     private javax.swing.JLabel messagesLabel;
+    private javax.swing.JTextField queryField;
+    private javax.swing.JLabel queryLabel;
     private javax.swing.JButton refreshButton;
     private javax.swing.JLabel viewNameLabel;
     // End of variables declaration//GEN-END:variables

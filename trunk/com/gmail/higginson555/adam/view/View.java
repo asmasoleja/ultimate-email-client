@@ -256,6 +256,8 @@ public class View
             {
                 view = new View(viewName, account, keyWords);
             }
+
+            System.out.println("FOUND VIEW QUERY: " + viewQuery);
             view.id = viewID;
             
             returnList.add(view);
@@ -267,6 +269,13 @@ public class View
     public String getQuery()
     {
         return query;
+    }
+
+    public void setQuery(String query) throws SQLException
+    {
+        this.query = query;
+        Database db = UserDatabase.getInstance();
+        db.updateRecord("Views", "query='" + query + "'", "viewID=" + Integer.toString(id));
     }
     
     public Object[][] getQueryResults() throws QueryParseException, SQLException
