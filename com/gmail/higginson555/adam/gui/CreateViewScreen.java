@@ -70,11 +70,13 @@ public class CreateViewScreen extends javax.swing.JFrame {
         accountsComboBox = new javax.swing.JComboBox();
         jLabel6 = new javax.swing.JLabel();
         queryField = new javax.swing.JTextField();
+        jLabel7 = new javax.swing.JLabel();
+        nameField = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Create View");
 
-        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 11));
         jLabel1.setText("Add word:");
 
         addKeyWordButton.setText("Add");
@@ -84,7 +86,7 @@ public class CreateViewScreen extends javax.swing.JFrame {
             }
         });
 
-        jLabel2.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        jLabel2.setFont(new java.awt.Font("Tahoma", 1, 11));
         jLabel2.setText("Key Words:");
 
         keyWordsTextArea.setEditable(false);
@@ -92,7 +94,7 @@ public class CreateViewScreen extends javax.swing.JFrame {
         keyWordsTextArea.setRows(5);
         jScrollPane1.setViewportView(keyWordsTextArea);
 
-        jLabel3.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jLabel3.setFont(new java.awt.Font("Tahoma", 1, 14));
         jLabel3.setText("Create View");
 
         jLabel4.setText("Create a view with user specified properties");
@@ -111,49 +113,75 @@ public class CreateViewScreen extends javax.swing.JFrame {
             }
         });
 
-        jLabel5.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        jLabel5.setFont(new java.awt.Font("Tahoma", 1, 11));
         jLabel5.setText("Select Account:");
 
         accountsComboBox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
 
-        jLabel6.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        jLabel6.setFont(new java.awt.Font("Tahoma", 1, 11));
         jLabel6.setText("Create Query:");
+
+        jLabel7.setFont(new java.awt.Font("DejaVu Sans", 1, 13)); // NOI18N
+        jLabel7.setText("Name:");
+
+        nameField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                nameFieldActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jSeparator1)
+            .addComponent(jSeparator1, javax.swing.GroupLayout.DEFAULT_SIZE, 473, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(10, 10, 10)
-                        .addComponent(jLabel4)
-                        .addContainerGap(169, Short.MAX_VALUE))
+                        .addComponent(jLabel4))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 449, Short.MAX_VALUE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGap(0, 333, Short.MAX_VALUE)
+                        .addComponent(createViewButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(cancelButton))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(addKeyWordTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 406, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(addKeyWordButton))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jScrollPane1)
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addGap(0, 0, Short.MAX_VALUE)
-                                .addComponent(createViewButton)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(cancelButton))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(addKeyWordTextField)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(addKeyWordButton))
-                            .addComponent(accountsComboBox, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel2)
-                                    .addComponent(jLabel3)
-                                    .addComponent(jLabel1))
-                                .addGap(0, 0, Short.MAX_VALUE))
-                            .addComponent(jLabel5)
-                            .addComponent(jLabel6)
-                            .addComponent(queryField))
-                        .addContainerGap())))
+                            .addComponent(jLabel2)
+                            .addComponent(jLabel3)
+                            .addComponent(jLabel1))
+                        .addGap(0, 353, Short.MAX_VALUE)))
+                .addContainerGap())
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel7)
+                .addContainerGap(413, Short.MAX_VALUE))
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(nameField, javax.swing.GroupLayout.DEFAULT_SIZE, 449, Short.MAX_VALUE)
+                .addContainerGap())
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel6)
+                .addContainerGap(368, Short.MAX_VALUE))
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(queryField, javax.swing.GroupLayout.DEFAULT_SIZE, 449, Short.MAX_VALUE)
+                .addContainerGap())
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel5)
+                .addContainerGap(356, Short.MAX_VALUE))
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(accountsComboBox, 0, 449, Short.MAX_VALUE)
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -164,15 +192,19 @@ public class CreateViewScreen extends javax.swing.JFrame {
                 .addComponent(jLabel4)
                 .addGap(11, 11, 11)
                 .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel7)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(nameField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel6)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(queryField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 85, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel5)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(accountsComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 35, Short.MAX_VALUE)
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -226,7 +258,12 @@ public class CreateViewScreen extends javax.swing.JFrame {
      */
     private void createViewButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createViewButtonActionPerformed
 
-        String title = JOptionPane.showInputDialog("Please enter view title:");
+        if (nameField.getText() == null || nameField.getText().isEmpty())
+        {
+            JOptionPane.showMessageDialog(rootPane, "Please enter a view name", "", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
         //Create the view object
         Account selectedAccount = (Account) accountsComboBox.getSelectedItem();
         ArrayList<String> viewWords = new ArrayList<String>(keyWords.size());
@@ -236,11 +273,11 @@ public class CreateViewScreen extends javax.swing.JFrame {
         View view;
         if (query != null && !query.isEmpty())
         {
-            view = new View(title, selectedAccount, query);
+            view = new View(nameField.getText(), selectedAccount, query);
         }
         else
         {
-            view = new View(title, selectedAccount, viewWords);
+            view = new View(nameField.getText(), selectedAccount, viewWords);
         }
         
         view.addListener(listener);
@@ -253,7 +290,7 @@ public class CreateViewScreen extends javax.swing.JFrame {
             }
             else
             {
-                JOptionPane.showMessageDialog(rootPane, "Success, view: " + title + " created!");
+                JOptionPane.showMessageDialog(rootPane, "Success, view: " + nameField.getText() + " created!");
                 this.dispose();
             }
         } catch (SQLException ex) 
@@ -262,6 +299,10 @@ public class CreateViewScreen extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(rootPane, ex.toString(), "SQLException", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_createViewButtonActionPerformed
+
+    private void nameFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nameFieldActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_nameFieldActionPerformed
 
     /**
      * @param args the command line arguments
@@ -309,9 +350,11 @@ public class CreateViewScreen extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JTextArea keyWordsTextArea;
+    private javax.swing.JTextField nameField;
     private javax.swing.JTextField queryField;
     // End of variables declaration//GEN-END:variables
 }
