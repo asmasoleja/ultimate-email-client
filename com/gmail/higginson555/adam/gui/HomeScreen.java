@@ -295,8 +295,8 @@ public class HomeScreen extends javax.swing.JFrame
      */
     private void composeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_composeButtonActionPerformed
 
-        ComposeMailScreen mailScreen = new ComposeMailScreen(config, session);
-        mailScreen.setVisible((true));
+        //ComposeMailScreen mailScreen = new ComposeMailScreen(config, session);
+        //mailScreen.setVisible((true));
     }//GEN-LAST:event_composeButtonActionPerformed
 
     /*
