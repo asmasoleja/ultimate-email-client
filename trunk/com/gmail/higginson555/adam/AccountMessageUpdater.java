@@ -265,7 +265,7 @@ public class AccountMessageUpdater implements Runnable
             //Get UID header
             String[] UIDheader = messages[i].getHeader("Message-Id");
             String UID = UIDheader[0];
-            
+            IMAPFolder imapFolder = (IMAPFolder) folder;
             if (newMessageSet.contains(UID))
             {
                 String subject = "";
@@ -289,7 +289,7 @@ public class AccountMessageUpdater implements Runnable
                     to += addresses[addresses.length - 1];
                 }*/            
 
-                int messageNo = messages[i].getMessageNumber();
+                long messageNo = imapFolder.getUID(messages[i]);
 
 
                 //Check to see if message already exists in database

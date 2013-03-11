@@ -13,6 +13,7 @@ import com.gmail.higginson555.adam.view.EmailFilterer;
 import com.gmail.higginson555.adam.view.View;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import javax.mail.Message;
 import javax.swing.JOptionPane;
@@ -46,8 +47,8 @@ public class ViewPanel extends javax.swing.JPanel implements PropertyListener
         this.setName(view.getViewName());
         initComponents();
         this.queryField.setText(this.view.getQuery());
+        this.cellRenderer = new EmailTableCellRenderer();
         updateTableWithNewData();
-        this.cellRenderer = new EmailTableCellRenderer(filterData);
         this.messageTable.setDefaultRenderer(Object.class, cellRenderer);
         this.listeners = new ArrayList<PropertyListener>();
     }
@@ -175,13 +176,19 @@ public class ViewPanel extends javax.swing.JPanel implements PropertyListener
                 int row = 0;
                 for (Object[] line : tableData)
                 {
-                    filterData.add(line);
-                    Object[] tableLine = {line[2], line[3], line[6], Boolean.TRUE};
+                    System.out.println("Adding: " + Arrays.toString(line) + " at index: " + row);
+                    filterData.add(row, line);
+                    Object[] tableLine = {line[2], line[3], line[6], line[12]};
+                    System.out.println("Table line: " + Arrays.toString(tableLine));
                     newTableData[row] = tableLine;
                     row++;
                 }
 
+                System.out.println("Setting new table data with size: " + newTableData.length);
+                cellRenderer.setTableData(filterData);
                 model.setData(newTableData);
+
+                //messageTable.setModel(model);
                 
             } catch (QueryParseException ex) {
                 JOptionPane.showMessageDialog(this, ex.getMessage(), "QueryException!", JOptionPane.ERROR_MESSAGE);
@@ -222,6 +229,7 @@ public class ViewPanel extends javax.swing.JPanel implements PropertyListener
         {
             //Get selected row
             int index = messageTable.getSelectedRow();
+            System.out.println("Selected: " + index);
             //Get the data from this selected row
             Object[] line = filterData.get(index);
             //Get the message UID and folder ID

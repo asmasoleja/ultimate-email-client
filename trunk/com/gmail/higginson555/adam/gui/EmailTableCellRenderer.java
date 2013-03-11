@@ -20,7 +20,11 @@ import javax.swing.table.DefaultTableCellRenderer;
 public class EmailTableCellRenderer extends DefaultTableCellRenderer
 {
     private ArrayList<Object[]> tableData;
-    
+
+    public EmailTableCellRenderer()
+    {
+        this.tableData = new ArrayList<Object[]>();
+    }
     /**
      * Creates the EmailTableCellRenderer
      * @param tableData The full data for each e-mail in the table,
@@ -41,6 +45,11 @@ public class EmailTableCellRenderer extends DefaultTableCellRenderer
     {
         tableData.remove(row);
         tableData.add(row, newData);
+    }
+
+    public void setTableData(ArrayList<Object[]> tableData)
+    {
+        this.tableData = tableData;
     }
     
     @Override
