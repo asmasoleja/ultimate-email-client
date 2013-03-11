@@ -5,8 +5,11 @@
 package com.gmail.higginson555.adam.gui;
 
 import com.gmail.higginson555.adam.ProtectedPassword;
+import com.gmail.higginson555.adam.TagParser;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -15,6 +18,7 @@ import javax.mail.*;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
 
 /**
@@ -29,6 +33,8 @@ public class ComposeMailScreen extends javax.swing.JFrame {
     //The reply message, can be null if we should just compose a blank
     //message.
     private Part replyMessage;
+    //The keywords to add to this e-mail
+    private ArrayList<String> keyWords;
     /**
      * 
      * @param config The Properties holding a username, password etc.
@@ -43,6 +49,8 @@ public class ComposeMailScreen extends javax.swing.JFrame {
                 return new PasswordAuthentication(username, password);
             }
         };
+
+        this.keyWords = new ArrayList<String>();
         this.session = Session.getInstance(config, authenticator);
         //The password which will be decrypted
         String passwordDec = config.getProperty("password");
@@ -149,14 +157,11 @@ public class ComposeMailScreen extends javax.swing.JFrame {
         jLabel4.setFont(new java.awt.Font("DejaVu Sans", 1, 13));
         jLabel4.setText("BCC:");
 
-        jLabel5.setFont(new java.awt.Font("DejaVu Sans", 1, 13)); // NOI18N
+        jLabel5.setFont(new java.awt.Font("DejaVu Sans", 1, 13));
         jLabel5.setText("Tags:");
 
-        tagList.setModel(new javax.swing.AbstractListModel() {
-            String[] strings = {};
-            public int getSize() { return strings.length; }
-            public Object getElementAt(int i) { return strings[i]; }
-        });
+        tagList.setModel(new DefaultListModel()
+        );
         jScrollPane2.setViewportView(tagList);
 
         addTagButton.setText("Add");
@@ -282,6 +287,14 @@ public class ComposeMailScreen extends javax.swing.JFrame {
             message.setRecipients(RecipientType.CC, InternetAddress.parse(this.ccField.getText()));
             message.setRecipients(RecipientType.BCC, InternetAddress.parse(this.bccField.getText()));
             message.setSubject(this.subjectField.getText());
+            String tagHeader = "";
+            for (int i = 0; i < keyWords.size() - 1; i++)
+            {
+                String tag = keyWords.get(i);
+                tagHeader += tag + ", ";
+            }
+            tagHeader += keyWords.get(keyWords.size() - 1);
+            message.addHeader("Tags", tagHeader);
             message.setContent(this.messageArea.getText(), "text/html");
             //message.setText(this.messageArea.getText());
             
@@ -308,7 +321,22 @@ public class ComposeMailScreen extends javax.swing.JFrame {
     private void addTagButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addTagButtonActionPerformed
         if (addTagField.getText() != null && !addTagField.getText().isEmpty())
         {
-            
+            String keyWord = addTagField.getText();
+            if (keyWord.length() != 0)
+            {
+                ArrayList<String> tags = TagParser.getInstance().getTags(keyWord);
+                Iterator<String> tagIter = tags.iterator();
+                while (tagIter.hasNext())
+                {
+                    //Only add if not already in set!
+                    String currentWord = tagIter.next();
+                    if (keyWords.add(currentWord))
+                    {
+                        DefaultListModel model = (DefaultListModel) tagList.getModel();
+                        model.addElement(currentWord);
+                    }
+                }
+            }
         }
     }//GEN-LAST:event_addTagButtonActionPerformed
 

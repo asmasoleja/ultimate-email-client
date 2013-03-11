@@ -93,6 +93,12 @@ public class ViewMailScreen extends JPanel
         //bodyTextPane.getDocument().putProperty("IgnoreCharsetDirective", Boolean.TRUE);
         try 
         {
+            String[] messageTags = message.getHeader("Tags");
+            System.out.println("Message tags length: " + messageTags.length);
+            for (String tag : messageTags)
+            {
+                System.out.println("TAG: " + tag);
+            }
             System.out.println("\nWriting message...\n");
             writeMessage(message);
             //panel.setHtml(body, body, rContext);
