@@ -287,14 +287,10 @@ public class ComposeMailScreen extends javax.swing.JFrame {
             message.setRecipients(RecipientType.CC, InternetAddress.parse(this.ccField.getText()));
             message.setRecipients(RecipientType.BCC, InternetAddress.parse(this.bccField.getText()));
             message.setSubject(this.subjectField.getText());
-            String tagHeader = "";
-            for (int i = 0; i < keyWords.size() - 1; i++)
+            for (int i = 0; i < keyWords.size(); i++)
             {
-                String tag = keyWords.get(i);
-                tagHeader += tag + ", ";
+                message.addHeader("Tags", keyWords.get(i));
             }
-            tagHeader += keyWords.get(keyWords.size() - 1);
-            message.addHeader("Tags", tagHeader);
             message.setContent(this.messageArea.getText(), "text/html");
             //message.setText(this.messageArea.getText());
             
@@ -337,6 +333,8 @@ public class ComposeMailScreen extends javax.swing.JFrame {
                     }
                 }
             }
+
+            addTagField.setText("");
         }
     }//GEN-LAST:event_addTagButtonActionPerformed
 
