@@ -217,13 +217,11 @@ public class Database
         Iterator<Object[]> lineIter = fieldValues.iterator();
         
         PreparedStatement ps = connection.prepareStatement(query);
-        while (lineIter.hasNext())
+        for (int lineNo = 0; lineNo < fieldValues.size(); lineNo++)
         {
-            long startTime = System.currentTimeMillis();
-            Object[] line = lineIter.next();
-            
-            
-            for (int i = 0; i < line.length; i++)
+
+            Object[] line = fieldValues.get(lineNo);  
+            for (int i = 0; i < fieldNames.length; i++)
             {
                 if (line[i] instanceof Integer) {
                     ps.setInt(i + 1, (Integer)line[i]);
@@ -259,7 +257,6 @@ public class Database
             //System.out.println("\n\n");
            
             ps.addBatch();
-            long endTime = System.currentTimeMillis();
             //System.out.println("Took: " + (endTime - startTime) + " to add a single item to the batch!");
         }
         

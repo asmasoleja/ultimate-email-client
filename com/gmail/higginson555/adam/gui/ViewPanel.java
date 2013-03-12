@@ -48,6 +48,7 @@ public class ViewPanel extends javax.swing.JPanel implements PropertyListener
         initComponents();
         this.queryField.setText(this.view.getQuery());
         this.cellRenderer = new EmailTableCellRenderer();
+        this.messageTable.setAutoCreateRowSorter(true);
         updateTableWithNewData();
         this.messageTable.setDefaultRenderer(Object.class, cellRenderer);
         this.listeners = new ArrayList<PropertyListener>();
@@ -228,7 +229,7 @@ public class ViewPanel extends javax.swing.JPanel implements PropertyListener
         if (evt.getClickCount() == 2)
         {
             //Get selected row
-            int index = messageTable.getSelectedRow();
+            int index = messageTable.convertRowIndexToModel(messageTable.getSelectedRow());
             System.out.println("Selected: " + index);
             //Get the data from this selected row
             Object[] line = filterData.get(index);

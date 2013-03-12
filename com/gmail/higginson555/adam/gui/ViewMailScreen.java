@@ -7,6 +7,7 @@ package com.gmail.higginson555.adam.gui;
 import chrriis.dj.nativeswing.swtimpl.components.JWebBrowser;
 import com.gmail.higginson555.adam.Account;
 import com.gmail.higginson555.adam.TagParser;
+import com.gmail.higginson555.adam.TrustedAccount;
 import com.gmail.higginson555.adam.UserDatabase;
 import com.gmail.higginson555.adam.view.View;
 import java.awt.BorderLayout;
@@ -59,6 +60,7 @@ public class ViewMailScreen extends JPanel
     private String recipient;
     //Subject
     private String subject;
+    private Account account;
 
     
     
@@ -72,6 +74,7 @@ public class ViewMailScreen extends JPanel
     {
         this.messageID = messageID;
         this.message = message;
+        this.account = account;
         this.level = 0;
         
         this.attachments = new ArrayList<Part>();
@@ -246,7 +249,7 @@ public class ViewMailScreen extends JPanel
                 replyToText += addresses[i].toString() + " ";
         }
         replyTo = addresses[0].toString();
-        replyToLabel.setText(replyToText);
+        //replyToLabel.setText(replyToText);
         
         //To
         addresses = message.getRecipients(Message.RecipientType.TO);
@@ -277,6 +280,35 @@ public class ViewMailScreen extends JPanel
         else
             sentLabel.setText("Unknown");
         
+        //Tags
+        String[] tags = message.getHeader("Tags");
+        if (tags.length != 0)
+        {
+            DefaultListModel model = (DefaultListModel) tagList.getModel();
+            ArrayList<String> tagsList = new ArrayList<String>(tags.length);
+            for (String tag : tags)
+            {
+                model.addElement(tag);
+                tagsList.add(tag);
+            }
+            if (TrustedAccount.isTrustedAccount(account, fromText))
+            {
+                TagParser.getInstance().insertTags(UserDatabase.getInstance(), tagsList, messageID);
+            }
+            else
+            {
+                int result = JOptionPane.showConfirmDialog(null, 
+                        "Account: " + fromText + 
+                        " has added tags to the message, "
+                        + "do you wish to accept?", 
+                        "Confirm", JOptionPane.YES_NO_OPTION);
+                if (result == JOptionPane.YES_OPTION)
+                {
+                    TrustedAccount.setTrustedAccount(account, fromText);
+                    TagParser.getInstance().insertTags(UserDatabase.getInstance(), tagsList, messageID);
+                }
+            }
+        }
         //TODO FLAGS?
     }
 
@@ -300,12 +332,13 @@ public class ViewMailScreen extends JPanel
         forwardButton = new javax.swing.JButton();
         deleteButton = new javax.swing.JButton();
         sentLabel = new javax.swing.JLabel();
-        jLabel1 = new javax.swing.JLabel();
-        replyToLabel = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         attachmentList = new javax.swing.JList();
         browserPanel = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        tagList = new javax.swing.JList();
 
         fromLabelStatic.setFont(new java.awt.Font("DejaVu Sans", 1, 13)); // NOI18N
         fromLabelStatic.setText("From:");
@@ -372,11 +405,6 @@ public class ViewMailScreen extends JPanel
 
         sentLabel.setText("Sent Label");
 
-        jLabel1.setFont(new java.awt.Font("DejaVu Sans", 1, 13)); // NOI18N
-        jLabel1.setText("Reply To:");
-
-        replyToLabel.setText("Reply To");
-
         jLabel2.setFont(new java.awt.Font("DejaVu Sans", 1, 13)); // NOI18N
         jLabel2.setText("Attachments:");
 
@@ -392,7 +420,7 @@ public class ViewMailScreen extends JPanel
         browserPanel.setLayout(browserPanelLayout);
         browserPanelLayout.setHorizontalGroup(
             browserPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 577, Short.MAX_VALUE)
+            .addGap(0, 0, Short.MAX_VALUE)
         );
         browserPanelLayout.setVerticalGroup(
             browserPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -401,6 +429,12 @@ public class ViewMailScreen extends JPanel
 
         browserPanel.setLayout(new BorderLayout());
 
+        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 13)); // NOI18N
+        jLabel1.setText("Custom Tags:");
+
+        tagList.setModel(new DefaultListModel());
+        jScrollPane2.setViewportView(tagList);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -408,41 +442,41 @@ public class ViewMailScreen extends JPanel
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(browserPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(subjectLabelStatic)
-                                .addGap(12, 12, 12)
-                                .addComponent(subjectLabel))
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(fromLabelStatic)
+                                    .addComponent(toLabelStatic, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(sentLabelStatic))
+                                .addGap(31, 31, 31)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(sentLabel)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(fromLabel)
+                                            .addComponent(toLabel))
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 58, Short.MAX_VALUE)
+                                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE))))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(replyButton)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(forwardButton)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(deleteButton)))
-                        .addGap(392, 411, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(browserPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(deleteButton)
+                                .addGap(0, 0, Short.MAX_VALUE))
                             .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel1)
-                                    .addComponent(fromLabelStatic)
-                                    .addComponent(toLabelStatic, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(fromLabel)
-                                    .addComponent(replyToLabel)
-                                    .addComponent(toLabel))
-                                .addGap(0, 16, Short.MAX_VALUE)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel2)
-                                    .addComponent(sentLabelStatic))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 281, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(sentLabel))))
-                        .addContainerGap())))
+                                .addComponent(subjectLabelStatic)
+                                .addGap(12, 12, 12)
+                                .addComponent(subjectLabel)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(jLabel2)))
+                        .addGap(5, 5, 5)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jScrollPane2)
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 281, Short.MAX_VALUE))))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -452,33 +486,30 @@ public class ViewMailScreen extends JPanel
                     .addComponent(replyButton)
                     .addComponent(forwardButton)
                     .addComponent(deleteButton))
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addComponent(fromLabel)
                             .addComponent(fromLabelStatic))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(replyToLabel)
-                            .addComponent(jLabel1))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(toLabel)
-                            .addComponent(toLabelStatic))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(subjectLabel)
-                            .addComponent(subjectLabelStatic)))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(8, 8, 8)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(sentLabel)
-                            .addComponent(sentLabelStatic))
+                            .addComponent(toLabelStatic)
+                            .addComponent(toLabel))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel2))))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(sentLabelStatic)
+                            .addComponent(sentLabel)))
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(subjectLabel)
+                        .addComponent(jLabel2))
+                    .addComponent(subjectLabelStatic, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(browserPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
@@ -578,12 +609,13 @@ public class ViewMailScreen extends JPanel
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JButton replyButton;
-    private javax.swing.JLabel replyToLabel;
     private javax.swing.JLabel sentLabel;
     private javax.swing.JLabel sentLabelStatic;
     private javax.swing.JLabel subjectLabel;
     private javax.swing.JLabel subjectLabelStatic;
+    private javax.swing.JList tagList;
     private javax.swing.JLabel toLabel;
     private javax.swing.JLabel toLabelStatic;
     // End of variables declaration//GEN-END:variables

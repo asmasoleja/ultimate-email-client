@@ -13,6 +13,7 @@ import java.net.MalformedURLException;
 import java.security.GeneralSecurityException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -328,6 +329,7 @@ public class AccountMessageDownloader extends Thread
         fp.add(FetchProfile.Item.ENVELOPE);
         fp.add(FetchProfile.Item.FLAGS);
         fp.add("Message-ID");
+        fp.add("Tags");
         //fp.add(FetchProfile.Item.CONTENT_INFO);
         fp.add("X-mailer");
 
@@ -364,9 +366,17 @@ public class AccountMessageDownloader extends Thread
             String[] UIDheader = allMessages[i].getHeader("Message-Id");
             String UID = UIDheader[0];
             System.out.println("Found UID: " + UID);
-            
-            
+                        
             long messageNo = imapFolder.getUID(allMessages[i]);
+            
+            String[] tags = null;
+            try
+            {
+                tags = allMessages[i].getHeader("Tags");
+            } catch (Exception ex)
+            {
+                ex.printStackTrace();
+            }
             
 
             //Check to see if message already exists in database
@@ -374,7 +384,7 @@ public class AccountMessageDownloader extends Thread
             Date dateSent = allMessages[i].getSentDate();
             Date dateReceived = allMessages[i].getReceivedDate();
             
-            Object[] line = {UID, subject, from, to, dateSent, dateReceived, folderID, account.getUsername(), messageNo, isRead};
+            Object[] line = {UID, subject, from, to, dateSent, dateReceived, folderID, account.getUsername(), messageNo, isRead, tags};
             dbData.add(line);
         }
         
@@ -467,7 +477,15 @@ public class AccountMessageDownloader extends Thread
         
         try
         {
-            database.insertRecords("Messages", fieldNames, dbData);
+            try
+            {
+                            database.insertRecords("Messages", fieldNames, dbData);
+            }
+            catch (Exception ex)
+            {
+                ex.printStackTrace();
+            }
+
 
 
 
@@ -480,9 +498,18 @@ public class AccountMessageDownloader extends Thread
                     Object[] currentLine = dataIter.next();
                     //Get the id of the inserted message
                     ArrayList<Object[]> result = database.selectFromTableWhere("Messages", 
-                            "messageID, folderID", "messageUID='" + (String)currentLine[0] + "'");
+                            "messageID, folderID, messageFrom", "messageUID='" + (String)currentLine[0] + "'");
                     int id = (Integer) result.get(0)[0];
                     int folderID = (Integer) result.get(0)[1];
+                    String from = (String) result.get(0)[2];
+                    
+                    if (TrustedAccount.isTrustedAccount(account, from))
+                    {
+                        String[] tags = (String[]) currentLine[currentLine.length - 1];
+                        ArrayList<String> tagList = new ArrayList<String>(tags.length);
+                        tagList.addAll(Arrays.asList(tags));
+                        TagParser.getInstance().insertTags(UserDatabase.getInstance(), tagList, id);
+                    }
 
                     //System.out.println("Found id: " + id);
                     //Parse the key words from the subject

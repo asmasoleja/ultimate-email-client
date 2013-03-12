@@ -4,6 +4,7 @@ import com.gmail.higginson555.adam.gui.PropertyListener;
 import com.sun.mail.imap.IMAPFolder;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
@@ -197,6 +198,7 @@ public class AccountMessageUpdater implements Runnable
         fp.add("Message-ID");
         //fp.add(FetchProfile.Item.CONTENT_INFO);
         fp.add("X-mailer");
+        fp.add("Tags");
         
         Message[] messages = null;
         try
@@ -290,14 +292,16 @@ public class AccountMessageUpdater implements Runnable
                 }*/            
 
                 long messageNo = imapFolder.getUID(messages[i]);
-
+                
+                
+                String[] tags = messages[i].getHeader("Tags");
 
                 //Check to see if message already exists in database
 
                 Date dateSent = messages[i].getSentDate();
                 Date dateReceived = messages[i].getReceivedDate();
 
-                Object[] line = {UID, subject, from, to, dateSent, dateReceived, folderID, account.getUsername(), messageNo, isRead};
+                Object[] line = {UID, subject, from, to, dateSent, dateReceived, folderID, account.getUsername(), messageNo, isRead, tags};
                 dbData.add(line);
             }
         }
@@ -338,9 +342,18 @@ public class AccountMessageUpdater implements Runnable
                     Object[] currentLine = dataIter.next();
                     //Get the id of the inserted message
                     ArrayList<Object[]> result = database.selectFromTableWhere("Messages", 
-                            "messageID, folderID", "messageUID='" + (String)currentLine[0] + "'");
+                            "messageID, folderID, messageFrom", "messageUID='" + (String)currentLine[0] + "'");
                     int id = (Integer) result.get(0)[0];
                     int folderID = (Integer) result.get(0)[1];
+                    String from = (String) result.get(0)[2];
+                    
+                    if (TrustedAccount.isTrustedAccount(account, from))
+                    {
+                        String[] tags = (String[]) currentLine[currentLine.length - 1];
+                        ArrayList<String> tagList = new ArrayList<String>(tags.length);
+                        tagList.addAll(Arrays.asList(tags));
+                        TagParser.getInstance().insertTags(UserDatabase.getInstance(), tagList, id);
+                    }
 
                     //System.out.println("Found id: " + id);
                     //Parse the key words from the subject
