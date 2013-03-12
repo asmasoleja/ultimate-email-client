@@ -126,12 +126,11 @@ public class AddAccountScreen extends javax.swing.JFrame {
         cancelButton = new javax.swing.JButton();
         jLabel10 = new javax.swing.JLabel();
         portField = new javax.swing.JTextField();
-        progressBar = new javax.swing.JProgressBar();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setResizable(false);
 
-        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 12));
+        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
         jLabel1.setText("Server Information");
 
         jLabel2.setText("Account Type:");
@@ -147,14 +146,14 @@ public class AddAccountScreen extends javax.swing.JFrame {
 
         jLabel4.setText("Outgoing mail server (SMTP):");
 
-        jLabel5.setFont(new java.awt.Font("Tahoma", 1, 12));
+        jLabel5.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
         jLabel5.setText("Login Information");
 
         jLabel6.setText("Username:");
 
         jLabel7.setText("Password:");
 
-        jLabel8.setFont(new java.awt.Font("Tahoma", 1, 14));
+        jLabel8.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
         jLabel8.setText("Add Account");
 
         jLabel9.setText("Add a new account");
@@ -211,9 +210,8 @@ public class AddAccountScreen extends javax.swing.JFrame {
                                     .addComponent(jLabel6)
                                     .addComponent(jLabel1)
                                     .addComponent(jLabel7)
-                                    .addComponent(jLabel10)
-                                    .addComponent(progressBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addGap(21, 21, 21)
+                                    .addComponent(jLabel10))
+                                .addGap(27, 27, 27)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                                         .addComponent(addButton, javax.swing.GroupLayout.DEFAULT_SIZE, 124, Short.MAX_VALUE)
@@ -266,11 +264,9 @@ public class AddAccountScreen extends javax.swing.JFrame {
                     .addComponent(jLabel7)
                     .addComponent(passwordField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(addButton)
-                        .addComponent(cancelButton))
-                    .addComponent(progressBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(addButton)
+                    .addComponent(cancelButton))
                 .addGap(18, 18, 18))
         );
 
@@ -425,7 +421,6 @@ public class AddAccountScreen extends javax.swing.JFrame {
     private javax.swing.JTextField outgoingField;
     private javax.swing.JPasswordField passwordField;
     private javax.swing.JTextField portField;
-    private javax.swing.JProgressBar progressBar;
     private javax.swing.JComboBox serverCombo;
     private javax.swing.JTextField usernameField;
     // End of variables declaration//GEN-END:variables

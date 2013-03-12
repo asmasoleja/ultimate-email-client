@@ -46,9 +46,9 @@ public class UserDatabaseManager
             //LoadingScreen ls = new LoadingScreen("Please wait, creating database...");
             //ls.setVisible(true);
             //Create the User database
-            //database.createDatabase("User");
-            //database.selectDatabase("User");
-            database.selectDatabase("S10_higgina0");
+            database.createDatabase("User");
+            database.selectDatabase("User");
+            //database.selectDatabase("S10_higgina0");
             //ACCOUNT TABLE
             String accountTableSQL = 
                           "username varchar(255) NOT NULL,"
@@ -149,11 +149,18 @@ public class UserDatabaseManager
                                                 + "FOREIGN KEY(accountUsername) REFERENCES accounts(username)";
             database.createTable("AccountMessageDownloaders", accountMessageDownloaderSQL);
             
+            String trustedAccountsSQL = "trustedAccountID int UNIQUE NOT NULL AUTO_INCREMENT,"
+                                        + "accountUsername varchar(255) NOT NULL,"
+                                        + "trustedAccount varchar(255) NOT NULL,"
+                                        + "PRIMARY KEY(trustedAccountID),"
+                                        + "FOREIGN KEY(accountUsername) REFERENCES accounts(username)";
+            database.createTable("TrustedAccounts", trustedAccountsSQL);
+            
             //database = createNewDatabase(database);
             
             //ls.dispose();
-        }
         //}
+        }
         catch (SQLException ex)
         {
             //Already created tables and stuff, just skip
