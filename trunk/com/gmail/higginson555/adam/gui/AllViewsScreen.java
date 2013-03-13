@@ -15,6 +15,8 @@ import com.gmail.higginson555.adam.view.View;
 import java.net.MalformedURLException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Properties;
 import java.util.logging.Level;
@@ -38,11 +40,15 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
     private ArrayList<Account> accounts;
     //Currently active message adder threads
     private int messageManagerThreads;
+    //The set of accounts which could not connect!
+    private HashSet<Account> failedAccounts;
+    
 
     /**
      * Creates new form AllViewsScreen
      */
     public AllViewsScreen() {
+        failedAccounts = new HashSet<Account>();
         initComponents();
         try {
             accounts = AccountManager.getSingleton().getAllAccounts();
@@ -50,17 +56,24 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
             {
                 for (Account account : accounts)
                 {
-                    AccountMessageDownloader amd = AccountMessageDownloader.getInstance(account);
-                    ClientThreadPool.executorService.submit(amd);
+                    try
+                    {
+                        AccountMessageDownloader amd = AccountMessageDownloader.getInstance(account);
+                        amd.addListener(this);
+                        ClientThreadPool.executorService.submit(amd);
+                    }
+                    catch (MessagingException ex)
+                    {
+                        JOptionPane.showMessageDialog(rootPane, "Could not connect to account: " + account.getUsername(), "Error", JOptionPane.ERROR_MESSAGE);
+                        failedAccounts.add(account);
+                        //ex.printStackTrace();
+                    }
                 }
             }
         } catch (SQLException ex) {
             Logger.getLogger(AllViewsScreen.class.getName()).log(Level.SEVERE, null, ex);
             System.exit(-1);
-        } catch (MessagingException ex)
-        {
-            JOptionPane.showMessageDialog(rootPane, "Could not connect to account!", "Error", JOptionPane.ERROR_MESSAGE);
-        }
+        } 
         //Build the tree, each account has a list of views
         buildTree();  
     }
@@ -227,14 +240,17 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
 
             for (Account account : accounts)
             {
-                DefaultMutableTreeNode accNode = new DefaultMutableTreeNode(account);
-                ArrayList<View> views = View.getViewsForAccount(UserDatabase.getInstance(), account);
-                for (View view : views)
+                if (!failedAccounts.contains(account))
                 {
-                    DefaultMutableTreeNode viewNode = new DefaultMutableTreeNode(view);
-                    accNode.add(viewNode);
+                    DefaultMutableTreeNode accNode = new DefaultMutableTreeNode(account);
+                    ArrayList<View> views = View.getViewsForAccount(UserDatabase.getInstance(), account);
+                    for (View view : views)
+                    {
+                        DefaultMutableTreeNode viewNode = new DefaultMutableTreeNode(view);
+                        accNode.add(viewNode);
+                    }
+                    rootNode.add(accNode);
                 }
-                rootNode.add(accNode);
             }
             
             
@@ -281,7 +297,10 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
     }//GEN-LAST:event_viewTreeMouseClicked
 
     private void closeTabButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeTabButtonActionPerformed
-        tabbedPane.remove(tabbedPane.getSelectedIndex());
+        if (tabbedPane.getSelectedIndex() >= 0)
+        {
+            tabbedPane.remove(tabbedPane.getSelectedIndex());
+        }
     }//GEN-LAST:event_closeTabButtonActionPerformed
 
     private void newMessageMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newMessageMenuItemActionPerformed
@@ -321,7 +340,7 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
     }//GEN-LAST:event_exitMenuItemActionPerformed
 
     private void viewTrustedAccountsItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewTrustedAccountsItemActionPerformed
-                DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) viewTree.getLastSelectedPathComponent();
+        DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) viewTree.getLastSelectedPathComponent();
         if (selectedNode != null)
         {
             Object nodeObject = selectedNode.getUserObject();
@@ -446,11 +465,13 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
             {
                 try {
                     Account account = (Account) value;
+                    System.out.println("Added account: " + account);
                     accounts.add(account);
                     DefaultTreeModel model = (DefaultTreeModel) viewTree.getModel();
                     DefaultMutableTreeNode root = (DefaultMutableTreeNode) model.getRoot();
                     DefaultMutableTreeNode child = new DefaultMutableTreeNode(account);
                     root.add(child);               
+                    viewTree.revalidate();
                     
                     AccountMessageDownloader amd = AccountMessageDownloader.getInstance(account);
                     amd.addListener(this);
@@ -491,7 +512,10 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
 
 
             tabbedPane.add(new ViewMailScreen(msg, account, messageID, shouldExtractTags));
-
+        }
+        else if (name.equalsIgnoreCase("ViewNameChanged"))
+        {
+            buildTree();
         }
                 
     }

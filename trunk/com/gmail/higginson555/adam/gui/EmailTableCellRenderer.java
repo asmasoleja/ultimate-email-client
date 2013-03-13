@@ -63,7 +63,7 @@ public class EmailTableCellRenderer extends DefaultTableCellRenderer
         Component c = super.getTableCellRendererComponent(table, value, 
                                     isSelected, hasFocus, row, column);
 
-        if (tableData != null && tableData.get(row) != null)
+        if (tableData != null && !tableData.isEmpty() && tableData.get(row) != null)
         {
             boolean isRead = (Boolean) tableData.get(row)[12];
             if (!isRead)

@@ -123,6 +123,24 @@ public class TagParser
         return str.matches("-?\\d+(\\.\\d+)?");  //match a number with optional '-' and decimal.
     }
     
+    /**
+     * Removes any link between the given messageID and tag
+     * @param tag 
+     * @param messageID 
+     */
+    public void removeTagLink(Database database, String tag, int messageID) throws SQLException
+    {
+        ArrayList<Object[]> result = database.selectFromTableWhere("Tags", "tagID", "tagValue='" + tag + "'");
+        if (!result.isEmpty())
+        {
+            int tagID = (Integer) result.get(0)[0];
+            database.deleteRecord("MessagesToTags", "tagID=" 
+                    + Integer.toString(tagID) 
+                    + " AND messageID=" + Integer.toString(messageID));
+        }
+        
+    }
+    
     
     
 }

@@ -3,6 +3,7 @@ package com.gmail.higginson555.adam;
 import com.gmail.higginson555.adam.gui.PropertyListener;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import javax.mail.MessagingException;
 
 /**
@@ -80,16 +81,32 @@ public class MessageManager
     
     public Object[][] getMessageTableData(ArrayList<Integer> ids) throws SQLException
     {
-        Object[][] messageList = new Object[ids.size()][MESSAGE_LINE_LENGTH];
+        HashSet<String> foundUIDs = new HashSet<String>(ids.size());
+        ArrayList<Object[]> tableData = new ArrayList<Object[]>(ids.size());
         for (int i = 0; i < ids.size(); i++)
         {
             int id = ids.get(i);
-            ArrayList<Object[]> result = database.selectFromTableWhere("Messages", "*", "messageID=" + id);
-            //Get the message from the server
-            Object[] line = result.get(0);
-            messageList[i] = line; 
+            //System.out.println("Id found in list is: " + id);
+            ArrayList<Object[]> result = database.selectFromTableWhere("Messages", "*", "messageID=" + id + " AND accountUsername='" + account.getUsername() + "'");
+                if (!result.isEmpty())
+                {
+                //Get the message from the server
+                Object[] line = result.get(0);
+                String messageUID = (String) line[1];
+                if (foundUIDs.add(messageUID))
+                {
+                    System.out.println("Added: " + messageUID + " with subject: " + line[2]);
+                    tableData.add(line);
+                }
+            }
         }
         
+        
+        Object[][] messageList = new Object[tableData.size()][MESSAGE_LINE_LENGTH];
+        for (int i = 0; i < tableData.size(); i++)
+        {
+            messageList[i] = tableData.get(i);
+        }
         return messageList;
     }
     

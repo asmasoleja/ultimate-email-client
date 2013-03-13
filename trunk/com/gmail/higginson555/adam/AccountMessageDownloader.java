@@ -30,6 +30,7 @@ import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.Store;
+import javax.mail.UIDFolder;
 
 /**
  * A class which connects and gets all the messages for a particular account,
@@ -100,6 +101,8 @@ public class AccountMessageDownloader extends Thread
     @Override
     public void run()
     {
+        lastFolderID = -1;
+        lastMessageID = -1;
         try {
             getMessages();
         } catch (MessagingException ex) {
@@ -108,9 +111,12 @@ public class AccountMessageDownloader extends Thread
             Logger.getLogger(AccountMessageDownloader.class.getName()).log(Level.SEVERE, null, ex);
         } catch (MalformedURLException ex) {
             Logger.getLogger(AccountMessageDownloader.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex)
+        {
+            ex.printStackTrace();
         }
         
-        publishPropertyEvent("MessageInsertDone", null);
+        publishPropertyEvent("MessageManagerThreadFinished", null);
     }
     
     /**
@@ -124,10 +130,10 @@ public class AccountMessageDownloader extends Thread
                 "isDone", "accountUsername='" + account.getUsername() + "'");
         
         boolean isDone = (Boolean) result.get(0)[0];
-        System.out.println("IS DONEa: " + isDone);
+        System.out.println("IS DONE: " + isDone + " for account: " + account);
         if (!isDone)
         {
-
+            publishPropertyEvent("MessageManagerThreadStart", null);
             System.out.println("After if!");
             //Try to insert all folders into the database, as well as messages!
             Folder folder = null;
@@ -138,11 +144,16 @@ public class AccountMessageDownloader extends Thread
             System.out.println("About to insert folders");
             insertFolderIntoDatabase(parent, folder);
             //Done?
+            if (ClientThreadPool.shouldStop)
+            {
+                return;
+            }
             UserDatabase.getInstance().updateRecord("AccountMessageDownloaders", 
                     "isDone=1", "accountUsername='" + account.getUsername() + "'");
         }
         //Start the account updater thread
         AccountMessageUpdater updater = new AccountMessageUpdater(store, account, UserDatabase.getInstance());
+        updater.addListeners(listeners);
         ClientThreadPool.executorService.submit(updater);
     }      
     
@@ -204,7 +215,7 @@ public class AccountMessageDownloader extends Thread
         Database user = UserDatabase.getInstance();
         ArrayList<Object[]> result;
         result = user.selectFromTableWhere("Folders", "folderID", 
-                "urlName='" + folder.getFullName() + "'");
+                "urlName='" + folder.getFullName() + "' AND accountUsername='" + account.getUsername() + "'");
             
         //If result it empty, folder does not already exist in database, insert it
         if (result.isEmpty())
@@ -273,7 +284,7 @@ public class AccountMessageDownloader extends Thread
         
         //Find this folder ID
         result = user.selectFromTableWhere("Folders", "folderID", 
-                "urlName='" + folder.getFullName() + "'");
+                "urlName='" + folder.getFullName() + "' AND accountUsername='" + account.getUsername() + "'");
         
         //Should always be full, if not an error has occurred
         //And should only be one result
@@ -290,7 +301,17 @@ public class AccountMessageDownloader extends Thread
             }  
         }
         
-        insertMessagesInFolder(id, folder);
+        try
+        {
+            insertMessagesInFolder(id, folder);
+            if (ClientThreadPool.shouldStop)
+            {
+                return;
+            }
+        } catch (Exception ex)
+        {
+            ex.printStackTrace();
+        }
     }
     
     private void insertMessagesInFolder(int folderID, Folder folder) 
@@ -330,6 +351,7 @@ public class AccountMessageDownloader extends Thread
         fp.add(FetchProfile.Item.FLAGS);
         fp.add("Message-ID");
         fp.add("Tags");
+        fp.add(UIDFolder.FetchProfileItem.UID);
         //fp.add(FetchProfile.Item.CONTENT_INFO);
         fp.add("X-mailer");
 
@@ -341,6 +363,10 @@ public class AccountMessageDownloader extends Thread
         IMAPFolder imapFolder = (IMAPFolder) folder;
         for (int i = allMessages.length - 1; i >= 0; i--)
         {
+            if (ClientThreadPool.shouldStop)
+            {
+                return;
+            }
             String subject = "";
             String from = "";
             subject += allMessages[i].getSubject();
@@ -409,6 +435,10 @@ public class AccountMessageDownloader extends Thread
 
         };
 
+        if (ClientThreadPool.shouldStop)
+        {
+            return;
+        }
         Collections.sort(dbData, messageDataComp);
 
         //FolderManager fm = new FolderManager(UserDatabase.getInstance());
@@ -444,7 +474,7 @@ public class AccountMessageDownloader extends Thread
         //{
             System.out.println("\n----UPDATING DATABASE WITH NEW MESSAGES!----\n");
             //fm.setLastDate(folderID, (Date) dbDataToAdd.get(0)[5]);
-            publishPropertyEvent("MessageManagerThreadStart", null);
+            
             /*MessageManager mm = new MessageManager(account, UserDatabase.getInstance());
             for (PropertyListener listener : listeners)
             {
@@ -527,6 +557,10 @@ public class AccountMessageDownloader extends Thread
                     //Create array of key words for this message
                     while (keyWordsIter.hasNext())
                     {
+                        if (ClientThreadPool.shouldStop)
+                        {
+                            return;
+                        }
                         String keyWord = keyWordsIter.next();
                         //Only add if it doesn't already exist!
                         if (database.selectFromTableWhere("Tags", "tagID", "tagValue='" + keyWord + "'").isEmpty())
@@ -545,6 +579,10 @@ public class AccountMessageDownloader extends Thread
                     int[] tagIDs = new int[keyWords.size()];
                     for (int i = 0; i < keyWords.size(); i++)
                     {
+                        if (ClientThreadPool.shouldStop)
+                        {
+                            return;
+                        }
                         result = database.selectFromTableWhere("Tags", "tagID" , "tagValue='" + keyWords.get(i) + "'");
 
                         tagIDs[i] = (Integer) result.get(0)[0];

@@ -16,6 +16,7 @@ import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Store;
+import javax.mail.UIDFolder;
 import javax.mail.search.MessageIDTerm;
 import javax.mail.search.SearchTerm;
 import javax.swing.JOptionPane;
@@ -34,6 +35,8 @@ public class AccountMessageUpdater implements Runnable
     private Database database;
     //The message store
     private Store store;
+    //Listeners
+    private ArrayList<PropertyListener> listeners;
 
     /**
      *
@@ -46,6 +49,25 @@ public class AccountMessageUpdater implements Runnable
         this.account = account;
         this.database = database;
         this.store = store;
+        this.listeners = new ArrayList<PropertyListener>();
+    }
+    
+    public void addListener(PropertyListener listener)
+    {
+        listeners.add(listener);
+    }
+    
+    public void addListeners(ArrayList<PropertyListener> listeners)
+    {
+        listeners.addAll(listeners);
+    }
+    
+    private void publishPropertyEvent(String name, Object value)
+    {
+        for (PropertyListener listener : listeners)
+        {
+            listener.onPropertyEvent(this.getClass(), name, value);
+        }
     }
     
     
@@ -54,6 +76,7 @@ public class AccountMessageUpdater implements Runnable
         //While queue isn't empty
         while (!ClientThreadPool.findMessageQueue.isEmpty())
         {
+            publishPropertyEvent("MessageManagerThreadStart", null);
             //TODO find messages here
             FindMessageQueueItem queueItem = ClientThreadPool.findMessageQueue.remove();
             Object[] messageData = queueItem.getOldMessageData();
@@ -178,12 +201,14 @@ public class AccountMessageUpdater implements Runnable
             }
             
             //Need to find message
+            publishPropertyEvent("MessageManagerThreadFinished", null);
         }
     }
     
     private void fixFolder(int folderID, IMAPFolder folder) 
             throws SQLException, MessagingException
     {
+        publishPropertyEvent("MessageManagerThreadFinished", null);
         if (!folder.isOpen())
         {
             folder.open(Folder.READ_ONLY);
@@ -212,113 +237,114 @@ public class AccountMessageUpdater implements Runnable
         
         try
         {
-        //Scan through folder for deleted messages
-        //Our data
-        result = database.selectFromTableWhere("Messages", 
-          "messageUID", "accountUsername='" + account.getUsername() + "' AND isValidMessage=1");
+            //Scan through folder for deleted messages
+            //Our data
+            result = database.selectFromTableWhere("Messages", 
+              "messageUID", "accountUsername='" + account.getUsername() + "' AND isValidMessage=1");
 
-        ArrayList<String> allUIDs = new ArrayList<String>(result.size());
-        HashSet<String> deletedUIDs = new HashSet<String>(result.size());
-        for (Object[] line : result)
-        {
-            String UID = (String) line[0];
-            deletedUIDs.add(UID);
-            allUIDs.add(UID);
-        }
-
-        //Get all messages now
-        messages = folder.getMessages();
-        FetchProfile idFP = new FetchProfile();
-        fp.add(FetchProfile.Item.ENVELOPE);
-        fp.add(FetchProfile.Item.FLAGS);
-        fp.add("Message-Id");
-        folder.fetch(messages, idFP);
-        //Need to find the difference in two lists 
-        //(things in first not in 2nd) i.e deleted messages
-        ArrayList<String> serverUIDs = new ArrayList<String>(messages.length);
-        for (int i = 0; i < messages.length; i++)
-        {
-            Message message = messages[i];
-            String[] UIDarray = message.getHeader("Message-Id");
-            String UID = UIDarray[0];
-            serverUIDs.add(UID);
-            //Remove the UID if it's already there
-            deletedUIDs.remove(UID);
-        }
-        
-        //Things in second list not in first
-        Collection<String> newMessages = ListUtils.subtract(serverUIDs, allUIDs);
-
-        //UIDs should now just contain messages that wern't found on server
-        /*Iterator<String> UIDsIter = deletedUIDs.iterator();
-        while (UIDsIter.hasNext())
-        {
-            //"Delete" record
-            System.out.println("Deleting valid message");
-            //database.updateRecord("Messages", "isValidMessage=0", "messageUID='" + UIDsIter.next() + "'");
-        }    */       
-        
-        HashSet<String> newMessageSet = new HashSet<String>(newMessages);
-        System.out.println("New message set size: " + newMessageSet.size());
-        ArrayList<Object[]> dbData = new ArrayList<Object[]>(messages.length); 
-
-        for (int i = 0; i < messages.length; i++)
-        {
-            //Get UID header
-            String[] UIDheader = messages[i].getHeader("Message-Id");
-            String UID = UIDheader[0];
-            IMAPFolder imapFolder = (IMAPFolder) folder;
-            if (newMessageSet.contains(UID))
+            ArrayList<String> allUIDs = new ArrayList<String>(result.size());
+            HashSet<String> deletedUIDs = new HashSet<String>(result.size());
+            for (Object[] line : result)
             {
-                String subject = "";
-                String from = "";
-                subject += messages[i].getSubject();
-                Address[] addresses = messages[i].getFrom();
-                if (addresses.length != 0) {
-                    from += addresses[0].toString();
-                }
-                String to = "";
-                boolean isRead = messages[i].getFlags().contains(Flag.SEEN);
-                //This bit here is slow for some reason?
-                /*addresses = messages[i].getAllRecipients();
-                if (addresses != null)
-                {
-                    for (int j = 0; j < addresses.length - 1; j++)
-                    {
-                        to += addresses[j].toString() + ",";
-                    }
-                    //So we don't add a comma at the end
-                    to += addresses[addresses.length - 1];
-                }*/            
-
-                long messageNo = imapFolder.getUID(messages[i]);
-                
-                
-                String[] tags = messages[i].getHeader("Tags");
-
-                //Check to see if message already exists in database
-
-                Date dateSent = messages[i].getSentDate();
-                Date dateReceived = messages[i].getReceivedDate();
-
-                Object[] line = {UID, subject, from, to, dateSent, dateReceived, folderID, account.getUsername(), messageNo, isRead, tags};
-                dbData.add(line);
+                String UID = (String) line[0];
+                deletedUIDs.add(UID);
+                allUIDs.add(UID);
             }
-        }
-        
-        long uid = folder.getUIDNext();
-        UserDatabase.getInstance().updateRecord("Folders", 
-                "lastSeqNo=" + Long.toString(uid), 
-                "folderID=" + Integer.toString(folderID));
-        
-        insertMessagesWithTags(dbData);
+
+            //Get all messages now
+            messages = folder.getMessages();
+            FetchProfile idFP = new FetchProfile();
+            fp.add(FetchProfile.Item.ENVELOPE);
+            fp.add(FetchProfile.Item.FLAGS);
+            fp.add(UIDFolder.FetchProfileItem.UID);
+            fp.add("Message-Id");
+            folder.fetch(messages, idFP);
+            //Need to find the difference in two lists 
+            //(things in first not in 2nd) i.e deleted messages
+            ArrayList<String> serverUIDs = new ArrayList<String>(messages.length);
+            for (int i = 0; i < messages.length; i++)
+            {
+                Message message = messages[i];
+                String[] UIDarray = message.getHeader("Message-Id");
+                String UID = UIDarray[0];
+                serverUIDs.add(UID);
+                //Remove the UID if it's already there
+                deletedUIDs.remove(UID);
+            }
+
+            //Things in second list not in first
+            Collection<String> newMessages = ListUtils.subtract(serverUIDs, allUIDs);
+
+            //UIDs should now just contain messages that wern't found on server
+            /*Iterator<String> UIDsIter = deletedUIDs.iterator();
+            while (UIDsIter.hasNext())
+            {
+                //"Delete" record
+                System.out.println("Deleting valid message");
+                //database.updateRecord("Messages", "isValidMessage=0", "messageUID='" + UIDsIter.next() + "'");
+            }    */       
+
+            HashSet<String> newMessageSet = new HashSet<String>(newMessages);
+            System.out.println("New message set size: " + newMessageSet.size());
+            ArrayList<Object[]> dbData = new ArrayList<Object[]>(messages.length); 
+
+            for (int i = 0; i < messages.length; i++)
+            {
+                //Get UID header
+                String[] UIDheader = messages[i].getHeader("Message-Id");
+                String UID = UIDheader[0];
+                IMAPFolder imapFolder = (IMAPFolder) folder;
+                if (newMessageSet.contains(UID))
+                {
+                    String subject = "";
+                    String from = "";
+                    subject += messages[i].getSubject();
+                    Address[] addresses = messages[i].getFrom();
+                    if (addresses.length != 0) {
+                        from += addresses[0].toString();
+                    }
+                    String to = "";
+                    boolean isRead = messages[i].getFlags().contains(Flag.SEEN);
+                    //This bit here is slow for some reason?
+                    /*addresses = messages[i].getAllRecipients();
+                    if (addresses != null)
+                    {
+                        for (int j = 0; j < addresses.length - 1; j++)
+                        {
+                            to += addresses[j].toString() + ",";
+                        }
+                        //So we don't add a comma at the end
+                        to += addresses[addresses.length - 1];
+                    }*/            
+
+                    long messageNo = imapFolder.getUID(messages[i]);
+
+
+                    String[] tags = messages[i].getHeader("Tags");
+
+                    //Check to see if message already exists in database
+
+                    Date dateSent = messages[i].getSentDate();
+                    Date dateReceived = messages[i].getReceivedDate();
+
+                    Object[] line = {UID, subject, from, to, dateSent, dateReceived, folderID, account.getUsername(), messageNo, isRead, tags};
+                    dbData.add(line);
+                }
+            }
+
+            long uid = folder.getUIDNext();
+            UserDatabase.getInstance().updateRecord("Folders", 
+                    "lastSeqNo=" + Long.toString(uid), 
+                    "folderID=" + Integer.toString(folderID));
+
+            insertMessagesWithTags(dbData);
         }
         catch (Exception ex)
         {
             ex.printStackTrace();
         }
         
-        
+        publishPropertyEvent("MessageManagerThreadFinished", null);
     }
     
     private void insertMessagesWithTags(ArrayList<Object[]> dbData)
@@ -350,9 +376,12 @@ public class AccountMessageUpdater implements Runnable
                     if (TrustedAccount.isTrustedAccount(account, from))
                     {
                         String[] tags = (String[]) currentLine[currentLine.length - 1];
-                        ArrayList<String> tagList = new ArrayList<String>(tags.length);
-                        tagList.addAll(Arrays.asList(tags));
-                        TagParser.getInstance().insertTags(UserDatabase.getInstance(), tagList, id);
+                        if (tags != null)
+                        {
+                            ArrayList<String> tagList = new ArrayList<String>(tags.length);
+                            tagList.addAll(Arrays.asList(tags));
+                            TagParser.getInstance().insertTags(UserDatabase.getInstance(), tagList, id);
+                        }
                     }
 
                     //System.out.println("Found id: " + id);
@@ -424,7 +453,7 @@ public class AccountMessageUpdater implements Runnable
     @Override
     public void run() 
     {
-        System.out.println("Started update thread");
+        System.out.println("Started update thread for: " + account);
         try
         {
             while (true)

@@ -7,6 +7,7 @@ import com.gmail.higginson555.adam.queryParser.QueryNode.QueryNodeType;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Stack;
 
 /**
@@ -186,11 +187,13 @@ public class QueryParser
             throw new QueryParseException("Found mismatching brackets!");
         }
         
-        if (stack.peek().getData() instanceof ArrayList)
+        if (!stack.isEmpty() && stack.peek().getData() instanceof ArrayList)
         {
             ArrayList<Integer> top = (ArrayList<Integer>) stack.peek().getData();
-            System.out.println("Returning list of size: " + top.size());
-            return (ArrayList<Integer>) stack.pop().getData();
+            HashSet<Integer> removeDuplicates = new HashSet<Integer>(top);
+            //System.out.println("Returning list of size: " + top.size());
+            return new ArrayList<Integer>(removeDuplicates);
+            //return (ArrayList<Integer>) stack.pop().getData();
         }
         else
         {
@@ -290,7 +293,7 @@ public class QueryParser
                     {
                         ArrayList<Object[]> result = database.selectFromTableWhere(
                                 "Messages", 
-                                "messageID, messageUID, folderID, seqNo", 
+                                "messageID, messageUID, folderID, messageNo", 
                                 "isValidMessage=1 AND messageFrom LIKE '%" + extensionTag + "%'");
                         ArrayList<Integer> messageIDs = new ArrayList<Integer>(result.size());
                         for (Object[] line : result)
@@ -298,7 +301,7 @@ public class QueryParser
                             int id = (Integer) line[0];
                             String UID = (String) line[1];
                             int folderID = (Integer) line[2];
-                            int seqNo = (Integer) line[3];
+                            long seqNo = (Long) line[3];
                             if (uidToMessageInfo.containsKey(UID))
                             {
                                 MessageFolderInfo msgInfo = uidToMessageInfo.get(UID);
@@ -317,7 +320,7 @@ public class QueryParser
                     else if (extensionOp.equalsIgnoreCase(MESSAGE_TO))
                     {
                         ArrayList<Object[]> result = database.selectFromTableWhere("Messages", 
-                                "messageID, messageUID, folderID, seqNo", 
+                                "messageID, messageUID, folderID, messageNo", 
                                 "isValidMessage=1 AND messageTo LIKE '%" + extensionTag + "%'");
                         ArrayList<Integer> messageIDs = new ArrayList<Integer>(result.size());
                         for (Object[] line : result)
@@ -325,7 +328,7 @@ public class QueryParser
                             int id = (Integer) line[0];
                             String UID = (String) line[1];
                             int folderID = (Integer) line[2];
-                            int seqNo = (Integer) line[3];
+                            long seqNo = (Long) line[3];
                             if (uidToMessageInfo.containsKey(UID))
                             {
                                 MessageFolderInfo msgInfo = uidToMessageInfo.get(UID);
@@ -370,7 +373,7 @@ public class QueryParser
                             {
                                 selectedIDs.add(messageID);
                             }
-                            System.out.println("Adding message: " + messageID);
+                            //System.out.println("Adding message: " + messageID);
                         }
                         
                         stack.push(new QueryNode(QueryNodeType.NODE_MESSAGE_LIST, selectedIDs));
@@ -407,12 +410,25 @@ public class QueryParser
                         ArrayList<Object[]> checkValidResult 
                                 = database.selectFromTableWhere
                                 ("Messages", 
-                                "messageID", 
+                                "messageUID, folderID, messageNo", 
                                 "messageID=" + Integer.toString(messageID) 
                                 + " AND isValidMessage=1");
                         if (!checkValidResult.isEmpty())
                         {
-                            messageIDs.add(messageID);
+                            String UID = (String) checkValidResult.get(0)[0];
+                            int folderID = (Integer) checkValidResult.get(0)[1];
+                            long messageNo = (Long) checkValidResult.get(0)[2];
+                            if (uidToMessageInfo.containsKey(UID))
+                            {
+                                MessageFolderInfo msgInfo = uidToMessageInfo.get(UID);
+                                msgInfo.addFolder(folderID);
+                            }
+                            else
+                            {
+                                messageIDs.add(messageID);
+                                MessageFolderInfo msgInfo = new MessageFolderInfo(messageID, messageNo);
+                                uidToMessageInfo.put(UID, msgInfo);
+                            }
                         }
                     }
                 }
