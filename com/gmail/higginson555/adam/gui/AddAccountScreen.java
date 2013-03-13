@@ -21,6 +21,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.Store;
 import javax.swing.JOptionPane;
 import javax.swing.SwingWorker;
 
@@ -311,33 +313,31 @@ public class AddAccountScreen extends javax.swing.JFrame {
                                 outgoingField.getText(), 
                                 port);
         try 
-        {
-            AccountManager.getSingleton().addAccount(account);
-            AccountMessageDownloader amd = AccountMessageDownloader.getInstance(account);
+        {       
+            Properties properties = System.getProperties();
+            properties.setProperty("mail.store.protocol", account.getAccountType());
+
+            Session session = Session.getInstance(properties);
+            Store store = session.getStore(account.getAccountType().toLowerCase());
+            store.connect(account.getIncoming(), account.getUsername(), passwordString);
             listener.onPropertyEvent(this.getClass(), "AddAccount", account);
+            store.close();
+            AccountManager.getSingleton().addAccount(account);  
             this.dispose();
-        } catch (SQLException ex) {
+        } 
+        catch (SQLException ex) 
+        {
             JOptionPane.showMessageDialog(rootPane, "Could not connect to SQL server!", "Error!", JOptionPane.ERROR_MESSAGE);
             Logger.getLogger(AddAccountScreen.class.getName()).log(Level.SEVERE, null, ex);
-            
-            try
-            {
-                AccountManager.getSingleton().addAccount(account);
-            } catch (SQLException ex2)
-            {
-                JOptionPane.showMessageDialog(rootPane, "Error, account could not be removed!", "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        } catch (MessagingException ex) {
+        } 
+        catch (MessagingException ex) 
+        {
             JOptionPane.showMessageDialog(rootPane, "Could not connect to server!", "Error!", JOptionPane.ERROR_MESSAGE);
             Logger.getLogger(AddAccountScreen.class.getName()).log(Level.SEVERE, null, ex);
-            
-            try
-            {
-                AccountManager.getSingleton().addAccount(account);
-            } catch (SQLException ex2)
-            {
-                JOptionPane.showMessageDialog(rootPane, "Error, account could not be removed!", "Error", JOptionPane.ERROR_MESSAGE);
-            }
+        }
+        catch (Exception ex)
+        {
+            JOptionPane.showMessageDialog(rootPane, ex.getMessage(), "Error!", JOptionPane.ERROR_MESSAGE);
         }
              
         

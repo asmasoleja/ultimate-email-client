@@ -71,11 +71,12 @@ public class ViewPanel extends javax.swing.JPanel implements PropertyListener
         refreshButton = new javax.swing.JButton();
         queryLabel = new javax.swing.JLabel();
         queryField = new javax.swing.JTextField();
+        editButton = new javax.swing.JButton();
 
-        viewNameLabel.setFont(new java.awt.Font("Tahoma", 1, 18));
+        viewNameLabel.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
         viewNameLabel.setText(view.getViewName());
 
-        messagesLabel.setFont(new java.awt.Font("Tahoma", 1, 11));
+        messagesLabel.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         messagesLabel.setText("Messages");
 
         messageTable.setModel(new EmailTableModel());
@@ -97,6 +98,13 @@ public class ViewPanel extends javax.swing.JPanel implements PropertyListener
         queryLabel.setFont(new java.awt.Font("DejaVu Sans", 1, 13)); // NOI18N
         queryLabel.setText("Query:");
 
+        editButton.setText("Edit");
+        editButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                editButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -104,26 +112,30 @@ public class ViewPanel extends javax.swing.JPanel implements PropertyListener
             .addComponent(jSeparator1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 741, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(messagesLabel)
-                .addContainerGap(665, Short.MAX_VALUE))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 717, Short.MAX_VALUE)
-                    .addComponent(viewNameLabel, javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 717, Short.MAX_VALUE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addComponent(queryLabel)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(queryField, javax.swing.GroupLayout.DEFAULT_SIZE, 582, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(refreshButton)))
+                        .addComponent(refreshButton))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(messagesLabel)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(viewNameLabel)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(editButton, javax.swing.GroupLayout.PREFERRED_SIZE, 121, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(viewNameLabel)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(viewNameLabel)
+                    .addComponent(editButton))
                 .addGap(4, 4, 4)
                 .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
@@ -134,7 +146,7 @@ public class ViewPanel extends javax.swing.JPanel implements PropertyListener
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(messagesLabel)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 454, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 453, Short.MAX_VALUE)
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
@@ -177,17 +189,20 @@ public class ViewPanel extends javax.swing.JPanel implements PropertyListener
                 int row = 0;
                 for (Object[] line : tableData)
                 {
-                    System.out.println("Adding: " + Arrays.toString(line) + " at index: " + row);
+                    //System.out.println("Adding: " + Arrays.toString(line) + " at index: " + row);
                     filterData.add(row, line);
                     Object[] tableLine = {line[2], line[3], line[6], line[12]};
-                    System.out.println("Table line: " + Arrays.toString(tableLine));
+                    //System.out.println("Table line: " + Arrays.toString(tableLine));
                     newTableData[row] = tableLine;
                     row++;
                 }
 
-                System.out.println("Setting new table data with size: " + newTableData.length);
-                cellRenderer.setTableData(filterData);
-                model.setData(newTableData);
+                if (newTableData.length != 0)
+                {
+                    System.out.println("Setting new table data with size: " + newTableData.length);
+                    cellRenderer.setTableData(filterData);
+                    model.setData(newTableData);
+                }
 
                 //messageTable.setModel(model);
                 
@@ -279,6 +294,45 @@ public class ViewPanel extends javax.swing.JPanel implements PropertyListener
         updateTableWithNewData();
     }//GEN-LAST:event_refreshButtonActionPerformed
 
+    private void editButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editButtonActionPerformed
+        
+        String input = JOptionPane.showInputDialog(null, "Please Enter a new title: ", "View Name", JOptionPane.OK_CANCEL_OPTION);
+        if (input != null)
+        {
+            if (input.equalsIgnoreCase(view.getViewName()))
+            {
+                return;
+            }
+            else if (input.isEmpty())
+            {
+                JOptionPane.showMessageDialog(null, "Must enter a view name!", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+            else
+            {
+                try
+                {
+                    String oldName = view.getViewName();
+                    if (!view.setName(input))
+                    {
+                        JOptionPane.showMessageDialog(null, "View name not unique!", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                    else
+                    {
+                        viewNameLabel.setText(input);
+                        this.setName(input);
+                        Object[] data = {view.getAccount(), oldName};
+                        publishPropertyEvent("ViewNameChanged", data);
+                    }
+                } 
+                catch (SQLException ex)
+                {
+                    JOptionPane.showMessageDialog(this, ex.toString(), ex.getClass().getName(), JOptionPane.ERROR_MESSAGE);
+                    ex.printStackTrace();
+                }
+            }
+        }
+    }//GEN-LAST:event_editButtonActionPerformed
+
     @Override
     public void onPropertyEvent(Class source, String name, Object value) 
     {
@@ -294,6 +348,7 @@ public class ViewPanel extends javax.swing.JPanel implements PropertyListener
         }
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton editButton;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JTable messageTable;

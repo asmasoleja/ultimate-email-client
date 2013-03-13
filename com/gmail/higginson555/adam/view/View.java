@@ -278,6 +278,20 @@ public class View
         db.updateRecord("Views", "query='" + query + "'", "viewID=" + Integer.toString(id));
     }
     
+    public boolean setName(String name) throws SQLException
+    {
+        this.viewName = name;
+        Database db = UserDatabase.getInstance();
+        if (!db.selectFromTableWhere("Views", "viewID", 
+                "viewName = '" + viewName 
+                + "' AND accountUsername = '" + account.getUsername() + "'").isEmpty())
+        {
+            return false;
+        }
+        db.updateRecord("Views", "viewName='" + viewName + "'", "viewID=" + Integer.toString(id));
+        return true;
+    }
+    
     public Object[][] getQueryResults() throws QueryParseException, SQLException
     {
         if (query != null)

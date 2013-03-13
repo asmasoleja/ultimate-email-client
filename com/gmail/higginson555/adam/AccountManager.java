@@ -58,7 +58,7 @@ public class AccountManager
         accounts.put(accountName, account);
         return account;
     }
-    public void addAccount(Account account) throws SQLException
+    public void addAccount(Account account) throws SQLException, Exception
     {
         String[] fieldNames = {"username", "password", "accountType", "incoming", "outgoing", "outgoingPort"};
         Object[] fieldValues = {account.getUsername(), 
@@ -66,10 +66,16 @@ public class AccountManager
                                 (String) account.getAccountType(), 
                                 account.getIncoming(), 
                                 account.getOutgoing(), 
-                                account.getOutgoingPort()};        
-        database.insertRecord("Accounts", fieldNames, fieldValues);
-        
-        accounts.put(account.getUsername(), account);
+                                account.getOutgoingPort()}; 
+        if (!database.selectFromTableWhere("Accounts", "username", "username='" + account.getUsername() + "'").isEmpty())
+        {
+            database.insertRecord("Accounts", fieldNames, fieldValues);
+            accounts.put(account.getUsername(), account);
+        }
+        else
+        {
+            throw new Exception("Account already exists!");
+        }
     }
     
     public ArrayList<Account> getAllAccounts() throws SQLException

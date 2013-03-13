@@ -13,11 +13,11 @@ public class MessageFolderInfo
     //The message id in the database
     private int messageID;
     //The message sequence number
-    private int seqNo;
+    private long seqNo;
     //The list of folder ids the message belongs to
     private ArrayList<Integer> folderIDs;
 
-    public MessageFolderInfo(int messageID, int seqNo) {
+    public MessageFolderInfo(int messageID, long seqNo) {
         this.messageID = messageID;
         this.seqNo = seqNo;
         this.folderIDs = new ArrayList<Integer>();
@@ -38,7 +38,7 @@ public class MessageFolderInfo
         return messageID;
     }
     
-    public int getSeqNo()
+    public long getSeqNo()
     {
         return seqNo;
     }

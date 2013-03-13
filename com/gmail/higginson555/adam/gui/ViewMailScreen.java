@@ -13,9 +13,13 @@ import com.gmail.higginson555.adam.view.View;
 import java.awt.BorderLayout;
 import java.io.File;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
@@ -81,6 +85,7 @@ public class ViewMailScreen extends JPanel
         
         body = "";
         initComponents();
+        tagList.setComponentPopupMenu(customTagsPopupMenu);
         
         final JWebBrowser browser = new JWebBrowser();
         browser.setBarsVisible(false);
@@ -97,10 +102,13 @@ public class ViewMailScreen extends JPanel
         try 
         {
             String[] messageTags = message.getHeader("Tags");
-            System.out.println("Message tags length: " + messageTags.length);
-            for (String tag : messageTags)
+            //System.out.println("Message tags length: " + messageTags.length);
+            if (messageTags != null)
             {
-                System.out.println("TAG: " + tag);
+                for (String tag : messageTags)
+                {
+                    System.out.println("TAG: " + tag);
+                }
             }
             System.out.println("\nWriting message...\n");
             writeMessage(message);
@@ -122,6 +130,7 @@ public class ViewMailScreen extends JPanel
         catch (Exception ex) 
         {
             JOptionPane.showConfirmDialog(null, "Error! Could not show message\n" + ex.getMessage(), "Error!", JOptionPane.OK_OPTION);
+            ex.printStackTrace();
         }
 
         this.setName(subject);
@@ -281,15 +290,34 @@ public class ViewMailScreen extends JPanel
             sentLabel.setText("Unknown");
         
         //Tags
-        String[] tags = message.getHeader("Tags");
-        if (tags.length != 0)
+        ArrayList<Object[]> result = UserDatabase.getInstance().selectFromTableWhere("MessagesToTags", "tagID", "messageID=" + Integer.toString(messageID));
+        ArrayList<String> foundTagValues = new ArrayList<String>();
+        DefaultListModel model = (DefaultListModel) tagList.getModel();
+        HashSet<String> addedTags = new HashSet<String>();
+        for (Object[] line : result)
         {
-            DefaultListModel model = (DefaultListModel) tagList.getModel();
-            ArrayList<String> tagsList = new ArrayList<String>(tags.length);
-            for (String tag : tags)
+            int tagID = (Integer) line[0];
+            ArrayList<Object[]> foundTag = UserDatabase.getInstance().selectFromTableWhere("Tags", "tagValue", "tagID=" + Integer.toString(tagID));
+            String tag = (String) foundTag.get(0)[0];
+            if (addedTags.add(tag.toLowerCase()))
             {
                 model.addElement(tag);
+            }
+        }
+        String[] tags = message.getHeader("Tags");
+        if (tags != null && tags.length != 0)
+        {
+
+            ArrayList<String> tagsList = new ArrayList<String>(tags.length);
+            String tagPrint = "";
+            for (String tag : tags)
+            {
+                if (addedTags.add(tag.toLowerCase()))
+                {
+                    model.addElement(tag.toLowerCase());
+                }
                 tagsList.add(tag);
+                tagPrint += tag + " ";
             }
             if (TrustedAccount.isTrustedAccount(account, fromText))
             {
@@ -297,12 +325,12 @@ public class ViewMailScreen extends JPanel
             }
             else
             {
-                int result = JOptionPane.showConfirmDialog(null, 
+                int confirm = JOptionPane.showConfirmDialog(null, 
                         "Account: " + fromText + 
-                        " has added tags to the message, "
+                        " has added tags to the message, ( " + tagPrint + ")"
                         + "do you wish to accept?", 
                         "Confirm", JOptionPane.YES_NO_OPTION);
-                if (result == JOptionPane.YES_OPTION)
+                if (confirm == JOptionPane.YES_OPTION)
                 {
                     TrustedAccount.setTrustedAccount(account, fromText);
                     TagParser.getInstance().insertTags(UserDatabase.getInstance(), tagsList, messageID);
@@ -321,6 +349,10 @@ public class ViewMailScreen extends JPanel
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jButton1 = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
+        customTagsPopupMenu = new javax.swing.JPopupMenu();
+        customTagsDeleteItem = new javax.swing.JMenuItem();
         fromLabelStatic = new javax.swing.JLabel();
         toLabelStatic = new javax.swing.JLabel();
         sentLabelStatic = new javax.swing.JLabel();
@@ -339,6 +371,21 @@ public class ViewMailScreen extends JPanel
         jLabel1 = new javax.swing.JLabel();
         jScrollPane2 = new javax.swing.JScrollPane();
         tagList = new javax.swing.JList();
+        addTagField = new javax.swing.JTextField();
+        addTagButton = new javax.swing.JButton();
+        jLabel3 = new javax.swing.JLabel();
+
+        jButton1.setText("jButton1");
+
+        jButton2.setText("jButton2");
+
+        customTagsDeleteItem.setText("Delete");
+        customTagsDeleteItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                customTagsDeleteItemActionPerformed(evt);
+            }
+        });
+        customTagsPopupMenu.add(customTagsDeleteItem);
 
         fromLabelStatic.setFont(new java.awt.Font("DejaVu Sans", 1, 13)); // NOI18N
         fromLabelStatic.setText("From:");
@@ -435,6 +482,16 @@ public class ViewMailScreen extends JPanel
         tagList.setModel(new DefaultListModel());
         jScrollPane2.setViewportView(tagList);
 
+        addTagButton.setText("Add");
+        addTagButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addTagButtonActionPerformed(evt);
+            }
+        });
+
+        jLabel3.setFont(new java.awt.Font("Tahoma", 1, 13)); // NOI18N
+        jLabel3.setText("Add Tag:");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -446,49 +503,57 @@ public class ViewMailScreen extends JPanel
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(fromLabelStatic)
-                                    .addComponent(toLabelStatic, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(sentLabelStatic))
-                                .addGap(31, 31, 31)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(sentLabel)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addComponent(fromLabel)
-                                            .addComponent(toLabel))
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 58, Short.MAX_VALUE)
-                                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                            .addGroup(layout.createSequentialGroup()
                                 .addComponent(replyButton)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(forwardButton)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(deleteButton)
-                                .addGap(0, 0, Short.MAX_VALUE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(subjectLabelStatic)
-                                .addGap(12, 12, 12)
-                                .addComponent(subjectLabel)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(jLabel2)))
+                                .addComponent(deleteButton))
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(layout.createSequentialGroup()
+                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(fromLabelStatic)
+                                        .addComponent(toLabelStatic, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(sentLabelStatic))
+                                    .addGap(31, 31, 31)
+                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(sentLabel)
+                                        .addGroup(layout.createSequentialGroup()
+                                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                                .addComponent(fromLabel)
+                                                .addComponent(toLabel))
+                                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 76, Short.MAX_VALUE)
+                                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                                .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                                    .addComponent(jLabel3)
+                                                    .addGap(40, 40, 40))))))
+                                .addGroup(layout.createSequentialGroup()
+                                    .addComponent(subjectLabelStatic)
+                                    .addGap(12, 12, 12)
+                                    .addComponent(subjectLabel)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(jLabel2))))
                         .addGap(5, 5, 5)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jScrollPane2)
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 281, Short.MAX_VALUE))))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 263, Short.MAX_VALUE)
+                            .addComponent(jScrollPane1)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(addTagField)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(addTagButton)))))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(replyButton)
-                    .addComponent(forwardButton)
-                    .addComponent(deleteButton))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(replyButton)
+                            .addComponent(forwardButton)
+                            .addComponent(deleteButton))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addComponent(fromLabel)
                             .addComponent(fromLabelStatic))
@@ -500,9 +565,15 @@ public class ViewMailScreen extends JPanel
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(sentLabelStatic)
                             .addComponent(sentLabel)))
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(addTagField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(addTagButton)
+                            .addComponent(jLabel3))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE))))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -558,6 +629,52 @@ public class ViewMailScreen extends JPanel
         //replyScreen.setVisible(true);
     }//GEN-LAST:event_replyButtonActionPerformed
 
+    private void addTagButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addTagButtonActionPerformed
+        if (!addTagField.getText().isEmpty())
+        {
+            String tagToAdd = addTagField.getText();
+            addTagField.setText("");
+            System.out.println("Tag to add: " + tagToAdd);
+            ArrayList<String> tags = TagParser.getInstance().getTags(tagToAdd);
+            DefaultListModel model = (DefaultListModel) tagList.getModel();
+            for (String tag : tags)
+            {
+                model.addElement(tag);
+                //System.out.println("Should have added: " + tag);
+            }
+            try 
+            {
+                TagParser.getInstance().insertTags(UserDatabase.getInstance(), tags, messageID);
+            } catch (SQLException ex) 
+            {
+                JOptionPane.showMessageDialog(null, "Lost connection to SQL Server!", "SQLException", JOptionPane.ERROR_MESSAGE);
+                Logger.getLogger(ViewMailScreen.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }//GEN-LAST:event_addTagButtonActionPerformed
+
+    private void customTagsDeleteItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_customTagsDeleteItemActionPerformed
+        String tag = (String) tagList.getSelectedValue();
+        DefaultListModel model = (DefaultListModel) tagList.getModel();
+        if (tag != null)
+        {
+            int result = JOptionPane.showConfirmDialog(null, "Are you sure you wish to delete tag: " + tag + "?", "Confirm", JOptionPane.YES_NO_OPTION);
+            if (result == JOptionPane.YES_OPTION)
+            {
+                try
+                {
+                    TagParser.getInstance().removeTagLink(UserDatabase.getInstance(), tag, messageID);
+                    model.removeElement(tag);
+                }
+                catch (SQLException ex)
+                {
+                    JOptionPane.showMessageDialog(null, "Lost connection to SQL Server!", "SQLException", JOptionPane.ERROR_MESSAGE);
+                    Logger.getLogger(ViewMailScreen.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+    }//GEN-LAST:event_customTagsDeleteItemActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -600,14 +717,21 @@ public class ViewMailScreen extends JPanel
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton addTagButton;
+    private javax.swing.JTextField addTagField;
     private javax.swing.JList attachmentList;
     private javax.swing.JPanel browserPanel;
+    private javax.swing.JMenuItem customTagsDeleteItem;
+    private javax.swing.JPopupMenu customTagsPopupMenu;
     private javax.swing.JButton deleteButton;
     private javax.swing.JButton forwardButton;
     private javax.swing.JLabel fromLabel;
     private javax.swing.JLabel fromLabelStatic;
+    private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JButton replyButton;
