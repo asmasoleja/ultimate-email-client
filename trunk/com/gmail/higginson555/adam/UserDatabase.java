@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -80,6 +81,7 @@ public class UserDatabase
             database = man.getDatabaseInstance();
         } catch (SQLException ex) {
             Logger.getLogger(UserDatabase.class.getName()).log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(null, "Cannot connect to: " + database.getDatabaseURL(), url, JOptionPane.ERROR_MESSAGE);
             System.exit(-1);
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(UserDatabase.class.getName()).log(Level.SEVERE, null, ex);
