@@ -95,7 +95,7 @@ public class MessageManager
                 String messageUID = (String) line[1];
                 if (foundUIDs.add(messageUID))
                 {
-                    System.out.println("Added: " + messageUID + " with subject: " + line[2]);
+                    //System.out.println("Added: " + messageUID + " with subject: " + line[2]);
                     tableData.add(line);
                 }
             }

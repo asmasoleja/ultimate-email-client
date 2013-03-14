@@ -127,7 +127,7 @@ public class AccountMessageUpdater implements Runnable
                     
                     if (correctLine != null)
                     {
-                        System.out.println("Found correct line in DB Message-ID: " + messageID + " folderID: " + correctFolderID);
+                        //System.out.println("Found correct line in DB Message-ID: " + messageID + " folderID: " + correctFolderID);
                         ClientThreadPool.foundMessages.put(messageID, message);
                         /*result = database.selectFromTableWhere("Messages", 
                                 "*", 
@@ -155,7 +155,7 @@ public class AccountMessageUpdater implements Runnable
                         //TODO check if folder doesn't already exist
 
                         Message[] messages = folder.search(searchTerm);
-                        System.out.println("Messages length: " + messages.length);
+                        //System.out.println("Messages length: " + messages.length);
                         if (messages.length != 0)
                         {
                             System.out.println("Found message in: " + folder.getFullName());

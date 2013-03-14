@@ -209,7 +209,7 @@ public class AccountMessageDownloader extends Thread
             return;
         }
         
-        System.out.println("Inserting folder!");
+        //System.out.println("Inserting folder!");
         
         //Insert this node into the database, with the parentID
         Database user = UserDatabase.getInstance();
@@ -280,7 +280,7 @@ public class AccountMessageDownloader extends Thread
             }
         }
                 
-        System.out.println("Now on folder: " + folder.getFullName());
+        //System.out.println("Now on folder: " + folder.getFullName());
         
         //Find this folder ID
         result = user.selectFromTableWhere("Folders", "folderID", 
@@ -357,7 +357,7 @@ public class AccountMessageDownloader extends Thread
 
         folder.fetch(allMessages, fp);
 
-        System.out.append("Inserting messages");
+        //System.out.append("Inserting messages");
         int maxMessageNo = -1;
         ArrayList<Object[]> dbData = new ArrayList<Object[]>(allMessages.length); 
         IMAPFolder imapFolder = (IMAPFolder) folder;
@@ -391,7 +391,7 @@ public class AccountMessageDownloader extends Thread
             //Get UID header
             String[] UIDheader = allMessages[i].getHeader("Message-Id");
             String UID = UIDheader[0];
-            System.out.println("Found UID: " + UID);
+            //System.out.println("Found UID: " + UID);
                         
             long messageNo = imapFolder.getUID(allMessages[i]);
             
