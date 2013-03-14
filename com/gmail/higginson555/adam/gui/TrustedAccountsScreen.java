@@ -62,12 +62,12 @@ public class TrustedAccountsScreen extends javax.swing.JFrame {
         jLabel3 = new javax.swing.JLabel();
         addField = new javax.swing.JTextField();
         addButton = new javax.swing.JButton();
-        jToggleButton1 = new javax.swing.JToggleButton();
+        deleteButton = new javax.swing.JToggleButton();
         jLabel4 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
-        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 14));
         jLabel1.setText("Trusted Accounts");
 
         jLabel2.setText("See accounts which you have added to your trust list here");
@@ -75,7 +75,7 @@ public class TrustedAccountsScreen extends javax.swing.JFrame {
         trustList.setModel(new DefaultListModel());
         jScrollPane1.setViewportView(trustList);
 
-        jLabel3.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        jLabel3.setFont(new java.awt.Font("Tahoma", 1, 11));
         jLabel3.setText("Add Account");
 
         addField.addActionListener(new java.awt.event.ActionListener() {
@@ -91,16 +91,21 @@ public class TrustedAccountsScreen extends javax.swing.JFrame {
             }
         });
 
-        jToggleButton1.setText("Delete Selected");
+        deleteButton.setText("Delete Selected");
+        deleteButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                deleteButtonActionPerformed(evt);
+            }
+        });
 
-        jLabel4.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        jLabel4.setFont(new java.awt.Font("Tahoma", 1, 11));
         jLabel4.setText("Delete");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jSeparator1, javax.swing.GroupLayout.Alignment.TRAILING)
+            .addComponent(jSeparator1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 419, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -110,20 +115,20 @@ public class TrustedAccountsScreen extends javax.swing.JFrame {
                                 .addGap(10, 10, 10)
                                 .addComponent(jLabel2))
                             .addComponent(jLabel1))
-                        .addGap(0, 0, Short.MAX_VALUE))
+                        .addGap(0, 11, Short.MAX_VALUE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(addField)
+                            .addComponent(addField, javax.swing.GroupLayout.DEFAULT_SIZE, 194, Short.MAX_VALUE)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(jLabel3)
-                                .addGap(0, 0, Short.MAX_VALUE))
+                                .addGap(0, 110, Short.MAX_VALUE))
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addGap(0, 0, Short.MAX_VALUE)
+                                .addGap(0, 157, Short.MAX_VALUE)
                                 .addComponent(addButton))
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                                 .addComponent(jLabel4)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 37, Short.MAX_VALUE)
-                                .addComponent(jToggleButton1)))
+                                .addComponent(deleteButton)))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 189, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
@@ -148,9 +153,9 @@ public class TrustedAccountsScreen extends javax.swing.JFrame {
                         .addComponent(addButton)
                         .addGap(14, 14, 14)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jToggleButton1)
+                            .addComponent(deleteButton)
                             .addComponent(jLabel4))
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                        .addGap(0, 29, Short.MAX_VALUE)))
                 .addContainerGap())
         );
 
@@ -169,13 +174,39 @@ public class TrustedAccountsScreen extends javax.swing.JFrame {
             
             Object[] fieldValues = {account.getUsername(), accountToAdd};
             try {
-                UserDatabase.getInstance().insertRecord("TrustedAccounts", fieldNames, fieldValues);
+                ArrayList<Object[]> result = UserDatabase.getInstance().
+                        selectFromTableWhere("TrustedAccounts",
+                        "accountUsername='" + account.getUsername()
+                        + "' AND trustedAccount='" + accountToAdd + "'",
+                        "accountUsername");
+                if (result.isEmpty())
+                {
+                    DefaultListModel model = (DefaultListModel) trustList.getModel();
+                    model.addElement(accountToAdd);
+                    UserDatabase.getInstance().insertRecord("TrustedAccounts", fieldNames, fieldValues);
+                }
             } catch (SQLException ex) {
                 JOptionPane.showMessageDialog(rootPane, "Could not connect to SQL Server!", "SQLException", JOptionPane.ERROR_MESSAGE);
                 Logger.getLogger(TrustedAccountsScreen.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }//GEN-LAST:event_addButtonActionPerformed
+
+    private void deleteButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteButtonActionPerformed
+        String value = (String) trustList.getSelectedValue();
+        if (value != null)
+        {
+            try {
+                UserDatabase.getInstance().deleteRecord("TrustedAccounts", "accountUsername='" + account.getUsername() + "' AND trustedAccount='" + value + "'");
+                DefaultListModel model = (DefaultListModel) trustList.getModel();
+                model.removeElement(value);
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(rootPane, "Could not connect to SQL Server!", "SQLException", JOptionPane.ERROR_MESSAGE);
+                Logger.getLogger(TrustedAccountsScreen.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+        }
+    }//GEN-LAST:event_deleteButtonActionPerformed
 
     /**
      * @param args the command line arguments
@@ -214,13 +245,13 @@ public class TrustedAccountsScreen extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addButton;
     private javax.swing.JTextField addField;
+    private javax.swing.JToggleButton deleteButton;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSeparator jSeparator1;
-    private javax.swing.JToggleButton jToggleButton1;
     private javax.swing.JList trustList;
     // End of variables declaration//GEN-END:variables
 }

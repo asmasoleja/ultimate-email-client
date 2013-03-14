@@ -101,6 +101,7 @@ public class AccountMessageDownloader extends Thread
     @Override
     public void run()
     {
+        publishPropertyEvent("MessageManagerThreadStart", null);
         lastFolderID = -1;
         lastMessageID = -1;
         try {
@@ -133,7 +134,6 @@ public class AccountMessageDownloader extends Thread
         System.out.println("IS DONE: " + isDone + " for account: " + account);
         if (!isDone)
         {
-            publishPropertyEvent("MessageManagerThreadStart", null);
             System.out.println("After if!");
             //Try to insert all folders into the database, as well as messages!
             Folder folder = null;

@@ -98,6 +98,7 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         newMessageMenuItem = new javax.swing.JMenuItem();
+        sqlServerSettingsMenuItem = new javax.swing.JMenuItem();
         exitMenuItem = new javax.swing.JMenuItem();
         jMenu2 = new javax.swing.JMenu();
         accountMenu = new javax.swing.JMenu();
@@ -111,7 +112,7 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Ultimate E-mail Client");
 
-        viewsLabel.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        viewsLabel.setFont(new java.awt.Font("Tahoma", 1, 12));
         viewsLabel.setText("Views");
 
         viewTree.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -121,7 +122,7 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
         });
         jScrollPane1.setViewportView(viewTree);
 
-        openViewsLabel.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        openViewsLabel.setFont(new java.awt.Font("Tahoma", 1, 12));
         openViewsLabel.setText("Opened Views");
 
         warningLabel.setText("State: OK");
@@ -143,6 +144,14 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
             }
         });
         jMenu1.add(newMessageMenuItem);
+
+        sqlServerSettingsMenuItem.setText("SQL Server Settings");
+        sqlServerSettingsMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                sqlServerSettingsMenuItemActionPerformed(evt);
+            }
+        });
+        jMenu1.add(sqlServerSettingsMenuItem);
 
         exitMenuItem.setText("Exit");
         exitMenuItem.addActionListener(new java.awt.event.ActionListener() {
@@ -358,6 +367,25 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
         }
     }//GEN-LAST:event_viewTrustedAccountsItemActionPerformed
 
+    private void sqlServerSettingsMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sqlServerSettingsMenuItemActionPerformed
+        DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) viewTree.getLastSelectedPathComponent();
+        if (selectedNode != null)
+        {
+            Object nodeObject = selectedNode.getUserObject();
+            while (selectedNode != null && nodeObject != null && !(nodeObject instanceof Account))
+            {
+                selectedNode = (DefaultMutableTreeNode) selectedNode.getParent();
+                nodeObject = selectedNode.getUserObject();
+            }
+
+            if (nodeObject != null || nodeObject instanceof Account)
+            {
+                SQLServerSettingsScreen screen = new SQLServerSettingsScreen((Account) nodeObject);
+                screen.setVisible(true);
+            }
+        }
+    }//GEN-LAST:event_sqlServerSettingsMenuItemActionPerformed
+
     @Override
     public void dispose()
     {
@@ -441,6 +469,7 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
     private javax.swing.JMenuItem newAccountMenuItem;
     private javax.swing.JMenuItem newMessageMenuItem;
     private javax.swing.JLabel openViewsLabel;
+    private javax.swing.JMenuItem sqlServerSettingsMenuItem;
     private javax.swing.JTabbedPane tabbedPane;
     private javax.swing.JTree viewTree;
     private javax.swing.JMenuItem viewTrustedAccountsItem;
@@ -490,7 +519,7 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
         else if (name.equalsIgnoreCase("MessageManagerThreadStart"))
         {
             messageManagerThreads++;
-            System.out.println("Thread started, text should change?");
+            System.out.println("Thread started, text should change? Threads: " + messageManagerThreads);
             warningLabel.setText("State: Adding data to the local database, views may not work correctly!");
         }
         else if (name.equalsIgnoreCase("MessageManagerThreadFinished"))
