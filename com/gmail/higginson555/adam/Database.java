@@ -356,6 +356,12 @@ public class Database
     {
         return selectedDB;
     }
+
+    public String getDatabaseURL()
+    {
+        return this.databaseURL;
+    }
+
     
     
 }
