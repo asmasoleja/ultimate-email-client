@@ -132,7 +132,7 @@ public class AddAccountScreen extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setResizable(false);
 
-        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 12));
         jLabel1.setText("Server Information");
 
         jLabel2.setText("Account Type:");
@@ -148,14 +148,14 @@ public class AddAccountScreen extends javax.swing.JFrame {
 
         jLabel4.setText("Outgoing mail server (SMTP):");
 
-        jLabel5.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        jLabel5.setFont(new java.awt.Font("Tahoma", 1, 12));
         jLabel5.setText("Login Information");
 
         jLabel6.setText("Username:");
 
         jLabel7.setText("Password:");
 
-        jLabel8.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jLabel8.setFont(new java.awt.Font("Tahoma", 1, 14));
         jLabel8.setText("Add Account");
 
         jLabel9.setText("Add a new account");
@@ -186,24 +186,19 @@ public class AddAccountScreen extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jSeparator1, javax.swing.GroupLayout.DEFAULT_SIZE, 422, Short.MAX_VALUE)
+            .addComponent(jSeparator1, javax.swing.GroupLayout.DEFAULT_SIZE, 428, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(jLabel8))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(31, 31, 31)
-                                .addComponent(jLabel9)))
-                        .addGap(0, 256, Short.MAX_VALUE))
+                        .addContainerGap()
+                        .addComponent(jLabel8)
+                        .addGap(0, 301, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(jLabel5)
-                                .addGap(0, 269, Short.MAX_VALUE))
+                                .addGap(0, 275, Short.MAX_VALUE))
                             .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jLabel2)
@@ -227,6 +222,10 @@ public class AddAccountScreen extends javax.swing.JFrame {
                                     .addComponent(passwordField, javax.swing.GroupLayout.DEFAULT_SIZE, 190, Short.MAX_VALUE)
                                     .addComponent(portField, javax.swing.GroupLayout.DEFAULT_SIZE, 190, Short.MAX_VALUE))))))
                 .addContainerGap())
+            .addGroup(layout.createSequentialGroup()
+                .addGap(31, 31, 31)
+                .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 363, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(34, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -234,7 +233,7 @@ public class AddAccountScreen extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(jLabel8)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jLabel9)
+                .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -312,13 +311,23 @@ public class AddAccountScreen extends javax.swing.JFrame {
                                 incomingField.getText(), 
                                 outgoingField.getText(), 
                                 port);
+
+        Store store = null;
         try 
-        {       
+        {
+            java.security.Security.addProvider(new com.sun.net.ssl.internal.ssl.Provider());
             Properties properties = System.getProperties();
             properties.setProperty("mail.store.protocol", account.getAccountType());
+                // set this session up to use SSL for IMAP connections
+            properties.setProperty("mail.imap.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+            // don't fallback to normal IMAP connections on failure.
+            properties.setProperty("mail.imap.socketFactory.fallback", "false");
+            // use the simap port for imap/ssl connections.
+            properties.setProperty("mail.imap.socketFactory.port", "993");
 
             Session session = Session.getInstance(properties);
-            Store store = session.getStore(account.getAccountType().toLowerCase());
+            session.setDebug(true);
+            store = session.getStore(account.getAccountType().toLowerCase());
             store.connect(account.getIncoming(), account.getUsername(), passwordString);
             listener.onPropertyEvent(this.getClass(), "AddAccount", account);
             store.close();
@@ -338,6 +347,21 @@ public class AddAccountScreen extends javax.swing.JFrame {
         catch (Exception ex)
         {
             JOptionPane.showMessageDialog(rootPane, ex.getMessage(), "Error!", JOptionPane.ERROR_MESSAGE);
+        }
+        finally
+        {
+            if (store != null)
+            {
+                try
+                {
+                    store.close();
+                }
+                catch (MessagingException ex)
+                {
+                    JOptionPane.showMessageDialog(rootPane, ex.getMessage(), "Error!", JOptionPane.ERROR_MESSAGE);
+                    ex.printStackTrace();
+                }
+            }
         }
              
         

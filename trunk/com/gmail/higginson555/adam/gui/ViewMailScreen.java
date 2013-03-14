@@ -66,6 +66,10 @@ public class ViewMailScreen extends JPanel
     private String subject;
     private Account account;
 
+    private String withoutHTML;
+
+    private ArrayList<String> allTags;
+
     
     
     
@@ -82,6 +86,7 @@ public class ViewMailScreen extends JPanel
         this.level = 0;
         
         this.attachments = new ArrayList<Part>();
+        this.allTags = new ArrayList<String>();
         
         body = "";
         initComponents();
@@ -91,7 +96,7 @@ public class ViewMailScreen extends JPanel
         browser.setBarsVisible(false);
         browserPanel.add(browser, BorderLayout.CENTER);
  
-        
+        withoutHTML = Jsoup.parse(body).text();
         
         /*UserAgentContext ucontext = new SimpleUserAgentContext();
         SimpleHtmlRendererContext rContext = new SimpleHtmlRendererContext(panel, ucontext);
@@ -115,7 +120,7 @@ public class ViewMailScreen extends JPanel
             //panel.setHtml(body, body, rContext);
             browser.setHTMLContent(body);
             //Remove HTML from the string, for inserting tags into the database
-            String withoutHTML = Jsoup.parse(body).text();
+
             //Get tags and insert into local user database
             System.out.println("Should extract tags?" + extractTags);
             if (extractTags)
@@ -302,6 +307,7 @@ public class ViewMailScreen extends JPanel
             if (addedTags.add(tag.toLowerCase()))
             {
                 model.addElement(tag);
+                allTags.add(tag);
             }
         }
         String[] tags = message.getHeader("Tags");
@@ -315,6 +321,7 @@ public class ViewMailScreen extends JPanel
                 if (addedTags.add(tag.toLowerCase()))
                 {
                     model.addElement(tag.toLowerCase());
+                    allTags.add(tag);
                 }
                 tagsList.add(tag);
                 tagPrint += tag + " ";
@@ -387,13 +394,13 @@ public class ViewMailScreen extends JPanel
         });
         customTagsPopupMenu.add(customTagsDeleteItem);
 
-        fromLabelStatic.setFont(new java.awt.Font("DejaVu Sans", 1, 13)); // NOI18N
+        fromLabelStatic.setFont(new java.awt.Font("DejaVu Sans", 1, 13));
         fromLabelStatic.setText("From:");
 
-        toLabelStatic.setFont(new java.awt.Font("DejaVu Sans", 1, 13)); // NOI18N
+        toLabelStatic.setFont(new java.awt.Font("DejaVu Sans", 1, 13));
         toLabelStatic.setText("To:");
 
-        sentLabelStatic.setFont(new java.awt.Font("DejaVu Sans", 1, 13)); // NOI18N
+        sentLabelStatic.setFont(new java.awt.Font("DejaVu Sans", 1, 13));
         sentLabelStatic.setText("Sent:");
 
         String messageFrom = null;
@@ -422,7 +429,7 @@ public class ViewMailScreen extends JPanel
 
         toLabel.setText("To Label");
 
-        subjectLabelStatic.setFont(new java.awt.Font("DejaVu Sans", 1, 13)); // NOI18N
+        subjectLabelStatic.setFont(new java.awt.Font("DejaVu Sans", 1, 13));
         subjectLabelStatic.setText("Subject:");
 
         String subject = null;
@@ -447,12 +454,17 @@ public class ViewMailScreen extends JPanel
         });
 
         forwardButton.setText("Forward");
+        forwardButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                forwardButtonActionPerformed(evt);
+            }
+        });
 
         deleteButton.setText("Delete");
 
         sentLabel.setText("Sent Label");
 
-        jLabel2.setFont(new java.awt.Font("DejaVu Sans", 1, 13)); // NOI18N
+        jLabel2.setFont(new java.awt.Font("DejaVu Sans", 1, 13));
         jLabel2.setText("Attachments:");
 
         attachmentList.setModel(new DefaultListModel());
@@ -467,7 +479,7 @@ public class ViewMailScreen extends JPanel
         browserPanel.setLayout(browserPanelLayout);
         browserPanelLayout.setHorizontalGroup(
             browserPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
+            .addGap(0, 613, Short.MAX_VALUE)
         );
         browserPanelLayout.setVerticalGroup(
             browserPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -476,7 +488,7 @@ public class ViewMailScreen extends JPanel
 
         browserPanel.setLayout(new BorderLayout());
 
-        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 13)); // NOI18N
+        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 13));
         jLabel1.setText("Custom Tags:");
 
         tagList.setModel(new DefaultListModel());
@@ -489,7 +501,7 @@ public class ViewMailScreen extends JPanel
             }
         });
 
-        jLabel3.setFont(new java.awt.Font("Tahoma", 1, 13)); // NOI18N
+        jLabel3.setFont(new java.awt.Font("Tahoma", 1, 13));
         jLabel3.setText("Add Tag:");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
@@ -521,24 +533,24 @@ public class ViewMailScreen extends JPanel
                                             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                                 .addComponent(fromLabel)
                                                 .addComponent(toLabel))
-                                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 76, Short.MAX_VALUE)
+                                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 71, Short.MAX_VALUE)
                                             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                                .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                                    .addComponent(jLabel3)
-                                                    .addGap(40, 40, 40))))))
+                                                .addComponent(jLabel1)
+                                                .addComponent(jLabel3))
+                                            .addGap(6, 6, 6))))
                                 .addGroup(layout.createSequentialGroup()
                                     .addComponent(subjectLabelStatic)
                                     .addGap(12, 12, 12)
                                     .addComponent(subjectLabel)
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(jLabel2))))
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 74, Short.MAX_VALUE)
+                                    .addComponent(jLabel2)
+                                    .addGap(7, 7, 7))))
                         .addGap(5, 5, 5)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 263, Short.MAX_VALUE)
-                            .addComponent(jScrollPane1)
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 263, Short.MAX_VALUE)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(addTagField)
+                                .addComponent(addTagField, javax.swing.GroupLayout.DEFAULT_SIZE, 220, Short.MAX_VALUE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(addTagButton)))))
                 .addContainerGap())
@@ -627,6 +639,18 @@ public class ViewMailScreen extends JPanel
 
         //ComposeMailScreen replyScreen = new ComposeMailScreen(config, session, messageBody, replyTo, recipient, subject);
         //replyScreen.setVisible(true);
+
+        Properties properties = System.getProperties();
+        properties.setProperty("mail.smtp.host", account.getOutgoing());
+        properties.setProperty("mail.smtp.port", Integer.toString(account.getOutgoingPort()));
+        properties.setProperty("mail.smtp.starttls.enable", "true");
+        properties.setProperty("mail.smtp.auth", "true");
+        properties.setProperty("username", account.getUsername());
+        properties.setProperty("password", account.getPassword());
+        ComposeMailScreen replyScreen = new ComposeMailScreen(properties, messageBody, replyTo, recipient, subject, allTags);
+        replyScreen.setVisible(true);
+
+        
     }//GEN-LAST:event_replyButtonActionPerformed
 
     private void addTagButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addTagButtonActionPerformed
@@ -674,6 +698,10 @@ public class ViewMailScreen extends JPanel
             }
         }
     }//GEN-LAST:event_customTagsDeleteItemActionPerformed
+
+    private void forwardButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_forwardButtonActionPerformed
+
+    }//GEN-LAST:event_forwardButtonActionPerformed
 
     /**
      * @param args the command line arguments

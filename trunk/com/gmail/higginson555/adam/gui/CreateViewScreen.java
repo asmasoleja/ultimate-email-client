@@ -55,12 +55,6 @@ public class CreateViewScreen extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        addKeyWordTextField = new javax.swing.JTextField();
-        jLabel1 = new javax.swing.JLabel();
-        addKeyWordButton = new javax.swing.JButton();
-        jLabel2 = new javax.swing.JLabel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        keyWordsTextArea = new javax.swing.JTextArea();
         jLabel3 = new javax.swing.JLabel();
         jSeparator1 = new javax.swing.JSeparator();
         jLabel4 = new javax.swing.JLabel();
@@ -75,24 +69,7 @@ public class CreateViewScreen extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Create View");
-
-        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 11));
-        jLabel1.setText("Add word:");
-
-        addKeyWordButton.setText("Add");
-        addKeyWordButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                addKeyWordButtonActionPerformed(evt);
-            }
-        });
-
-        jLabel2.setFont(new java.awt.Font("Tahoma", 1, 11));
-        jLabel2.setText("Key Words:");
-
-        keyWordsTextArea.setEditable(false);
-        keyWordsTextArea.setColumns(20);
-        keyWordsTextArea.setRows(5);
-        jScrollPane1.setViewportView(keyWordsTextArea);
+        setResizable(false);
 
         jLabel3.setFont(new java.awt.Font("Tahoma", 1, 14));
         jLabel3.setText("Create View");
@@ -121,7 +98,7 @@ public class CreateViewScreen extends javax.swing.JFrame {
         jLabel6.setFont(new java.awt.Font("Tahoma", 1, 11));
         jLabel6.setText("Create Query:");
 
-        jLabel7.setFont(new java.awt.Font("DejaVu Sans", 1, 13)); // NOI18N
+        jLabel7.setFont(new java.awt.Font("DejaVu Sans", 1, 13));
         jLabel7.setText("Name:");
 
         nameField.addActionListener(new java.awt.event.ActionListener() {
@@ -141,21 +118,13 @@ public class CreateViewScreen extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addGap(10, 10, 10)
                         .addComponent(jLabel4))
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 449, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGap(0, 333, Short.MAX_VALUE)
                         .addComponent(createViewButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(cancelButton))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(addKeyWordTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 406, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(addKeyWordButton))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel2)
-                            .addComponent(jLabel3)
-                            .addComponent(jLabel1))
+                        .addComponent(jLabel3)
                         .addGap(0, 353, Short.MAX_VALUE)))
                 .addContainerGap())
             .addGroup(layout.createSequentialGroup()
@@ -204,17 +173,7 @@ public class CreateViewScreen extends javax.swing.JFrame {
                 .addComponent(jLabel5)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(accountsComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 35, Short.MAX_VALUE)
-                .addComponent(jLabel1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(addKeyWordTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(addKeyWordButton))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel2)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 131, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(createViewButton)
                     .addComponent(cancelButton))
@@ -227,25 +186,6 @@ public class CreateViewScreen extends javax.swing.JFrame {
     /*
      * When the add button is pressed to add key words to the current list
      */
-    private void addKeyWordButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addKeyWordButtonActionPerformed
-        String keyWord = addKeyWordTextField.getText();
-        //Only continue if there is something there!
-        if (keyWord.length() != 0)
-        {
-            ArrayList<String> tags = TagParser.getInstance().getTags(keyWord);
-            Iterator<String> tagIter = tags.iterator();
-            while (tagIter.hasNext())
-            {
-                //Only add if not already in set!
-                String currentWord = tagIter.next();
-                if (keyWords.add(currentWord)) 
-                {
-                    keyWordsTextArea.append(currentWord + "\n");
-                }
-            }
-        }
-    }//GEN-LAST:event_addKeyWordButtonActionPerformed
-
     /*
      * When the cancel button is pressed
      */
@@ -340,20 +280,14 @@ public class CreateViewScreen extends javax.swing.JFrame {
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JComboBox accountsComboBox;
-    private javax.swing.JButton addKeyWordButton;
-    private javax.swing.JTextField addKeyWordTextField;
     private javax.swing.JButton cancelButton;
     private javax.swing.JButton createViewButton;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
-    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSeparator jSeparator1;
-    private javax.swing.JTextArea keyWordsTextArea;
     private javax.swing.JTextField nameField;
     private javax.swing.JTextField queryField;
     // End of variables declaration//GEN-END:variables

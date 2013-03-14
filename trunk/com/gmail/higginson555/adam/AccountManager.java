@@ -67,7 +67,7 @@ public class AccountManager
                                 account.getIncoming(), 
                                 account.getOutgoing(), 
                                 account.getOutgoingPort()}; 
-        if (!database.selectFromTableWhere("Accounts", "username", "username='" + account.getUsername() + "'").isEmpty())
+        if (database.selectFromTableWhere("Accounts", "username", "username='" + account.getUsername() + "'").isEmpty())
         {
             database.insertRecord("Accounts", fieldNames, fieldValues);
             accounts.put(account.getUsername(), account);

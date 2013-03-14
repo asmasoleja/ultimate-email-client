@@ -27,6 +27,8 @@ import javax.swing.JOptionPane;
  */
 public class ComposeMailScreen extends javax.swing.JFrame {
 
+    private static final String SEPERATOR = "----------------------------------------------------------";
+
     private String username, password;
     //The session to use for this message
     private Session session;
@@ -72,19 +74,26 @@ public class ComposeMailScreen extends javax.swing.JFrame {
         this.setLocationRelativeTo(null);
     }
     
-    public ComposeMailScreen(Properties config, Session session,
+    public ComposeMailScreen(Properties config,
                              Part replyMessage, String replyTo, String recipients,
-                             String subject)
+                             String subject, ArrayList<String> tags)
     {
         this(config);
+        
         this.replyMessage = replyMessage;
         this.messageArea.setContentType("text/html");
+
+        DefaultListModel model = (DefaultListModel) tagList.getModel();
+        for (String tag : tags)
+        {
+            model.addElement(tag);
+        }
         try
         {
-            this.messageArea.setText(this.replyMessage.getContent().toString());
+            this.messageArea.setText(SEPERATOR + this.replyMessage.getContent().toString());
             this.toField.setText(replyTo);
             this.ccField.setText(recipients);
-            this.subjectField.setText(subject);
+            this.subjectField.setText("Re:" + subject);
         }
         catch (IOException ex)
         {

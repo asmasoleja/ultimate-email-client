@@ -35,20 +35,20 @@ public class UserDatabaseManager
     {
         Database database = new Database(databaseURL, username, password);
         
-        try
-        {
-            database.selectDatabase("User");
-        }
-        catch (SQLException ex)
-        {
         //try
         //{
+        //    database.selectDatabase("User");
+        //}
+        //catch (SQLException ex)
+        //{
+        try
+        {
             //LoadingScreen ls = new LoadingScreen("Please wait, creating database...");
             //ls.setVisible(true);
             //Create the User database
-            database.createDatabase("User");
-            database.selectDatabase("User");
-            //database.selectDatabase("S10_higgina0");
+            //database.createDatabase("User");
+            //database.selectDatabase("User");
+            database.selectDatabase("S10_higgina0");
             //ACCOUNT TABLE
             String accountTableSQL = 
                           "username varchar(255) NOT NULL,"
@@ -161,25 +161,12 @@ public class UserDatabaseManager
             //ls.dispose();
         //}
         }
-        //catch (SQLException ex)
-        //{
+        catch (SQLException ex)
+        {
             //Already created tables and stuff, just skip
-        //    System.out.println("Tables already created, skipping...");
-        //}
+            System.out.println("Tables already created, skipping...");
+        }
         
         return database;
-    }
-    
-    private Database createNewDatabase(Database currentDatabase) throws SQLException
-    {
-
-        currentDatabase.createDatabase("User");
-        String accountTableSQL = "accountID int NOT NULL AUTO_INCREMENT,"
-                                + "username varchar(255) NOT NULL,"
-                                + "password varchar(255) NOT NULL,"
-                                + "PRIMARY KEY(accountID)";
-        currentDatabase.createTable("Account", accountTableSQL);
-        
-        return currentDatabase;
     }
 }
