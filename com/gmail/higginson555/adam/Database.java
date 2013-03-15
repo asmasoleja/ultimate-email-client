@@ -280,7 +280,7 @@ public class Database
         }
         query += "?)";
         
-       //System.out.println("Query is: " + query);
+       System.out.println("Query is: " + query);
 
         PreparedStatement ps = connection.prepareStatement(query);
         for (int i = 0; i < fieldValues.length; i++)

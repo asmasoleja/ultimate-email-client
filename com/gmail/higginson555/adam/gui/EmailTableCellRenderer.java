@@ -8,6 +8,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import javax.swing.JTable;
@@ -64,18 +65,21 @@ public class EmailTableCellRenderer extends DefaultTableCellRenderer
                                     isSelected, hasFocus, row, column);
 
         if (tableData != null && !tableData.isEmpty() && tableData.get(row) != null)
-        {
-            boolean isRead = (Boolean) tableData.get(row)[12];
-            if (!isRead)
-            {
-                c.setFont(c.getFont().deriveFont(Font.BOLD));
-            }
-            
-            boolean isValidMessage = (Boolean) tableData.get(row)[11];
-            if (!isValidMessage)
-            {
-                c.setForeground(Color.red);
-            }
+        {            
+            //boolean isValidMessage = (Boolean) tableData.get(row)[11];
+            //System.out.println("For data: " + Arrays.toString(tableData.get(row)));
+            //if (!isValidMessage)
+           // {
+            //    c.setForeground(Color.red);
+            //}
+            //else
+            //{
+                boolean isRead = (Boolean) tableData.get(row)[12];
+                if (!isRead)
+                {
+                    c.setFont(c.getFont().deriveFont(Font.BOLD));
+                }
+            //}
         }
         
         //TODO

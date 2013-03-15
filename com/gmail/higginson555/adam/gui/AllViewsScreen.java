@@ -43,6 +43,9 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
     //The set of accounts which could not connect!
     private HashSet<Account> failedAccounts;
     
+    //Account downloader threads
+    private ArrayList<AccountMessageDownloader> downloaders;
+    
 
     /**
      * Creates new form AllViewsScreen
@@ -52,6 +55,7 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
         initComponents();
         try {
             accounts = AccountManager.getSingleton().getAllAccounts();
+            downloaders = new ArrayList<AccountMessageDownloader>(accounts.size());
             if (!accounts.isEmpty())
             {
                 for (Account account : accounts)
@@ -59,8 +63,8 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
                     try
                     {
                         AccountMessageDownloader amd = AccountMessageDownloader.getInstance(account);
-                        amd.addListener(this);
-                        ClientThreadPool.executorService.submit(amd);
+                        downloaders.add(amd);
+                        //ClientThreadPool.executorService.submit(amd);
                     }
                     catch (MessagingException ex)
                     {
@@ -75,7 +79,18 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
             System.exit(-1);
         } 
         //Build the tree, each account has a list of views
-        buildTree();  
+        buildTree();
+        startDownloaders();
+    }
+    
+    private void startDownloaders()
+    {
+        for (AccountMessageDownloader downloader : downloaders)
+        {
+            downloader.addListener(this);
+            ClientThreadPool.executorService.submit(downloader);
+        }
+            
     }
 
     /**
@@ -330,6 +345,7 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
                 Properties properties = System.getProperties();
                 properties.setProperty("mail.smtp.host", account.getOutgoing());
                 properties.setProperty("mail.smtp.port", Integer.toString(account.getOutgoingPort()));
+                System.out.println("Port: " + account.getOutgoingPort());
                 properties.setProperty("mail.smtp.starttls.enable", "true");
                 properties.setProperty("mail.smtp.auth", "true");
                 properties.setProperty("username", account.getUsername());
@@ -519,13 +535,13 @@ public class AllViewsScreen extends javax.swing.JFrame implements PropertyListen
         else if (name.equalsIgnoreCase("MessageManagerThreadStart"))
         {
             messageManagerThreads++;
-            System.out.println("Thread started, text should change? Threads: " + messageManagerThreads);
+            System.out.println("Thread started, text should change? Threads: " + messageManagerThreads + " class: " + source.getName());
             warningLabel.setText("State: Adding data to the local database, views may not work correctly!");
         }
         else if (name.equalsIgnoreCase("MessageManagerThreadFinished"))
         {
             messageManagerThreads--;
-            System.out.println("------------Thread finished! Thread count is now: " + messageManagerThreads + "\n\n");
+            System.out.println("------------Thread finished! Thread count is now: " + messageManagerThreads + " Source: " + source.getName() + "\n\n");
             if (messageManagerThreads == 0)
             {
                 warningLabel.setText("State: OK");
