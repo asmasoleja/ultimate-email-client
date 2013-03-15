@@ -329,9 +329,9 @@ public class AddAccountScreen extends javax.swing.JFrame {
             session.setDebug(true);
             store = session.getStore(account.getAccountType().toLowerCase());
             store.connect(account.getIncoming(), account.getUsername(), passwordString);
-            listener.onPropertyEvent(this.getClass(), "AddAccount", account);
             store.close();
             AccountManager.getSingleton().addAccount(account);  
+            listener.onPropertyEvent(this.getClass(), "AddAccount", account);
             this.dispose();
         } 
         catch (SQLException ex) 

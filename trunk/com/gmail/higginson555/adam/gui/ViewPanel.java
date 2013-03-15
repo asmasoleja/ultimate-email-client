@@ -345,6 +345,8 @@ public class ViewPanel extends javax.swing.JPanel implements PropertyListener
             int index = filterData.indexOf(oldData);
             System.out.println("Removed old data: " + filterData.remove(oldData));
             filterData.add(index, newMessageData);
+            JOptionPane.showMessageDialog(null, "Found message titled: " + (String) newMessageData[2], 
+                    "Found Message", JOptionPane.INFORMATION_MESSAGE);
         }
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables

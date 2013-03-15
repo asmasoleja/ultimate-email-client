@@ -86,15 +86,22 @@ public class AccountMessageDownloader extends Thread
     
     public void addListener(PropertyListener listener)
     {
-        listeners.add(listener);
+        System.out.println("Adding listener");
+        if (!listeners.contains(listener))
+        {
+            listeners.add(listener);
+        }
     }
     
     private void publishPropertyEvent(String name, Object value)
     {
-        for (PropertyListener listener : listeners)
-        {
-            listener.onPropertyEvent(this.getClass(), name, value);
-        }
+        //System.out.println("Listeners size: " + listeners.size());
+        //for (PropertyListener listener : listeners)
+        //{
+        PropertyListener listener = listeners.get(0);
+        System.out.println("Returning event: " + name + " with account: " + account);
+        listener.onPropertyEvent(this.getClass(), name, value);
+        //}
     }
     
     

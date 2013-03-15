@@ -93,7 +93,7 @@ public class ComposeMailScreen extends javax.swing.JFrame {
             this.messageArea.setText(SEPERATOR + this.replyMessage.getContent().toString());
             this.toField.setText(replyTo);
             this.ccField.setText(recipients);
-            this.subjectField.setText("Re:" + subject);
+            this.subjectField.setText(subject);
         }
         catch (IOException ex)
         {
@@ -120,7 +120,6 @@ public class ComposeMailScreen extends javax.swing.JFrame {
         subjectField = new javax.swing.JTextField();
         sendButton = new javax.swing.JButton();
         discardButton = new javax.swing.JButton();
-        saveButton = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         messageArea = new javax.swing.JEditorPane();
         jLabel3 = new javax.swing.JLabel();
@@ -136,10 +135,10 @@ public class ComposeMailScreen extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Compose Mail");
 
-        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 12));
+        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
         jLabel1.setText("To:");
 
-        jLabel2.setFont(new java.awt.Font("Tahoma", 1, 12));
+        jLabel2.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
         jLabel2.setText("Subject:");
 
         sendButton.setText("Send");
@@ -156,17 +155,15 @@ public class ComposeMailScreen extends javax.swing.JFrame {
             }
         });
 
-        saveButton.setText("Save");
-
         jScrollPane1.setViewportView(messageArea);
 
-        jLabel3.setFont(new java.awt.Font("DejaVu Sans", 1, 13));
+        jLabel3.setFont(new java.awt.Font("DejaVu Sans", 1, 13)); // NOI18N
         jLabel3.setText("CC:");
 
-        jLabel4.setFont(new java.awt.Font("DejaVu Sans", 1, 13));
+        jLabel4.setFont(new java.awt.Font("DejaVu Sans", 1, 13)); // NOI18N
         jLabel4.setText("BCC:");
 
-        jLabel5.setFont(new java.awt.Font("DejaVu Sans", 1, 13));
+        jLabel5.setFont(new java.awt.Font("DejaVu Sans", 1, 13)); // NOI18N
         jLabel5.setText("Tags:");
 
         tagList.setModel(new DefaultListModel()
@@ -187,7 +184,7 @@ public class ComposeMailScreen extends javax.swing.JFrame {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 1075, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
@@ -214,16 +211,14 @@ public class ComposeMailScreen extends javax.swing.JFrame {
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(sendButton)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(saveButton)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(discardButton)))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(addTagField, javax.swing.GroupLayout.PREFERRED_SIZE, 342, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(addTagButton, javax.swing.GroupLayout.DEFAULT_SIZE, 68, Short.MAX_VALUE))
-                            .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 422, Short.MAX_VALUE))))
+                                .addComponent(addTagButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                            .addComponent(jScrollPane2))))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -234,7 +229,6 @@ public class ComposeMailScreen extends javax.swing.JFrame {
                         .addContainerGap()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(sendButton)
-                            .addComponent(saveButton)
                             .addComponent(discardButton)))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(20, 20, 20)
@@ -402,7 +396,6 @@ public class ComposeMailScreen extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JEditorPane messageArea;
-    private javax.swing.JButton saveButton;
     private javax.swing.JButton sendButton;
     private javax.swing.JTextField subjectField;
     private javax.swing.JList tagList;

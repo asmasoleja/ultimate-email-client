@@ -9,6 +9,8 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.mail.Address;
 import javax.mail.FetchProfile;
 import javax.mail.Flags.Flag;
@@ -97,7 +99,7 @@ public class AccountMessageUpdater implements Runnable
                     for (Object[] line : result)
                     {
                         //Just get the first result, don't bother with the rest
-                        System.out.println("Result 0: " + result.get(0)[0]);
+                        //System.out.println("Result 0: " + result.get(0)[0]);
                         int folderID = (Integer) line[0];
                         long messageNo = (Long) line[1];
                         ArrayList<Object[]> folderResult = database.
@@ -118,7 +120,7 @@ public class AccountMessageUpdater implements Runnable
 
                         if (message != null)
                         {
-                            System.out.println("Message subject: " + message.getSubject());
+                            //System.out.println("Message subject: " + message.getSubject());
                             correctLine = line;
                             correctFolderID = folderID;
                             break;
@@ -504,7 +506,16 @@ public class AccountMessageUpdater implements Runnable
         }
         catch (MessagingException ex)
         {
-            JOptionPane.showMessageDialog(null, "Could not connect to IMAP server! " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            
+            if (!store.isConnected())
+            {
+                try {
+                    store.connect();
+                } catch (MessagingException ex1) {
+                    JOptionPane.showMessageDialog(null, "Could not connect to IMAP server! " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    Logger.getLogger(AccountMessageUpdater.class.getName()).log(Level.SEVERE, null, ex1);
+                }
+            }
             ex.printStackTrace();
         }
         catch (InterruptedException ex)
