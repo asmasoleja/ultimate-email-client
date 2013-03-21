@@ -47,7 +47,7 @@ public class AccountManager
      * @return The object representing the account created
      * @throws SQLException 
      */
-    public Account addAccount(String accountName, String accountPassword) throws SQLException
+    /*public Account addAccount(String accountName, String accountPassword) throws SQLException
     {
         Account account = new Account(accountName, accountPassword);
         String[] fieldNames = {"username", "password"};
@@ -57,7 +57,8 @@ public class AccountManager
         
         accounts.put(accountName, account);
         return account;
-    }
+    }*/
+    
     public void addAccount(Account account) throws SQLException, Exception
     {
         String[] fieldNames = {"username", "password", "accountType", "incoming", "outgoing", "outgoingPort"};
@@ -104,7 +105,7 @@ public class AccountManager
     
     public void removeAccount(Account account) throws SQLException
     {
-        database.deleteRecord("Accounts", "accountID=" + Integer.toString(account.getAccountID()));
+        database.deleteRecord("Accounts", "username='" + account.getUsername() + "'");
     }
     
     /**

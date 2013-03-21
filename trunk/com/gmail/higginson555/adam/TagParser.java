@@ -42,6 +42,11 @@ public class TagParser
         wordsToIgnore.add(word);
     }
     
+    public HashSet<String> getUnimportantWords()
+    {
+        return wordsToIgnore;
+    }
+    
     /**
      * Gets the 'tags' or key words for a given string
      * @param s The string to parse
