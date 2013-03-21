@@ -89,14 +89,14 @@ public class QueryParser
                 openBracketCount++;
                 //push bracket onto stack
                 stack.push(new QueryNode(QueryNodeType.NODE_OPEN_BRACKET, OPEN_BRACKET));
-                System.out.println("Adding: " + OPEN_BRACKET + " to stack");
+                //System.out.println("Adding: " + OPEN_BRACKET + " to stack");
                 //remove bracket from word
                 token = token.substring(1);
                 //First char is now the next character in the overall string
                 currentChar = token.charAt(0);            
             }
             
-            System.out.println("Found: " + openBracketCount + " open brackets!");
+            //System.out.println("Found: " + openBracketCount + " open brackets!");
             //Get word/operator on its own
             String withoutBrackets = removeBrackets(token);
             //push onto stack
@@ -130,7 +130,7 @@ public class QueryParser
                 wasOperator = false;
             }
             
-            System.out.println("Adding: " + withoutBrackets + " to stack");
+            //System.out.println("Adding: " + withoutBrackets + " to stack");
             
             //Now start working on any close brackets
             int index = token.indexOf(withoutBrackets) + withoutBrackets.length();
@@ -144,7 +144,7 @@ public class QueryParser
 
                 //System.out.println("Current char: " + currentChar);
                 //While we find a last bracket or are on the last word of all tokens
-                System.out.println("is is: " + i + " length -1 is: " + (tokens.length - 1));
+                //System.out.println("is is: " + i + " length -1 is: " + (tokens.length - 1));
                 while (currentChar == CLOSE_BRACKET || i == tokens.length - 1)
                 {
                     closeBracketCount++;
@@ -175,7 +175,7 @@ public class QueryParser
                     }
                 }
                 
-                System.out.println("Found: " + closeBracketCount + " close brackets!");
+                //System.out.println("Found: " + closeBracketCount + " close brackets!");
                 
 
             }
@@ -210,9 +210,9 @@ public class QueryParser
      */
     private void evaluate() throws QueryParseException, SQLException
     {
-        System.out.println("Evaluating stack at current state...");
-        printStack();
-        System.out.println();
+        //System.out.println("Evaluating stack at current state...");
+        //printStack();
+        //System.out.println();
         
         //The list of ids of messages already selected from the database
         ArrayList<Integer> selectedIDs = null;
@@ -265,10 +265,10 @@ public class QueryParser
         
         for (String tag : selectList)
         {
-            System.out.println("Tag found: " + tag);
+            //System.out.println("Tag found: " + tag);
         }        
         
-        System.out.println("With operator: " + operator);
+        //System.out.println("With operator: " + operator);
         
         //////////////////
         //No Operator found
@@ -314,7 +314,7 @@ public class QueryParser
                                 uidToMessageInfo.put(UID, msgInfo);
                             }
                         }
-                        System.out.println("Message IDs size: " + messageIDs.size());
+                        //System.out.println("Message IDs size: " + messageIDs.size());
                         stack.push(new QueryNode(QueryNodeType.NODE_MESSAGE_LIST, messageIDs));
                     }
                     else if (extensionOp.equalsIgnoreCase(MESSAGE_TO))
@@ -486,13 +486,13 @@ public class QueryParser
                 ArrayList<Object[]> result = database.selectFromTableWhere("Tags", "tagID", "tagValue='" + tag + "'");
                 if (!result.isEmpty())
                 {
-                    System.out.println("Found tagID: " + result.get(0)[0] + " for tag: " + tag);
+                    //System.out.println("Found tagID: " + result.get(0)[0] + " for tag: " + tag);
                     int tagID = (Integer) result.get(0)[0];
                     tagIDs.add(tagID);
                 }
                 else
                 {
-                    System.out.println("No tagID found for tag: " + tag);
+                    //System.out.println("No tagID found for tag: " + tag);
                     //Just add empty list and return
                     stack.push(new QueryNode(QueryNodeType.NODE_MESSAGE_LIST, selectedIDs));
                     return;
@@ -533,7 +533,7 @@ public class QueryParser
 
                         //System.out.println("Where SQL: " + whereSQL);
                         result = database.selectFromTableWhere("MessagesToTags", "messageID", whereSQL);
-                        System.out.println("Where sql: " + whereSQL + " result size: " + result.size() + " tagID size: " + tagIDs.size());
+                        //System.out.println("Where sql: " + whereSQL + " result size: " + result.size() + " tagID size: " + tagIDs.size());
                         //if messagesToTags found is equal to the number of tags,
                         //we have found a message
                         if (result.size() == tagIDs.size())

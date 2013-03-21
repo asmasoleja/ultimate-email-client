@@ -280,7 +280,7 @@ public class Database
         }
         query += "?)";
         
-       System.out.println("Query is: " + query);
+       //System.out.println("Query is: " + query);
 
         PreparedStatement ps = connection.prepareStatement(query);
         for (int i = 0; i < fieldValues.length; i++)
@@ -296,7 +296,7 @@ public class Database
             }
             else if (fieldValues[i] instanceof java.util.Date)
             {
-                System.out.println("Found date!");
+                //System.out.println("Found date!");
                 java.util.Date date = (java.util.Date) fieldValues[i];
                 Timestamp ts = new Timestamp(date.getTime());
                 ps.setTimestamp(i + 1, ts);
@@ -306,7 +306,7 @@ public class Database
             }
             
             //System.out.print("Field value type: " + fieldValues[i].getClass().getName() + ", ");
-            System.out.println("Field value: " + fieldValues[i]);
+            //System.out.println("Field value: " + fieldValues[i]);
             //ps.addBatch();
     
         }
@@ -327,7 +327,7 @@ public class Database
     {
         Statement update = connection.createStatement();
         String sql = "UPDATE " + tableName + " SET " + setSQL + " WHERE " + whereSQL;
-        System.out.println("Query is: " + sql);
+        //System.out.println("Query is: " + sql);
         update.execute(sql);
         update.close();
     }
